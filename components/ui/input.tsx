@@ -1,0 +1,12 @@
+import { forwardRef, type InputHTMLAttributes } from "react";
+
+import { cn } from "@/lib/ui/cn";
+
+export const Input = forwardRef<
+  HTMLInputElement,
+  InputHTMLAttributes<HTMLInputElement>
+>(({ className, ...props }, ref) => (
+  <input ref={ref} className={cn("text-input", className)} {...props} />
+));
+
+Input.displayName = "Input";

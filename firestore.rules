@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owns(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function shortString(value, maximum) {
+      return value is string && value.size() > 0 && value.size() <= maximum;
+    }
+
+    function optionalString(data, key, maximum) {
+      return !(key in data) ||
+        (data[key] is string && data[key].size() <= maximum);
+    }
+
+    function validProfile(data, userId) {
+      return data.keys().hasAll([
+          'id', 'displayName', 'avatarUrl', 'bio', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'displayName', 'avatarUrl', 'bio', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id == userId &&
+        shortString(data.displayName, 80) &&
+        (data.avatarUrl == null ||
+          (data.avatarUrl is string && data.avatarUrl.size() <= 2048)) &&
+        data.bio is string && data.bio.size() <= 280 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function validLocation(location) {
+      return location is map &&
+        location.keys().hasAll(['latitude', 'longitude', 'placeName']) &&
+        location.keys().hasOnly(['latitude', 'longitude', 'placeName']) &&
+        location.latitude is number &&
+        location.latitude >= -90 && location.latitude <= 90 &&
+        location.longitude is number &&
+        location.longitude >= -180 && location.longitude <= 180 &&
+        shortString(location.placeName, 160);
+    }
+
+    function validWeapon(weapon) {
+      return weapon is map &&
+        shortString(weapon.model, 120) &&
+        ((weapon.type == 'rifle' &&
+            weapon.keys().hasAll(['type', 'model', 'caliber']) &&
+            weapon.keys().hasOnly(['type', 'model', 'caliber']) &&
+            shortString(weapon.caliber, 80)) ||
+          (weapon.type == 'bow' &&
+            weapon.keys().hasAll(['type', 'model', 'bowType']) &&
+            weapon.keys().hasOnly(['type', 'model', 'bowType']) &&
+            shortString(weapon.bowType, 80)));
+    }
+
+    function validAmmunition(ammunition) {
+      return ammunition is map &&
+        ammunition.keys().hasAll(['grain']) &&
+        ammunition.keys().hasOnly(['grain', 'brand', 'detail']) &&
+        ammunition.grain is number &&
+        ammunition.grain > 0 && ammunition.grain <= 2000 &&
+        optionalString(ammunition, 'brand', 100) &&
+        optionalString(ammunition, 'detail', 160);
+    }
+
+    function validBounds(bounds) {
+      return bounds is map &&
+        bounds.keys().hasAll(['south', 'west', 'north', 'east']) &&
+        bounds.keys().hasOnly(['south', 'west', 'north', 'east']) &&
+        bounds.south is number && bounds.south >= -90 && bounds.south <= 90 &&
+        bounds.north is number && bounds.north >= -90 && bounds.north <= 90 &&
+        bounds.west is number && bounds.west >= -180 && bounds.west <= 180 &&
+        bounds.east is number && bounds.east >= -180 && bounds.east <= 180 &&
+        bounds.south <= bounds.north;
+    }
+
+    function validRoute(route, userId, killId) {
+      return route is map &&
+        route.keys().hasAll([
+          'storagePath', 'fileName', 'distanceKm', 'durationMin', 'bounds',
+          'sourceHash'
+        ]) &&
+        route.keys().hasOnly([
+          'storagePath', 'fileName', 'distanceKm', 'durationMin', 'bounds',
+          'sourceHash'
+        ]) &&
+        shortString(route.storagePath, 512) &&
+        route.storagePath.matches(
+          '^users/' + userId + '/kills/' + killId + '/routes/[^/]+[.]gpx$'
+        ) &&
+        shortString(route.fileName, 180) &&
+        route.distanceKm is number && route.distanceKm >= 0 &&
+        (route.durationMin == null ||
+          (route.durationMin is number && route.durationMin >= 0)) &&
+        validBounds(route.bounds) &&
+        shortString(route.sourceHash, 128);
+    }
+
+    function validKill(data, userId, killId) {
+      return data.keys().hasAll([
+          'id', 'ownerId', 'species', 'coverMediaId', 'media', 'country',
+          'date', 'killTime', 'location', 'weapon', 'ammunition', 'route',
+          'description', 'status', 'createdAt', 'updatedAt', 'trashedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'ownerId', 'species', 'coverMediaId', 'media', 'country',
+          'date', 'killTime', 'location', 'weapon', 'ammunition', 'route',
+          'description', 'status', 'createdAt', 'updatedAt', 'trashedAt'
+        ]) &&
+        data.id == killId &&
+        data.ownerId == userId &&
+        shortString(data.species, 120) &&
+        (data.coverMediaId == null || shortString(data.coverMediaId, 128)) &&
+        data.media is list && data.media.size() <= 30 &&
+        shortString(data.country, 100) &&
+        data.date is string &&
+        data.date.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+        data.killTime is string &&
+        data.killTime.matches('^([01]\\d|2[0-3]):[0-5]\\d$') &&
+        validLocation(data.location) &&
+        validWeapon(data.weapon) &&
+        validAmmunition(data.ammunition) &&
+        (data.route == null || validRoute(data.route, userId, killId)) &&
+        data.description is string && data.description.size() <= 5000 &&
+        data.status in ['draft', 'active', 'trashed'] &&
+        (data.status == 'draft' || data.coverMediaId is string) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp &&
+        ((data.status == 'trashed' && data.trashedAt is timestamp) ||
+          (data.status != 'trashed' && data.trashedAt == null));
+    }
+
+    match /users/{userId} {
+      allow read: if owns(userId);
+      allow create: if owns(userId) &&
+        validProfile(request.resource.data, userId);
+      allow update: if owns(userId) &&
+        validProfile(request.resource.data, userId) &&
+        request.resource.data.id == resource.data.id &&
+        request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+
+      match /kills/{killId} {
+        allow read: if owns(userId);
+        allow create: if owns(userId) &&
+          validKill(request.resource.data, userId, killId);
+        allow update: if owns(userId) &&
+          validKill(request.resource.data, userId, killId) &&
+          request.resource.data.id == resource.data.id &&
+          request.resource.data.ownerId == resource.data.ownerId &&
+          request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if false;
+      }
+    }
+  }
+}

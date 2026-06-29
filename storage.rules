@@ -1,0 +1,54 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function owns(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isImage(maximumBytes) {
+      return request.resource != null &&
+        request.resource.size > 0 &&
+        request.resource.size <= maximumBytes &&
+        request.resource.contentType is string &&
+        request.resource.contentType.matches('image/.*');
+    }
+
+    function isVideo(maximumBytes) {
+      return request.resource != null &&
+        request.resource.size > 0 &&
+        request.resource.size <= maximumBytes &&
+        request.resource.contentType is string &&
+        request.resource.contentType.matches('video/.*');
+    }
+
+    function isGpx(fileName) {
+      return request.resource != null &&
+        request.resource.size > 0 &&
+        request.resource.size <= 10 * 1024 * 1024 &&
+        fileName.matches('.*[.]gpx') &&
+        request.resource.contentType is string &&
+        request.resource.contentType.matches(
+          'application/gpx[+]xml|application/xml|text/xml|application/octet-stream'
+        );
+    }
+
+    match /users/{userId}/avatars/{fileName} {
+      allow read: if owns(userId);
+      allow create, update: if owns(userId) && isImage(15 * 1024 * 1024);
+      allow delete: if false;
+    }
+
+    match /users/{userId}/kills/{killId}/media/{fileName} {
+      allow read: if owns(userId);
+      allow create, update: if owns(userId) &&
+        (isImage(15 * 1024 * 1024) || isVideo(250 * 1024 * 1024));
+      allow delete: if false;
+    }
+
+    match /users/{userId}/kills/{killId}/routes/{fileName} {
+      allow read: if owns(userId);
+      allow create, update: if owns(userId) && isGpx(fileName);
+      allow delete: if false;
+    }
+  }
+}

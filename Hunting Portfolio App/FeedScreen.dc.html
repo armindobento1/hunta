@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:absolute;inset:0;background:{{ pageBg }};">
+  <!-- scroll content -->
+  <div style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <!-- profile header -->
+    <div style="padding:64px 20px 0;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <image-slot id="hp_avatar" shape="circle" fit="cover" placeholder="You" style="flex:none;display:block;width:74px;height:74px;box-shadow:0 1px 4px rgba(0,0,0,0.12);"></image-slot>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:24px;font-weight:700;letter-spacing:-0.5px;color:{{ text }};">Marcus Halvorsen</div>
+          <div style="margin-top:2px;font-size:14px;color:{{ muted }};">Rifle &amp; bow · hunting since 2016</div>
+        </div>
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:{{ chipBg }};display:flex;align-items:center;justify-content:center;gap:2.5px;">
+          <span style="width:3.5px;height:3.5px;border-radius:50%;background:{{ muted }};"></span>
+          <span style="width:3.5px;height:3.5px;border-radius:50%;background:{{ muted }};"></span>
+          <span style="width:3.5px;height:3.5px;border-radius:50%;background:{{ muted }};"></span>
+        </div>
+      </div>
+      <div style="margin-top:13px;font-size:14.5px;line-height:1.42;color:{{ body }};">Plains game, Highland stags, and Rocky Mountain elk. Fair chase, every time.</div>
+      <!-- stats -->
+      <div style="margin-top:18px;display:flex;align-items:center;">
+        <div><div style="font-size:21px;font-weight:700;letter-spacing:-0.3px;color:{{ text }};">24</div><div style="margin-top:1px;font-size:12.5px;color:{{ muted }};">Animals</div></div>
+        <div style="width:1px;height:30px;background:{{ sep }};margin:0 20px;"></div>
+        <div><div style="font-size:21px;font-weight:700;letter-spacing:-0.3px;color:{{ text }};">5</div><div style="margin-top:1px;font-size:12.5px;color:{{ muted }};">Countries</div></div>
+        <div style="width:1px;height:30px;background:{{ sep }};margin:0 20px;"></div>
+        <div><div style="font-size:21px;font-weight:700;letter-spacing:-0.3px;color:{{ text }};">312<span style="font-size:13px;font-weight:600;color:{{ muted }};"> km</span></div><div style="margin-top:1px;font-size:12.5px;color:{{ muted }};">Walked</div></div>
+      </div>
+      <!-- segmented -->
+      <div style="margin-top:18px;padding:2px;background:{{ segTrack }};border-radius:9px;display:flex;">
+        <div style="flex:1;text-align:center;padding:6px 0;border-radius:7px;background:{{ segActiveBg }};box-shadow:{{ segShadow }};font-size:13px;font-weight:600;color:{{ segActiveText }};">Feed</div>
+        <div style="flex:1;text-align:center;padding:6px 0;border-radius:7px;font-size:13px;font-weight:500;color:{{ muted }};">By Location</div>
+      </div>
+    </div>
+    <!-- view toggle -->
+    <div style="padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:13px;font-weight:500;color:{{ muted }};">24 animals</span>
+      <div style="display:flex;padding:2px;background:{{ segTrack }};border-radius:8px;gap:0;">
+        <div onClick="{{ setList }}" style="width:34px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:{{ listBg }};box-shadow:{{ listShadow }};">
+          <div style="display:flex;flex-direction:column;gap:3px;width:15px;">
+            <span style="height:2.5px;border-radius:2px;background:{{ listIcon }};"></span><span style="height:2.5px;border-radius:2px;background:{{ listIcon }};"></span><span style="height:2.5px;border-radius:2px;background:{{ listIcon }};"></span>
+          </div>
+        </div>
+        <div onClick="{{ setGrid }}" style="width:34px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:{{ gridBg }};box-shadow:{{ gridShadow }};">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5px;width:14px;height:14px;"><span style="background:{{ gridIcon }};border-radius:1.5px;"></span><span style="background:{{ gridIcon }};border-radius:1.5px;"></span><span style="background:{{ gridIcon }};border-radius:1.5px;"></span><span style="background:{{ gridIcon }};border-radius:1.5px;"></span></div>
+        </div>
+      </div>
+    </div>
+    <!-- feed: list -->
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:14px 16px 0;display:flex;flex-direction:column;gap:16px;">
+        <dc-import name="KillCard" variant="overlay" mode="{{ mode }}" slot="feed_kudu" species="Greater Kudu" place="Eastern Cape, South Africa" date="12 Jun 2025" cal=".300 WIN" hint-size="358px,300px"></dc-import>
+        <dc-import name="KillCard" variant="overlay" mode="{{ mode }}" slot="feed_elk" species="Rocky Mountain Elk" place="Bitterroot, Montana" date="5 Oct 2024" cal="BOW" hint-size="358px,300px"></dc-import>
+        <dc-import name="KillCard" variant="overlay" mode="{{ mode }}" slot="feed_stag" species="Red Stag" place="Highlands, Scotland" date="28 Sep 2024" cal=".308 WIN" hint-size="358px,300px"></dc-import>
+      </div>
+    </sc-if>
+    <!-- feed: grid -->
+    <sc-if value="{{ isGrid }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <dc-import name="KillCard" variant="grid" mode="{{ mode }}" slot="feed_kudu" species="Greater Kudu" date="12 Jun 2025" cal=".300" hint-size="166px,158px"></dc-import>
+        <dc-import name="KillCard" variant="grid" mode="{{ mode }}" slot="feed_elk" species="Elk" date="5 Oct 2024" cal="BOW" hint-size="166px,158px"></dc-import>
+        <dc-import name="KillCard" variant="grid" mode="{{ mode }}" slot="feed_stag" species="Red Stag" date="28 Sep 2024" cal=".308" hint-size="166px,158px"></dc-import>
+        <dc-import name="KillCard" variant="grid" mode="{{ mode }}" slot="feed_gemsbok" species="Gemsbok" date="3 Jul 2023" cal=".30-06" hint-size="166px,158px"></dc-import>
+        <dc-import name="KillCard" variant="grid" mode="{{ mode }}" slot="feed_roe" species="Roe Deer" date="14 May 2024" cal=".243" hint-size="166px,158px"></dc-import>
+        <dc-import name="KillCard" variant="grid" mode="{{ mode }}" slot="feed_mule" species="Mule Deer" date="19 Oct 2023" cal="BOW" hint-size="166px,158px"></dc-import>
+      </div>
+    </sc-if>
+    <div style="height:104px;"></div>
+  </div>
+  <!-- tab bar -->
+  <div style="position:absolute;left:0;right:0;bottom:0;height:84px;background:{{ frost }};backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);border-top:0.5px solid {{ sep }};display:flex;align-items:flex-start;justify-content:space-around;padding-top:9px;z-index:20;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:21px;height:21px;"><span style="background:{{ accent }};border-radius:3px;"></span><span style="background:{{ accent }};border-radius:3px;"></span><span style="background:{{ accent }};border-radius:3px;"></span><span style="background:{{ accent }};border-radius:3px;"></span></div>
+      <span style="font-size:10px;font-weight:600;color:{{ accent }};">Portfolio</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;margin-top:-4px;">
+      <div style="width:52px;height:52px;border-radius:50%;background:{{ accentBtn }};box-shadow:0 6px 16px {{ accentShadow }};display:flex;align-items:center;justify-content:center;">
+        <div style="position:relative;width:22px;height:22px;"><span style="position:absolute;top:50%;left:0;right:0;height:2.5px;margin-top:-1.25px;background:#fff;border-radius:2px;"></span><span style="position:absolute;left:50%;top:0;bottom:0;width:2.5px;margin-left:-1.25px;background:#fff;border-radius:2px;"></span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+      <div style="position:relative;width:24px;height:21px;display:flex;align-items:flex-end;justify-content:center;"><span style="position:absolute;top:0;width:9px;height:9px;border-radius:50%;background:{{ tabIdle }};"></span><span style="width:17px;height:11px;border-radius:9px 9px 3px 3px;background:{{ tabIdle }};"></span></div>
+      <span style="font-size:10px;font-weight:500;color:{{ tabIdle }};">Profile</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { view: 'list' };
+  renderVals() {
+    const dark = this.props.mode === 'dark';
+    const isList = this.state.view === 'list';
+    const activeBg = dark ? '#636366' : '#FFFFFF';
+    const activeShadow = dark ? 'none' : '0 1px 3px rgba(0,0,0,0.14)';
+    const onIcon = dark ? '#FFFFFF' : '#1C1C1E';
+    const offIcon = dark ? '#8E8E93' : '#8E8E93';
+    return {
+      isList,
+      isGrid: !isList,
+      setList: () => this.setState({ view: 'list' }),
+      setGrid: () => this.setState({ view: 'grid' }),
+      listBg: isList ? activeBg : 'transparent',
+      gridBg: isList ? 'transparent' : activeBg,
+      listShadow: isList ? activeShadow : 'none',
+      gridShadow: isList ? 'none' : activeShadow,
+      listIcon: isList ? onIcon : offIcon,
+      gridIcon: isList ? offIcon : onIcon,
+      mode: this.props.mode || 'light',
+      pageBg: dark ? '#000000' : '#FFFFFF',
+      text: dark ? '#FFFFFF' : '#1C1C1E',
+      body: dark ? '#C7C7CC' : '#3C3C43',
+      muted: dark ? '#98989F' : '#8E8E93',
+      sep: dark ? 'rgba(84,84,88,0.55)' : 'rgba(60,60,67,0.13)',
+      chipBg: dark ? '#1C1C1E' : '#EFEFF4',
+      segTrack: dark ? 'rgba(118,118,128,0.24)' : 'rgba(118,118,128,0.12)',
+      segActiveBg: dark ? '#636366' : '#FFFFFF',
+      segActiveText: dark ? '#FFFFFF' : '#1C1C1E',
+      segShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.06)',
+      frost: dark ? 'rgba(20,20,22,0.72)' : 'rgba(255,255,255,0.8)',
+      accent: dark ? '#6FBF8C' : '#1F3D2B',
+      accentBtn: dark ? '#2E7D4F' : '#1F3D2B',
+      accentShadow: dark ? 'rgba(46,125,79,0.45)' : 'rgba(31,61,43,0.32)',
+      tabIdle: dark ? '#7C7C82' : '#9A9AA0',
+    };
+  }
+}
+</script>
+</body>
+</html>

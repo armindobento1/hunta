@@ -1,0 +1,45 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+/dist
+
+# misc
+.DS_Store
+*.pem
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env
+.env*.local
+
+# vercel
+.vercel
+
+# local design and Firebase tooling
+.superpowers/
+.firebase/
+emulator-data/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+coverage/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# vault session logs / backups (token sinks — keep out of context, optional to ignore)
+vault/**/*.backup.md
