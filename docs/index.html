@@ -1,1155 +1,412 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hunting Portfolio — Instagram × Strava for Serious Hunters</title>
-  <meta name="description" content="The private portfolio for serious hunters. Log every kill with weapon details, GPX routes, satellite maps, and photo galleries. Your hunting legacy, beautifully documented." />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hunta — Every great hunt has a story</title>
+  <meta name="description" content="Hunta gives every hunter a place to preserve the complete journey — species, place, equipment, route, and the story behind every hunt. Keep your records private or publish the hunts you choose." />
+  <meta property="og:title" content="Hunta — Every great hunt has a story" />
+  <meta property="og:description" content="The private portfolio for serious hunters. Preserve the complete journey behind every hunt." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="logo/head-amber.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #09090A; }
+    a { text-decoration: none; }
 
     :root {
-      --bg:       #09090A;
-      --bg-card:  #111210;
-      --green:    #2E5C16;
-      --green-lt: #4A8A28;
-      --amber:    #D97706;
-      --amber-lt: #F59E0B;
-      --brown:    #3B1D08;
-      --text:     #F0EAE0;
-      --muted:    #9A9080;
-      --border:   rgba(255,255,255,0.07);
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 16px;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    /* ── NAV ─────────────────────────────────────────── */
-    nav {
-      position: fixed;
-      top: 1rem;
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(calc(100% - 2rem), 1100px);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: .75rem 1.5rem;
-      background: rgba(9,9,10,0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      z-index: 50;
-    }
-
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: .55rem;
-      font-weight: 600;
-      font-size: .95rem;
-      letter-spacing: .02em;
-      text-decoration: none;
-      color: var(--text);
-    }
-
-    .nav-logo svg { color: var(--amber); }
-
-    nav ul {
-      display: flex;
-      gap: 2rem;
-      list-style: none;
-    }
-
-    nav ul a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: .875rem;
-      font-weight: 500;
-      transition: color 200ms;
-    }
-
-    nav ul a:hover { color: var(--text); }
-
-    .nav-cta {
-      background: var(--green);
-      color: var(--text) !important;
-      padding: .45rem 1.1rem;
-      border-radius: 999px;
-      font-size: .875rem !important;
-      font-weight: 600 !important;
-      transition: background 200ms !important;
-    }
-
-    .nav-cta:hover { background: var(--green-lt) !important; color: #fff !important; }
-
-    /* ── HERO ─────────────────────────────────────────── */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 8rem 1.5rem 5rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* radial forest glow background */
-    .hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 50% at 50% 30%, rgba(46,92,22,0.22) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 60% at 80% 80%, rgba(217,119,6,0.08) 0%, transparent 60%);
-      pointer-events: none;
-    }
-
-    /* subtle topographic texture */
-    .hero::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.018) 40px),
-        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.018) 40px);
-      pointer-events: none;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: .4rem;
-      background: rgba(217,119,6,0.12);
-      border: 1px solid rgba(217,119,6,0.3);
-      color: var(--amber-lt);
-      font-size: .78rem;
-      font-weight: 600;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      padding: .35rem .9rem;
-      border-radius: 999px;
-      margin-bottom: 2rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-badge .dot {
-      width: 6px; height: 6px;
-      background: var(--amber);
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: .5; transform: scale(.7); }
-    }
-
-    .hero h1 {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: clamp(2.8rem, 7vw, 5.5rem);
-      font-weight: 900;
-      line-height: 1.08;
-      letter-spacing: -.02em;
-      position: relative;
-      z-index: 1;
-      max-width: 820px;
-      margin-bottom: 1.25rem;
-    }
-
-    .hero h1 .accent { color: var(--amber); }
-
-    .hero p {
-      font-size: clamp(1rem, 2.2vw, 1.2rem);
-      color: var(--muted);
-      max-width: 520px;
-      margin: 0 auto 2.5rem;
-      position: relative;
-      z-index: 1;
-      font-weight: 400;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: .5rem;
-      background: var(--green);
-      color: #fff;
-      font-weight: 600;
-      font-size: .95rem;
-      padding: .8rem 1.75rem;
-      border-radius: 8px;
-      text-decoration: none;
-      transition: background 200ms, transform 150ms;
-      cursor: pointer;
-    }
-
-    .btn-primary:hover { background: var(--green-lt); transform: translateY(-1px); }
-
-    .btn-ghost {
-      display: inline-flex;
-      align-items: center;
-      gap: .5rem;
-      background: transparent;
-      color: var(--muted);
-      font-weight: 500;
-      font-size: .95rem;
-      padding: .8rem 1.75rem;
-      border-radius: 8px;
-      text-decoration: none;
-      border: 1px solid var(--border);
-      transition: color 200ms, border-color 200ms, transform 150ms;
-      cursor: pointer;
-    }
-
-    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.18); transform: translateY(-1px); }
-
-    /* ── HERO MOCKUP CARD ──────────────────────────────── */
-    .hero-card {
-      margin-top: 4rem;
-      width: min(100%, 680px);
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background: rgba(17,18,16,0.85);
-      backdrop-filter: blur(24px);
-      position: relative;
-      z-index: 1;
-      box-shadow:
-        0 0 0 1px rgba(255,255,255,0.04),
-        0 40px 80px rgba(0,0,0,0.6),
-        0 0 80px rgba(46,92,22,0.12);
-    }
-
-    .card-bar {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      padding: .75rem 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .card-bar .dot-r { width:10px; height:10px; border-radius:50%; background:#FF5F57; }
-    .card-bar .dot-y { width:10px; height:10px; border-radius:50%; background:#FEBC2E; }
-    .card-bar .dot-g { width:10px; height:10px; border-radius:50%; background:#28C840; }
-    .card-bar-title {
-      flex: 1;
-      text-align: center;
-      font-size: .75rem;
-      color: var(--muted);
-      margin-left: -2.5rem;
-    }
-
-    .card-body {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .card-kill {
-      padding: 1.25rem;
-      border-right: 1px solid var(--border);
-    }
-
-    .kill-photo {
-      width: 100%;
-      aspect-ratio: 4/3;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #1a1a14;
-      margin-bottom: 1rem;
-      position: relative;
-    }
-
-    /* SVG mountain silhouette */
-    .kill-photo-inner {
-      width: 100%;
-      height: 100%;
-      background:
-        linear-gradient(180deg, #0d1a09 0%, #1a2e0e 50%, #0d1205 100%);
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    .kill-meta { display: flex; flex-direction: column; gap: .4rem; }
-    .kill-species {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-
-    .kill-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .35rem;
-    }
-
-    .tag {
-      font-size: .68rem;
-      font-weight: 600;
-      letter-spacing: .04em;
-      padding: .2rem .55rem;
-      border-radius: 999px;
-    }
-
-    .tag-green { background: rgba(46,92,22,0.4); color: #7ABA44; border: 1px solid rgba(122,186,68,0.25); }
-    .tag-amber { background: rgba(217,119,6,0.25); color: var(--amber-lt); border: 1px solid rgba(217,119,6,0.3); }
-    .tag-muted { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); }
-
-    .kill-stat { font-size: .75rem; color: var(--muted); }
-    .kill-stat strong { color: var(--text); font-weight: 600; }
-
-    .card-map {
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .map-label { font-size: .7rem; color: var(--muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
-
-    .map-view {
-      flex: 1;
-      border-radius: 8px;
-      overflow: hidden;
-      min-height: 120px;
-      background:
-        linear-gradient(180deg, #0B1A0B 0%, #0F2010 60%, #091409 100%);
-      position: relative;
-    }
-
-    /* GPX route line SVG overlay */
-    .map-route {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    .stat-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .5rem;
-    }
-
-    .stat-box {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: .6rem .75rem;
-    }
-
-    .stat-box .label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-    .stat-box .value { font-size: 1rem; font-weight: 600; margin-top: .1rem; }
-    .stat-box .value.green { color: #7ABA44; }
-    .stat-box .value.amber { color: var(--amber-lt); }
-
-    /* ── SECTION COMMONS ───────────────────────────────── */
-    section { padding: 6rem 1.5rem; }
-
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .section-label {
-      display: inline-block;
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--amber);
-      margin-bottom: .75rem;
-    }
-
-    .section-title {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: clamp(2rem, 4.5vw, 3rem);
-      font-weight: 900;
-      line-height: 1.1;
-      margin-bottom: 1rem;
-    }
-
-    .section-sub {
-      color: var(--muted);
-      font-size: 1.05rem;
-      max-width: 500px;
-      line-height: 1.65;
-    }
-
-    /* ── FEATURES ──────────────────────────────────────── */
-    #features { background: var(--bg); }
-
-    .features-header {
-      text-align: center;
-      margin-bottom: 4rem;
-    }
-
-    .features-header .section-sub { margin: 0 auto; }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .feature-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.75rem;
-      transition: border-color 250ms, transform 200ms, box-shadow 250ms;
-      cursor: default;
-    }
-
-    .feature-card:hover {
-      border-color: rgba(46,92,22,0.4);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(46,92,22,0.15);
-    }
-
-    .feature-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1.1rem;
-    }
-
-    .icon-green { background: rgba(46,92,22,0.3); color: #7ABA44; }
-    .icon-amber { background: rgba(217,119,6,0.2); color: var(--amber-lt); }
-    .icon-brown { background: rgba(59,29,8,0.5); color: #C48A3F; }
-    .icon-slate { background: rgba(255,255,255,0.06); color: var(--muted); }
-
-    .feature-card h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin-bottom: .5rem;
-    }
-
-    .feature-card p {
-      font-size: .875rem;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    /* ── HOW IT WORKS ──────────────────────────────────── */
-    #how {
-      background: linear-gradient(180deg, var(--bg) 0%, rgba(46,92,22,0.05) 50%, var(--bg) 100%);
-    }
-
-    .how-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 5rem;
-      align-items: center;
-    }
-
-    .steps { display: flex; flex-direction: column; gap: 0; }
-
-    .step {
-      display: flex;
-      gap: 1.25rem;
-      padding: 1.5rem 0;
-      border-bottom: 1px solid var(--border);
-      opacity: .5;
-      transition: opacity 200ms;
-    }
-
-    .step:first-child { padding-top: 0; }
-    .step:last-child { border-bottom: none; }
-    .step:hover { opacity: 1; }
-
-    .step-num {
-      flex-shrink: 0;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: rgba(46,92,22,0.25);
-      border: 1px solid rgba(46,92,22,0.4);
-      color: #7ABA44;
-      font-size: .8rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .step-content h4 {
-      font-weight: 600;
-      margin-bottom: .3rem;
-      font-size: .95rem;
-    }
-
-    .step-content p {
-      font-size: .83rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* phone mockup */
-    .phone-wrap {
-      display: flex;
-      justify-content: center;
-      perspective: 1000px;
-    }
-
-    .phone {
-      width: min(280px, 100%);
-      border-radius: 36px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: #0D0D0D;
-      box-shadow:
-        0 0 0 6px rgba(255,255,255,0.04),
-        0 40px 80px rgba(0,0,0,0.7),
-        0 0 60px rgba(46,92,22,0.08);
-      overflow: hidden;
-      transform: rotateY(-8deg) rotateX(4deg);
-    }
-
-    .phone-notch {
-      height: 28px;
-      background: #0D0D0D;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .phone-notch-pill {
-      width: 70px;
-      height: 10px;
-      background: #1a1a1a;
-      border-radius: 999px;
-    }
-
-    .phone-screen {
-      background: var(--bg);
-      min-height: 420px;
-      padding: .75rem;
-      display: flex;
-      flex-direction: column;
-      gap: .6rem;
-    }
-
-    .phone-topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: .25rem .25rem .5rem;
-    }
-
-    .phone-topbar-title {
-      font-family: 'Playfair Display', serif;
-      font-size: .85rem;
-      font-weight: 700;
-    }
-
-    .phone-stat {
-      font-size: .65rem;
-      color: var(--muted);
-      background: rgba(255,255,255,0.05);
-      padding: .2rem .5rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-    }
-
-    .mini-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .mini-photo {
-      height: 75px;
-      background: linear-gradient(135deg, #0d1a09 0%, #1E3512 100%);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .mini-photo-2 {
-      background: linear-gradient(135deg, #1a0d09 0%, #351818 100%);
-    }
-
-    .mini-info {
-      padding: .5rem .65rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .mini-species { font-size: .75rem; font-weight: 600; }
-    .mini-date { font-size: .62rem; color: var(--muted); }
-    .mini-badge {
-      font-size: .58rem;
-      font-weight: 700;
-      padding: .15rem .4rem;
-      border-radius: 999px;
-      background: rgba(46,92,22,0.35);
-      color: #7ABA44;
-      border: 1px solid rgba(122,186,68,0.2);
-    }
-
-    /* ── PRIVACY STRIP ─────────────────────────────────── */
-    #privacy {
-      padding: 3rem 1.5rem;
-      background: rgba(59,29,8,0.08);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .privacy-inner {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 3rem;
-      flex-wrap: wrap;
-      text-align: center;
-    }
-
-    .privacy-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: .4rem;
-    }
-
-    .privacy-item svg { color: var(--amber); }
-    .privacy-item strong { font-size: .95rem; font-weight: 600; }
-    .privacy-item span { font-size: .78rem; color: var(--muted); }
-
-    /* ── CTA ───────────────────────────────────────────── */
-    #cta {
-      background: var(--bg);
-      padding: 8rem 1.5rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    #cta::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(46,92,22,0.15) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    #cta .section-title { margin-bottom: 1rem; position: relative; z-index: 1; }
-    #cta .section-sub { margin: 0 auto 2.5rem; position: relative; z-index: 1; }
-    #cta .btn-primary { position: relative; z-index: 1; font-size: 1rem; padding: .9rem 2.25rem; }
-
-    /* ── FOOTER ────────────────────────────────────────── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem 1.5rem;
-      text-align: center;
-      color: var(--muted);
-      font-size: .8rem;
-    }
-
-    footer a { color: var(--muted); text-decoration: none; }
-    footer a:hover { color: var(--text); }
-
-    /* ── SCROLL REVEAL ─────────────────────────────────── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(28px);
-      transition: opacity 600ms ease, transform 600ms ease;
-    }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* stagger children */
-    .reveal-stagger > * {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 500ms ease, transform 500ms ease;
-    }
-
-    .reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:translateY(0); transition-delay: 0ms; }
-    .reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:translateY(0); transition-delay: 100ms; }
-    .reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:translateY(0); transition-delay: 200ms; }
-    .reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:translateY(0); transition-delay: 300ms; }
-
-    @media (prefers-reduced-motion: reduce) {
-      .reveal, .reveal-stagger > * { opacity: 1; transform: none; transition: none; }
-    }
-
-    /* ── RESPONSIVE ────────────────────────────────────── */
-    @media (max-width: 768px) {
-      nav ul { display: none; }
-      .card-body { grid-template-columns: 1fr; }
-      .card-kill { border-right: none; border-bottom: 1px solid var(--border); }
-      .how-inner { grid-template-columns: 1fr; gap: 3rem; }
-      .phone { transform: none; }
-    }
-
-    @media (max-width: 480px) {
-      section { padding: 4rem 1.25rem; }
-      .hero { padding: 7rem 1.25rem 4rem; }
+      --bg:#09090A; --bg-card:#111210; --green:#2E5C16; --green-lt:#4A8A28;
+      --amber:#D97706; --amber-lt:#F59E0B; --text:#F0EAE0; --muted:#9A9080; --dim:#7d7464;
+    }
+
+    @keyframes huntaPulse{0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 0 0 rgba(217,119,6,0.5);}50%{opacity:0.7;transform:scale(0.9);box-shadow:0 0 0 7px rgba(217,119,6,0);}}
+    @keyframes huntaPin{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
+    @keyframes huntaDash{to{stroke-dashoffset:-26;}}
+
+    /* image placeholders (no photography yet) */
+    .ph{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;
+      background:linear-gradient(145deg,#161812,#0d0f0c 70%);
+      background-image:linear-gradient(145deg,#161812,#0d0f0c 70%),
+        repeating-linear-gradient(135deg,rgba(255,255,255,0.018) 0,rgba(255,255,255,0.018) 1px,transparent 1px,transparent 9px);
+      overflow:hidden;}
+    .ph::after{content:"";position:absolute;inset:0;
+      background:radial-gradient(ellipse at 30% 25%,rgba(46,92,22,0.16),transparent 60%),
+                 radial-gradient(ellipse at 75% 80%,rgba(217,119,6,0.10),transparent 55%);}
+    .ph-label{position:relative;z-index:1;font-size:10.5px;font-weight:500;letter-spacing:0.6px;
+      color:#5d564a;padding:6px 10px;line-height:1.35;}
+
+    /* link hovers (replaces dc style-hover) */
+    .nav-link{font-size:13.5px;color:var(--muted);white-space:nowrap;transition:color .15s;}
+    .nav-link:hover{color:var(--text);}
+    .btn-green{background:var(--green);color:var(--text);transition:background .15s,transform .15s;}
+    .btn-green:hover{background:var(--green-lt);transform:translateY(-1px);}
+    .btn-ghost{border:1px solid rgba(255,255,255,0.16);color:var(--text);transition:border-color .15s,transform .15s;}
+    .btn-ghost:hover{border-color:rgba(255,255,255,0.34);transform:translateY(-1px);}
+    .species-chip{padding:8px 16px;border-radius:999px;border:1px solid rgba(255,255,255,0.1);
+      background:var(--bg-card);font-size:13px;color:#C5BBAA;transition:border-color .15s,color .15s;}
+    .species-chip:hover{border-color:rgba(217,119,6,0.4);color:var(--text);}
+    .foot-link{font-size:13px;color:var(--muted);transition:color .15s;}
+    .foot-link:hover{color:var(--text);}
+
+    @media(max-width:860px){
+      .nav-links{display:none !important;}
+      .two-col{grid-template-columns:1fr !important;}
+      .pf-grid{grid-template-columns:1fr !important;}
+      .frag-grid{grid-template-columns:repeat(2,1fr) !important;}
     }
   </style>
 </head>
 <body>
+<div style="position:relative;background:#09090A;color:#F0EAE0;font-family:Inter,sans-serif;overflow-x:hidden;">
+
+  <!-- film grain -->
+  <div style="position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0.05;mix-blend-mode:overlay;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
 
   <!-- NAV -->
-  <nav aria-label="Main navigation">
-    <a href="#" class="nav-logo" aria-label="Hunting Portfolio home">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
-      </svg>
-      Hunting Portfolio
+  <nav style="position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:26px;padding:9px 11px 9px 18px;background:rgba(9,9,10,0.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.07);border-radius:999px;box-shadow:0 10px 36px rgba(0,0,0,0.45);max-width:calc(100vw - 32px);">
+    <a href="#top" style="display:flex;align-items:center;gap:9px;flex:none;">
+      <img src="logo/head-amber.svg" alt="Hunta" style="display:block;width:28px;height:24px;object-fit:contain;" />
+      <span style="font-family:'Playfair Display',serif;font-weight:800;font-size:20px;letter-spacing:0.3px;color:#F0EAE0;">Hunta</span>
     </a>
-    <ul>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#how">How It Works</a></li>
-      <li><a href="https://github.com/armindobento1/fieldnote-hunting-portfolio" target="_blank" rel="noopener">GitHub</a></li>
-      <li><a href="#cta" class="nav-cta">Get Started</a></li>
-    </ul>
+    <div class="nav-links" style="display:flex;align-items:center;gap:22px;">
+      <a href="#story" class="nav-link">The Story</a>
+      <a href="#portfolio" class="nav-link">Your Portfolio</a>
+      <a href="#explore" class="nav-link">Explore Hunts</a>
+      <a href="#armory" class="nav-link">Armory</a>
+      <a href="#community" class="nav-link">Community</a>
+    </div>
+    <a href="#create" class="btn-green" style="flex:none;padding:9px 17px;border-radius:999px;font-size:13.5px;font-weight:600;white-space:nowrap;">Create Your Portfolio</a>
   </nav>
 
   <!-- HERO -->
-  <section class="hero" aria-labelledby="hero-heading">
-    <div class="hero-badge">
-      <span class="dot" aria-hidden="true"></span>
-      Private Beta — Season 2026
-    </div>
+  <header id="top" style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+    <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;"><span class="ph-label">Cinematic landscape — hunter above a valley at first light</span></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,10,0.96) 0%,rgba(9,9,10,0.55) 42%,rgba(9,9,10,0.35) 70%,rgba(9,9,10,0.6) 100%);"></div>
+    <div style="position:absolute;inset:0;pointer-events:none;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.02) 0,rgba(255,255,255,0.02) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(255,255,255,0.02) 0,rgba(255,255,255,0.02) 1px,transparent 1px,transparent 40px);"></div>
+    <div style="position:absolute;top:18%;left:50%;transform:translateX(-50%);width:min(1000px,90vw);height:640px;pointer-events:none;background:radial-gradient(ellipse at center,rgba(46,92,22,0.26) 0%,transparent 66%);"></div>
 
-    <h1 id="hero-heading">
-      Your kills.<br />
-      Your <span class="accent">legacy</span>.
-    </h1>
+    <div style="position:relative;z-index:3;max-width:900px;margin:0 auto;padding:110px 32px 60px;width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;">
+      <img src="logo/head-light.svg" alt="Hunta" style="display:block;width:clamp(120px,16vw,190px);height:auto;object-fit:contain;filter:drop-shadow(0 10px 34px rgba(0,0,0,0.65));" />
+      <span style="margin-top:10px;font-family:'Playfair Display',serif;font-weight:800;font-size:clamp(24px,3vw,34px);letter-spacing:10px;color:#C9CDD4;text-transform:uppercase;">Hunta</span>
 
-    <p>
-      The private hunting portfolio for serious hunters. Every kill documented with weapon data, GPX routes, satellite maps, and full media galleries.
-    </p>
-
-    <div class="hero-actions">
-      <a href="https://github.com/armindobento1/fieldnote-hunting-portfolio" target="_blank" rel="noopener" class="btn-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
-        </svg>
-        View on GitHub
-      </a>
-      <a href="#features" class="btn-ghost">
-        See Features
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </a>
-    </div>
-
-    <!-- Browser-style card mockup -->
-    <div class="hero-card" aria-hidden="true">
-      <div class="card-bar">
-        <span class="dot-r"></span>
-        <span class="dot-y"></span>
-        <span class="dot-g"></span>
-        <span class="card-bar-title">My Hunting Portfolio — 2026</span>
+      <div style="margin-top:30px;display:inline-flex;align-items:center;gap:9px;padding:7px 15px 7px 13px;border:1px solid rgba(255,255,255,0.1);border-radius:999px;background:rgba(9,9,10,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);">
+        <span style="width:7px;height:7px;border-radius:50%;background:#D97706;animation:huntaPulse 2.4s ease-in-out infinite;"></span>
+        <span style="font-size:11px;font-weight:600;letter-spacing:2.5px;color:#C9BFAE;">THE WORLD'S HUNTING STORIES, PRESERVED</span>
       </div>
-      <div class="card-body">
-        <!-- Kill record -->
-        <div class="card-kill">
-          <div class="kill-photo">
-            <div class="kill-photo-inner">
-              <!-- SVG scene: silhouette of a deer in forest at dusk -->
-              <svg width="100%" height="100%" viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice">
-                <!-- Sky gradient -->
-                <defs>
-                  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#0B1F0B"/>
-                    <stop offset="70%" stop-color="#1A3510"/>
-                    <stop offset="100%" stop-color="#0d1a09"/>
-                  </linearGradient>
-                  <linearGradient id="glow" cx="50%" cy="40%" r="50%" fx="50%" fy="40%">
-                    <stop offset="0%" stop-color="#D97706" stop-opacity="0.18"/>
-                    <stop offset="100%" stop-color="#D97706" stop-opacity="0"/>
-                  </linearGradient>
-                  <radialGradient id="glow" cx="50%" cy="35%" r="50%">
-                    <stop offset="0%" stop-color="#D97706" stop-opacity="0.22"/>
-                    <stop offset="100%" stop-color="#D97706" stop-opacity="0"/>
-                  </radialGradient>
-                </defs>
-                <rect width="400" height="300" fill="url(#sky)"/>
-                <ellipse cx="200" cy="100" rx="120" ry="80" fill="url(#glow)"/>
-                <!-- Moon -->
-                <circle cx="320" cy="55" r="18" fill="#D4C89A" opacity="0.45"/>
-                <!-- Stars -->
-                <circle cx="60" cy="30" r="1.2" fill="white" opacity="0.6"/>
-                <circle cx="150" cy="20" r="1" fill="white" opacity="0.5"/>
-                <circle cx="280" cy="40" r="1.4" fill="white" opacity="0.55"/>
-                <circle cx="90" cy="55" r="1" fill="white" opacity="0.4"/>
-                <circle cx="350" cy="25" r="1.1" fill="white" opacity="0.5"/>
-                <!-- Tree line bg -->
-                <path d="M0 200 Q50 140 80 180 Q100 130 130 160 Q160 110 180 150 Q200 120 220 145 Q250 105 270 160 Q300 130 330 165 Q360 125 400 160 L400 300 L0 300Z" fill="#0B1F09" opacity="0.9"/>
-                <!-- Tree line mid -->
-                <path d="M0 220 Q30 170 55 200 Q80 155 110 185 Q140 160 165 190 Q190 165 210 185 Q240 160 265 185 Q290 160 320 185 Q350 165 400 185 L400 300 L0 300Z" fill="#0A1A08"/>
-                <!-- Ground -->
-                <path d="M0 255 Q100 240 200 248 Q300 242 400 252 L400 300 L0 300Z" fill="#070F06"/>
-                <!-- Deer silhouette (simplified) -->
-                <g transform="translate(155,185)" fill="#040A03">
-                  <!-- Body -->
-                  <ellipse cx="25" cy="45" rx="26" ry="15"/>
-                  <!-- Head -->
-                  <ellipse cx="48" cy="28" rx="10" ry="8"/>
-                  <!-- Neck -->
-                  <path d="M40 35 Q44 30 48 28 Q44 38 40 42Z"/>
-                  <!-- Legs -->
-                  <rect x="10" y="57" width="5" height="22" rx="2"/>
-                  <rect x="20" y="57" width="5" height="22" rx="2"/>
-                  <rect x="33" y="57" width="5" height="20" rx="2"/>
-                  <rect x="43" y="57" width="5" height="20" rx="2"/>
-                  <!-- Antlers -->
-                  <path d="M46 20 L44 8 L40 3" stroke="#040A03" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                  <path d="M50 20 L52 8 L56 2" stroke="#040A03" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                  <path d="M44 8 L47 4" stroke="#040A03" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                  <path d="M52 8 L49 5" stroke="#040A03" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                </g>
-              </svg>
+
+      <h1 style="margin-top:24px;font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(2.8rem,6.5vw,5.6rem);line-height:1.04;letter-spacing:-1.5px;color:#F0EAE0;">Every great hunt has a <span style="color:#D97706;font-style:italic;">story.</span></h1>
+
+      <p style="max-width:600px;margin:26px auto 0;font-size:18px;font-weight:300;line-height:1.65;color:#C5BBAA;">Hunta gives every hunter a place to preserve the complete journey — from the first step before sunrise to the photographs, equipment, landscape, and memories that remain.</p>
+
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:34px;flex-wrap:wrap;">
+        <a href="#create" class="btn-green" style="padding:15px 28px;border-radius:8px;font-size:15px;font-weight:600;box-shadow:0 8px 26px rgba(46,92,22,0.4);">Create Your Portfolio</a>
+        <a href="#story" class="btn-ghost" style="display:inline-flex;align-items:center;gap:9px;padding:15px 24px;border-radius:8px;font-size:15px;font-weight:500;">Explore the Vision <span style="display:inline-block;width:7px;height:7px;border-right:1.5px solid #9A9080;border-bottom:1.5px solid #9A9080;transform:rotate(45deg);margin-bottom:2px;"></span></a>
+      </div>
+
+      <p style="margin-top:22px;font-size:13px;font-weight:300;color:#7d7464;">Keep your records private or publish the hunts you choose.</p>
+    </div>
+  </header>
+
+  <!-- OPENING STORY -->
+  <section id="story" style="position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:130px 32px 0;">
+    <div style="max-width:760px;">
+      <div style="font-size:11.5px;font-weight:600;letter-spacing:2.5px;color:#D97706;">THE BELIEF</div>
+      <h2 style="margin-top:18px;font-family:'Playfair Display',serif;font-weight:800;font-size:clamp(2.2rem,4.5vw,3.4rem);line-height:1.12;letter-spacing:-0.5px;color:#F0EAE0;">More than a photograph.</h2>
+      <p style="margin-top:24px;font-size:19px;font-weight:300;line-height:1.72;color:#9A9080;">A hunt is never only the final moment. It is the preparation, the people, the weather, the walk, the equipment, the landscape, and the decisions made along the way. Hunta brings every part of that experience together in <span style="color:#F0EAE0;font-weight:400;">one permanent record.</span></p>
+    </div>
+
+    <div class="frag-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:48px;">
+      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">boots in wet grass</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">Before sunrise</div></div>
+      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">route on a topo map</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">The route</div></div>
+      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">rifle / bow ready</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">Preparation</div></div>
+      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">distant landscape</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">The country</div></div>
+      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">field photograph</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">The moment</div></div>
+      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">journal entry</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">Afterward</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:22px;color:#7d7464;font-size:13px;font-weight:300;">
+      <span style="flex:none;width:7px;height:7px;border-radius:50%;background:#2E5C16;"></span>
+      <span style="height:1px;flex:1;background:linear-gradient(90deg,rgba(74,138,40,0.5),rgba(217,119,6,0.5));"></span>
+      <span style="white-space:nowrap;">Six fragments. One complete hunt.</span>
+      <span style="flex:none;width:9px;height:9px;border-radius:50%;background:#D97706;"></span>
+    </div>
+  </section>
+
+  <!-- PORTFOLIO -->
+  <section id="portfolio" style="position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:130px 32px 0;">
+    <div style="max-width:720px;">
+      <div style="font-size:11.5px;font-weight:600;letter-spacing:2.5px;color:#D97706;">YOUR PORTFOLIO</div>
+      <h2 style="margin-top:18px;font-family:'Playfair Display',serif;font-weight:800;font-size:clamp(2.1rem,4.3vw,3.2rem);line-height:1.13;letter-spacing:-0.5px;color:#F0EAE0;">Your life in the field,<br>documented properly.</h2>
+      <p style="margin-top:22px;font-size:17px;font-weight:300;line-height:1.7;color:#9A9080;">Build a personal portfolio that grows with every season. Each hunt becomes a complete chapter — not another photograph lost in your camera roll.</p>
+    </div>
+
+    <div style="margin-top:46px;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;background:#111210;box-shadow:0 40px 90px rgba(0,0,0,0.55);">
+      <div class="pf-grid" style="display:grid;grid-template-columns:1.4fr 1fr;">
+        <div style="position:relative;border-right:1px solid rgba(255,255,255,0.06);">
+          <div class="ph" style="display:block;width:100%;height:430px;"><span class="ph-label">Cover photograph — the hunt</span></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,10,0.85),transparent 45%);pointer-events:none;"></div>
+          <div style="position:absolute;left:20px;right:20px;bottom:96px;">
+            <div style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;background:rgba(46,92,22,0.85);backdrop-filter:blur(6px);">
+              <span style="width:6px;height:6px;border-radius:50%;background:#7bbf4f;"></span>
+              <span style="font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;">PUBLISHED CHAPTER</span>
             </div>
+            <div style="margin-top:12px;font-family:'Playfair Display',serif;font-size:30px;font-weight:800;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,0.6);">Mountain Reedbuck</div>
+            <div style="margin-top:3px;font-size:13.5px;color:#D8CFBE;">Sneeuberg, South Africa · 14 May 2026</div>
           </div>
-          <div class="kill-meta">
-            <div class="kill-species">Red Deer — Cervus elaphus</div>
-            <div class="kill-tags">
-              <span class="tag tag-green">Rifle</span>
-              <span class="tag tag-amber">.308 Win · 168gr</span>
-              <span class="tag tag-muted">Norway</span>
-            </div>
-            <div class="kill-stat">
-              <strong>Oct 14, 2025</strong> · 06:42 · 380m elevation
-            </div>
-            <div class="kill-stat">Browning X-Bolt · Federal Gold Medal</div>
+          <div style="position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;">
+            <div class="ph" style="display:block;width:100%;height:74px;border-radius:8px;"><span class="ph-label">photo</span></div>
+            <div class="ph" style="display:block;width:100%;height:74px;border-radius:8px;"><span class="ph-label">photo</span></div>
+            <div class="ph" style="display:block;width:100%;height:74px;border-radius:8px;"><span class="ph-label">photo</span></div>
+            <div class="ph" style="display:block;width:100%;height:74px;border-radius:8px;"><span class="ph-label">video</span></div>
           </div>
         </div>
+        <div style="padding:22px 24px;">
+          <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;letter-spacing:1.5px;color:#9A9080;">THE RECORD</div>
+          <div style="margin-top:14px;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="font-size:12px;font-weight:500;color:#7d7464;text-transform:uppercase;white-space:nowrap;">Species</span><span style="font-size:13.5px;font-weight:500;color:#F0EAE0;text-align:right;">Mountain Reedbuck</span></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="font-size:12px;font-weight:500;color:#7d7464;text-transform:uppercase;white-space:nowrap;">Country · Farm</span><span style="font-size:13.5px;font-weight:500;color:#F0EAE0;text-align:right;">South Africa · Sneeuberg</span></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="font-size:12px;font-weight:500;color:#7d7464;text-transform:uppercase;white-space:nowrap;">Date · Time</span><span style="font-size:13.5px;font-weight:500;color:#F0EAE0;text-align:right;font-family:ui-monospace,monospace;">14 May 2026 · 07:12</span></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="font-size:12px;font-weight:500;color:#7d7464;text-transform:uppercase;white-space:nowrap;">Weapon</span><span style="font-size:13.5px;font-weight:500;color:#F0EAE0;text-align:right;">Sako S20 · .300 Win Mag</span></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="font-size:12px;font-weight:500;color:#7d7464;text-transform:uppercase;white-space:nowrap;">Ammunition</span><span style="font-size:13.5px;font-weight:500;color:#F0EAE0;text-align:right;">Norma Bondstrike 180gr</span></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="font-size:12px;font-weight:500;color:#7d7464;text-transform:uppercase;white-space:nowrap;">Optics</span><span style="font-size:13.5px;font-weight:500;color:#F0EAE0;text-align:right;">Swarovski Z8i 2–16×50</span></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="font-size:12px;font-weight:500;color:#7d7464;text-transform:uppercase;white-space:nowrap;">Distance · Duration</span><span style="font-size:13.5px;font-weight:500;color:#F0EAE0;text-align:right;font-family:ui-monospace,monospace;">6.4 km · 3h 48m</span></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="font-size:12px;font-weight:500;color:#7d7464;text-transform:uppercase;white-space:nowrap;">Coordinates</span><span style="font-size:13.5px;font-weight:500;color:#F0EAE0;text-align:right;font-family:ui-monospace,monospace;">31.84°S 24.71°E</span></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;"><span style="font-size:12px;font-weight:500;color:#7d7464;text-transform:uppercase;white-space:nowrap;">Status</span><span style="font-size:13.5px;font-weight:500;text-align:right;color:#7bbf4f;">Published</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:18px;font-size:13.5px;font-weight:300;color:#7d7464;max-width:620px;">A portfolio page, not an administrative dashboard. The facts live around the photography like annotations in a field journal — every detail in its place.</p>
+  </section>
 
-        <!-- Satellite map -->
-        <div class="card-map">
-          <div class="map-label">GPX Route</div>
-          <div class="map-view">
-            <svg class="map-route" viewBox="0 0 260 160" xmlns="http://www.w3.org/2000/svg">
-              <!-- Satellite tiles (green terrain blocks) -->
-              <rect width="260" height="160" fill="#0B1A09"/>
-              <!-- Terrain patches -->
-              <rect x="0" y="0" width="70" height="55" fill="#0D1F0A" rx="1"/>
-              <rect x="72" y="0" width="85" height="40" fill="#0F2210" rx="1"/>
-              <rect x="159" y="0" width="101" height="65" fill="#0D1C08" rx="1"/>
-              <rect x="0" y="57" width="55" height="60" fill="#112508" rx="1"/>
-              <rect x="57" y="42" width="65" height="75" fill="#0E200A" rx="1"/>
-              <rect x="124" y="67" width="80" height="55" fill="#112206" rx="1"/>
-              <rect x="200" y="67" width="60" height="55" fill="#0D1B08" rx="1"/>
-              <rect x="0" y="119" width="260" height="41" fill="#0B1806" rx="1"/>
-              <!-- River/path features -->
-              <path d="M30 0 Q45 30 35 60 Q28 85 40 120 Q50 145 60 160" stroke="#1a3a12" stroke-width="8" fill="none" opacity="0.5"/>
-              <!-- GPX route -->
-              <polyline
-                points="20,130 35,118 48,105 60,95 72,88 85,80 95,72 108,65 118,58 132,52 145,47 158,44 170,50 180,58 190,67 198,78 205,88 210,98 212,108"
-                stroke="#7ABA44"
-                stroke-width="2.5"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-dasharray="4 2"
-              />
-              <!-- Start marker -->
-              <circle cx="20" cy="130" r="5" fill="#4A8A28"/>
-              <circle cx="20" cy="130" r="3" fill="#7ABA44"/>
-              <!-- Kill marker -->
-              <circle cx="212" cy="108" r="7" fill="rgba(217,119,6,0.3)"/>
-              <circle cx="212" cy="108" r="5" fill="#D97706"/>
-              <circle cx="212" cy="108" r="3" fill="#F59E0B"/>
-            </svg>
+  <!-- STORY DETAIL -->
+  <section style="position:relative;z-index:2;margin-top:130px;">
+    <div style="position:relative;height:560px;">
+      <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;"><span class="ph-label">Greater Kudu — cinematic cover photograph, Eastern Cape</span></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,10,0.95) 4%,rgba(9,9,10,0.3) 50%,rgba(9,9,10,0.55) 100%);"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;max-width:1180px;margin:0 auto;padding:0 32px 50px;">
+        <div style="font-size:11.5px;font-weight:600;letter-spacing:2.5px;color:#D97706;">A HUNT, PRESERVED</div>
+        <h2 style="margin-top:14px;font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(2.6rem,6vw,4.6rem);line-height:1.02;letter-spacing:-1px;color:#fff;text-shadow:0 2px 30px rgba(0,0,0,0.5);">Greater Kudu</h2>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;color:#D8CFBE;font-size:14px;">
+          <span style="display:inline-flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:#D97706;animation:huntaPin 1.8s ease-in-out infinite;"></span>Eastern Cape, South Africa</span>
+          <span style="color:#7d7464;">·</span>
+          <span>Baviaans Lodge</span>
+          <span style="color:#7d7464;">·</span>
+          <span style="font-style:italic;font-family:'Playfair Display',serif;">Tragelaphus strepsiceros</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col" style="max-width:1180px;margin:0 auto;padding:48px 32px 0;display:grid;grid-template-columns:1.5fr 1fr;gap:48px;align-items:start;">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;letter-spacing:1px;color:#9A9080;">FROM THE JOURNAL</div>
+        <p style="margin-top:20px;font-family:'Playfair Display',serif;font-size:clamp(1.5rem,2.6vw,2rem);font-weight:500;font-style:italic;line-height:1.45;color:#F0EAE0;">"We began moving before the first light reached the valley. The wind had changed twice before we found the tracks…"</p>
+        <p style="margin-top:24px;font-size:16px;font-weight:300;line-height:1.75;color:#9A9080;">By the time the sun cleared the ridge we had closed to under two hundred metres, the bull quartering away through the spekboom. What Hunta keeps is not the trophy alone — it is the cold of that first hour, the ground we covered, and the people who were there to see it.</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:30px;">
+          <div class="ph" style="display:block;width:100%;height:130px;border-radius:10px;"><span class="ph-label">first light</span></div>
+          <div class="ph" style="display:block;width:100%;height:130px;border-radius:10px;"><span class="ph-label">the stalk</span></div>
+          <div class="ph" style="display:block;width:100%;height:130px;border-radius:10px;"><span class="ph-label">the moment</span></div>
+        </div>
+      </div>
+
+      <aside style="display:flex;flex-direction:column;gap:18px;">
+        <div style="position:relative;border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;background:#0c0f0c;height:190px;">
+          <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.9;"><span class="ph-label">satellite terrain</span></div>
+          <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.05) 0,rgba(255,255,255,0.05) 1px,transparent 1px,transparent 22px),repeating-linear-gradient(90deg,rgba(255,255,255,0.05) 0,rgba(255,255,255,0.05) 1px,transparent 1px,transparent 22px);"></div>
+          <svg viewBox="0 0 320 190" style="position:absolute;inset:0;width:100%;height:100%;">
+            <path d="M40 160 C90 150 70 110 120 100 S190 80 210 60 250 50 270 40" fill="none" stroke="#4A8A28" stroke-width="2.5" stroke-dasharray="7 6" style="animation:huntaDash 1.4s linear infinite;"/>
+            <circle cx="40" cy="160" r="6" fill="#2E5C16" stroke="#7bbf4f" stroke-width="2"/>
+            <circle cx="270" cy="40" r="7" fill="#D97706" stroke="#F59E0B" stroke-width="2"/>
+          </svg>
+          <div style="position:absolute;left:12px;bottom:11px;display:flex;gap:14px;font-family:ui-monospace,monospace;font-size:11px;color:#F0EAE0;text-shadow:0 1px 4px rgba(0,0,0,0.8);">
+            <span><span style="color:#7bbf4f;">●</span> 6.4 km</span>
+            <span><span style="color:#F59E0B;">●</span> 3h 48m</span>
           </div>
-          <div class="stat-row">
-            <div class="stat-box">
-              <div class="label">Distance</div>
-              <div class="value green">8.4 km</div>
-            </div>
-            <div class="stat-box">
-              <div class="label">Duration</div>
-              <div class="value amber">3h 22m</div>
-            </div>
-          </div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.08);border-radius:14px;background:#111210;padding:6px 18px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:11.5px;font-weight:500;color:#7d7464;text-transform:uppercase;">Weapon</span><span style="font-size:13px;font-weight:500;color:#F0EAE0;text-align:right;">Sako S20</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:11.5px;font-weight:500;color:#7d7464;text-transform:uppercase;">Calibre</span><span style="font-size:13px;font-weight:500;color:#F0EAE0;text-align:right;">.300 Win Mag</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:11.5px;font-weight:500;color:#7d7464;text-transform:uppercase;">Optic</span><span style="font-size:13px;font-weight:500;color:#F0EAE0;text-align:right;">Swarovski Z8i</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:11.5px;font-weight:500;color:#7d7464;text-transform:uppercase;">Shot distance</span><span style="font-size:13px;font-weight:500;color:#F0EAE0;text-align:right;">186 m</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:11.5px;font-weight:500;color:#7d7464;text-transform:uppercase;">Conditions</span><span style="font-size:13px;font-weight:500;color:#F0EAE0;text-align:right;">Clear · 6°C</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:11px 0;"><span style="font-size:11.5px;font-weight:500;color:#7d7464;text-transform:uppercase;">Status</span><span style="font-size:13px;font-weight:500;color:#F0EAE0;text-align:right;">Published</span></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ARMORY -->
+  <section id="armory" style="position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:130px 32px 0;">
+    <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;">
+      <div>
+        <div style="font-size:11.5px;font-weight:600;letter-spacing:2.5px;color:#D97706;">THE ARMORY</div>
+        <h2 style="margin-top:18px;font-family:'Playfair Display',serif;font-weight:800;font-size:clamp(2rem,4vw,3rem);line-height:1.14;letter-spacing:-0.5px;color:#F0EAE0;">Know the setup behind every hunt.</h2>
+        <p style="margin-top:22px;font-size:16.5px;font-weight:300;line-height:1.7;color:#9A9080;">Save your weapons, bows, optics, suppressors, bipods, slings, and ammunition. Build reusable loadouts once, then select the complete setup when documenting a hunt.</p>
+        <div style="margin-top:24px;padding:16px 18px;border-left:2px solid #D97706;background:rgba(217,119,6,0.06);border-radius:0 8px 8px 0;">
+          <p style="font-size:14.5px;font-weight:300;line-height:1.6;color:#C5BBAA;">The equipment record stays attached to the hunt as a <span style="color:#F0EAE0;">factual snapshot</span> — even if your armory changes later.</p>
+        </div>
+      </div>
+
+      <div style="border:1px solid rgba(255,255,255,0.08);border-radius:16px;background:#111210;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,0.5);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <span style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#F0EAE0;">Highland Loadout</span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.5px;color:#7bbf4f;padding:4px 10px;border-radius:999px;background:rgba(46,92,22,0.2);">SAVED</span>
+        </div>
+        <div class="ph" style="position:relative;height:150px;border-bottom:1px solid rgba(255,255,255,0.06);"><span class="ph-label">rifle / bow profile photo</span></div>
+        <div style="padding:6px 18px 14px;">
+          <div style="display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:#7d7464;width:78px;flex:none;text-transform:uppercase;">Rifle</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#F0EAE0;">Sako S20</span><span style="width:7px;height:7px;border-radius:50%;background:#2E5C16;flex:none;"></span></div>
+          <div style="display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:#7d7464;width:78px;flex:none;text-transform:uppercase;">Calibre</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#F0EAE0;">.300 Win Mag</span><span style="width:7px;height:7px;border-radius:50%;background:#2E5C16;flex:none;"></span></div>
+          <div style="display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:#7d7464;width:78px;flex:none;text-transform:uppercase;">Optic</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#F0EAE0;">Swarovski Z8i 2–16×50</span><span style="width:7px;height:7px;border-radius:50%;background:#2E5C16;flex:none;"></span></div>
+          <div style="display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:#7d7464;width:78px;flex:none;text-transform:uppercase;">Suppressor</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#F0EAE0;">A-Tec H2</span><span style="width:7px;height:7px;border-radius:50%;background:#2E5C16;flex:none;"></span></div>
+          <div style="display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:#7d7464;width:78px;flex:none;text-transform:uppercase;">Bipod</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#F0EAE0;">Spartan Javelin</span><span style="width:7px;height:7px;border-radius:50%;background:#2E5C16;flex:none;"></span></div>
+          <div style="display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:#7d7464;width:78px;flex:none;text-transform:uppercase;">Sling</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#F0EAE0;">Niggeloh</span><span style="width:7px;height:7px;border-radius:50%;background:#2E5C16;flex:none;"></span></div>
+          <div style="display:flex;align-items:center;gap:13px;padding:11px 0;"><span style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:#7d7464;width:78px;flex:none;text-transform:uppercase;">Ammunition</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#F0EAE0;">Norma Bondstrike 180gr</span><span style="width:7px;height:7px;border-radius:50%;background:#2E5C16;flex:none;"></span></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- FEATURES -->
-  <section id="features">
-    <div class="container">
-      <div class="features-header reveal">
-        <span class="section-label">Core features</span>
-        <h2 class="section-title">Built for the serious hunter</h2>
-        <p class="section-sub">Every detail of every hunt, exactly as it happened. No estimates, no fabrication.</p>
+  <!-- ROUTE & PLACE -->
+  <section id="explore" style="position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:130px 32px 0;">
+    <div style="max-width:680px;margin-bottom:42px;">
+      <div style="font-size:11.5px;font-weight:600;letter-spacing:2.5px;color:#D97706;">ROUTE & PLACE</div>
+      <h2 style="margin-top:18px;font-family:'Playfair Display',serif;font-weight:800;font-size:clamp(2rem,4vw,3rem);line-height:1.14;letter-spacing:-0.5px;color:#F0EAE0;">Remember exactly where the story happened.</h2>
+      <p style="margin-top:22px;font-size:16.5px;font-weight:300;line-height:1.7;color:#9A9080;">Search for the farm or reserve, preserve the exact coordinates, and import the original GPX route to see the distance, duration, and terrain behind the hunt.</p>
+    </div>
+
+    <div style="position:relative;border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;height:520px;background:#0a0d0a;box-shadow:0 30px 80px rgba(0,0,0,0.55);">
+      <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;"><span class="ph-label">Dark satellite terrain — mountain valley</span></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(120deg,rgba(9,9,10,0.55),rgba(9,9,10,0.15) 45%,rgba(9,9,10,0.5));"></div>
+      <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(120,200,120,0.06) 0,rgba(120,200,120,0.06) 1px,transparent 1px,transparent 34px),repeating-linear-gradient(90deg,rgba(120,200,120,0.06) 0,rgba(120,200,120,0.06) 1px,transparent 1px,transparent 34px);"></div>
+      <svg viewBox="0 0 1100 520" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;">
+        <path d="M120 430 C260 410 240 320 360 300 S560 260 640 190 820 150 940 110" fill="none" stroke="#4A8A28" stroke-width="3" stroke-dasharray="9 8" style="animation:huntaDash 1.6s linear infinite;"/>
+        <circle cx="120" cy="430" r="9" fill="#2E5C16" stroke="#7bbf4f" stroke-width="2.5"/>
+        <circle cx="940" cy="110" r="11" fill="#D97706" stroke="#F59E0B" stroke-width="2.5" style="animation:huntaPin 1.8s ease-in-out infinite;transform-origin:940px 110px;"/>
+      </svg>
+      <div style="position:absolute;left:24px;top:22px;display:inline-flex;align-items:center;gap:9px;padding:9px 15px;border-radius:10px;background:rgba(9,9,10,0.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);">
+        <span style="width:7px;height:7px;border-radius:50%;background:#D97706;"></span>
+        <span style="font-size:13px;font-weight:600;color:#F0EAE0;">Baviaans Lodge</span>
+        <span style="font-size:12px;color:#9A9080;">· Eastern Cape</span>
       </div>
-
-      <div class="features-grid reveal-stagger">
-        <article class="feature-card">
-          <div class="feature-icon icon-green" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-            </svg>
-          </div>
-          <h3>Kill Record Cards</h3>
-          <p>Each kill becomes a rich card — animal photo as the cover, species, date, time, and exact GPS coordinates. Organized by country, year, and animal type.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-icon icon-amber" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="1"/>
-            </svg>
-          </div>
-          <h3>GPX Route + Satellite Map</h3>
-          <p>Import Garmin or Strava GPX files. Your full hunt route renders on a MapLibre satellite view with automatically derived distance and duration.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-icon icon-brown" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-          </div>
-          <h3>Weapon & Ammo Logging</h3>
-          <p>Log rifle model, caliber, and bullet grain — or bow type and setup. Ammunition brand and load details. The exact facts that matter for compliance and memory.</p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-icon icon-slate" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-          </div>
-          <h3>Fully Private Portfolio</h3>
-          <p>Your portfolio is yours alone. Firebase Auth + Firestore rules ensure no one else can see your records. Future friend views are read-only projections, never raw access.</p>
-        </article>
+      <div style="position:absolute;left:24px;bottom:22px;display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="padding:11px 16px;border-radius:10px;background:rgba(9,9,10,0.62);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);"><div style="font-family:ui-monospace,monospace;font-size:18px;font-weight:600;color:#F0EAE0;">6.4 km</div><div style="font-size:10.5px;color:#9A9080;letter-spacing:0.5px;">DISTANCE</div></div>
+        <div style="padding:11px 16px;border-radius:10px;background:rgba(9,9,10,0.62);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);"><div style="font-family:ui-monospace,monospace;font-size:18px;font-weight:600;color:#F0EAE0;">3h 48m</div><div style="font-size:10.5px;color:#9A9080;letter-spacing:0.5px;">DURATION</div></div>
+        <div style="padding:11px 16px;border-radius:10px;background:rgba(9,9,10,0.62);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);"><div style="font-family:ui-monospace,monospace;font-size:18px;font-weight:600;color:#F0EAE0;">412 m</div><div style="font-size:10.5px;color:#9A9080;letter-spacing:0.5px;">ASCENT</div></div>
+        <div style="padding:11px 16px;border-radius:10px;background:rgba(9,9,10,0.62);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);"><div style="font-family:ui-monospace,monospace;font-size:13px;font-weight:600;color:#F0EAE0;margin-top:3px;">33.42°S 24.18°E</div><div style="font-size:10.5px;color:#9A9080;letter-spacing:0.5px;">COORDINATES</div></div>
       </div>
     </div>
   </section>
 
-  <!-- PRIVACY TRUST STRIP -->
-  <div id="privacy" role="region" aria-label="Privacy and trust signals">
-    <div class="container">
-      <div class="privacy-inner reveal-stagger">
-        <div class="privacy-item">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-          <strong>Firebase Security Rules</strong>
-          <span>Row-level isolation per UID</span>
-        </div>
-        <div class="privacy-item">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <strong>Kill Time Captured</strong>
-          <span>Exact timestamp from GPS — never estimated</span>
-        </div>
-        <div class="privacy-item">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-          </svg>
-          <strong>Factual Data Only</strong>
-          <span>GPS, caliber, grain — real-world facts</span>
-        </div>
-        <div class="privacy-item">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
-          <strong>Capacitor-Ready</strong>
-          <span>iOS &amp; Android wrap, no refactor needed</span>
+  <!-- COMMUNITY -->
+  <section id="community" style="position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:130px 32px 0;text-align:center;">
+    <div style="font-size:11.5px;font-weight:600;letter-spacing:2.5px;color:#D97706;">THE COMMUNITY</div>
+    <h2 style="margin-top:18px;font-family:'Playfair Display',serif;font-weight:800;font-size:clamp(2.1rem,4.5vw,3.4rem);line-height:1.12;letter-spacing:-0.5px;color:#F0EAE0;">One journal becomes<br>a worldwide archive.</h2>
+    <p style="max-width:600px;margin:22px auto 0;font-size:17px;font-weight:300;line-height:1.7;color:#9A9080;">The hunts you choose to publish join a living international record — stories, landscapes, and knowledge shared by hunters who respect the craft.</p>
+
+    <div style="position:relative;margin-top:54px;height:340px;">
+      <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;opacity:0.32;-webkit-mask-image:linear-gradient(to bottom,#000,transparent);mask-image:linear-gradient(to bottom,#000,transparent);">
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+      </div>
+      <div style="position:absolute;left:50%;top:0;transform:translateX(-50%);width:min(300px,80vw);border:1px solid rgba(255,255,255,0.1);border-radius:14px;overflow:hidden;background:#111210;box-shadow:0 30px 70px rgba(0,0,0,0.6);text-align:left;">
+        <div class="ph" style="display:block;width:100%;height:180px;"><span class="ph-label">published hunt</span></div>
+        <div style="padding:14px 16px 16px;">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#2E5C16,#1c3a0e);border:1px solid rgba(255,255,255,0.1);"></span>
+            <div><div style="font-size:12.5px;font-weight:600;color:#F0EAE0;">James Hartley</div><div style="font-size:10.5px;color:#9A9080;">Highlands, Scotland</div></div>
+          </div>
+          <div style="margin-top:12px;font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#F0EAE0;">Red Stag at Last Light</div>
+          <div style="font-size:12px;color:#9A9080;margin-top:2px;">A published chapter · 9 photographs</div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- HOW IT WORKS -->
-  <section id="how">
-    <div class="container">
-      <div class="how-inner">
-        <div>
-          <span class="section-label">How it works</span>
-          <h2 class="section-title">Document every<br/>hunt in minutes</h2>
-          <p class="section-sub" style="margin-bottom:2.5rem">Add a kill, the app captures the rest — organized by country, year, and species automatically.</p>
-
-          <div class="steps reveal">
-            <div class="step">
-              <div class="step-num" aria-hidden="true">1</div>
-              <div class="step-content">
-                <h4>Create a kill record</h4>
-                <p>Select species, snap or upload photos, set the kill date. The time is captured automatically when you drop a pin.</p>
-              </div>
-            </div>
-            <div class="step">
-              <div class="step-num" aria-hidden="true">2</div>
-              <div class="step-content">
-                <h4>Log weapon &amp; ammo</h4>
-                <p>Enter rifle model and caliber (or bow type). Add bullet grain and brand. Every field is optional but always exact.</p>
-              </div>
-            </div>
-            <div class="step">
-              <div class="step-num" aria-hidden="true">3</div>
-              <div class="step-content">
-                <h4>Import your GPX route</h4>
-                <p>Drag in a Garmin or Strava file. Distance and duration are derived automatically; the raw GPX is stored verbatim.</p>
-              </div>
-            </div>
-            <div class="step">
-              <div class="step-num" aria-hidden="true">4</div>
-              <div class="step-content">
-                <h4>Browse your portfolio</h4>
-                <p>View kills as a feed or grouped by country. Every card lives at <em>Profile → Country → Year → Animal</em>.</p>
-              </div>
-            </div>
-          </div>
+    <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px;text-align:left;">
+      <div style="border:1px solid rgba(255,255,255,0.08);border-radius:16px;background:#111210;padding:28px;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="width:8px;height:8px;border-radius:50%;background:#4A8A28;"></span><span style="font-size:12px;font-weight:600;letter-spacing:1.5px;color:#7bbf4f;">AVAILABLE NOW</span></div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:13px;">
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#4A8A28;"></span>Build a complete portfolio of every hunt</div>
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#4A8A28;"></span>Document species, place, equipment, route, and story</div>
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#4A8A28;"></span>Keep records private — or publish the ones you choose</div>
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#4A8A28;"></span>Save reusable loadouts in your armory</div>
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#4A8A28;"></span>Follow hunters whose work and values you respect</div>
         </div>
-
-        <!-- Phone mockup -->
-        <div class="phone-wrap" aria-hidden="true">
-          <div class="phone">
-            <div class="phone-notch"><div class="phone-notch-pill"></div></div>
-            <div class="phone-screen">
-              <div class="phone-topbar">
-                <span class="phone-topbar-title">My Portfolio</span>
-                <span class="phone-stat">14 kills · 2025</span>
-              </div>
-
-              <div class="mini-card">
-                <div class="mini-photo">
-                  <svg width="100%" height="75" viewBox="0 0 240 75">
-                    <rect width="240" height="75" fill="#0d1a09"/>
-                    <path d="M0 45 Q40 25 70 40 Q100 20 130 35 Q160 15 190 30 Q210 20 240 28 L240 75 L0 75Z" fill="#0A1407"/>
-                    <path d="M0 55 Q50 40 90 52 Q130 40 170 50 Q200 42 240 50 L240 75 L0 75Z" fill="#070E05"/>
-                    <!-- Small deer silhouette -->
-                    <ellipse cx="120" cy="55" rx="10" ry="6" fill="#040803"/>
-                    <ellipse cx="128" cy="47" rx="5" ry="4" fill="#040803"/>
-                    <path d="M126 43 L125 38 M130 43 L131 38" stroke="#040803" stroke-width="1.5" stroke-linecap="round"/>
-                    <!-- Moon glow -->
-                    <circle cx="190" cy="18" r="10" fill="#D4C89A" opacity="0.3"/>
-                  </svg>
-                </div>
-                <div class="mini-info">
-                  <div>
-                    <div class="mini-species">Red Deer</div>
-                    <div class="mini-date">Oct 14 · Norway</div>
-                  </div>
-                  <span class="mini-badge">Rifle</span>
-                </div>
-              </div>
-
-              <div class="mini-card">
-                <div class="mini-photo mini-photo-2">
-                  <svg width="100%" height="75" viewBox="0 0 240 75">
-                    <rect width="240" height="75" fill="#1a0d09"/>
-                    <path d="M0 50 Q60 30 110 45 Q150 28 200 40 Q220 32 240 38 L240 75 L0 75Z" fill="#100806"/>
-                    <path d="M0 60 Q80 48 150 58 Q190 50 240 56 L240 75 L0 75Z" fill="#0a0504"/>
-                    <!-- Wild boar silhouette -->
-                    <ellipse cx="115" cy="56" rx="18" ry="10" fill="#060302"/>
-                    <ellipse cx="130" cy="50" rx="9" ry="7" fill="#060302"/>
-                    <path d="M112 65 L108 75 M116 65 L114 75 M122 65 L120 75 M126 65 L125 75" stroke="#060302" stroke-width="2.5" stroke-linecap="round"/>
-                    <path d="M137 50 L141 45" stroke="#060302" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                </div>
-                <div class="mini-info">
-                  <div>
-                    <div class="mini-species">Wild Boar</div>
-                    <div class="mini-date">Sep 3 · Germany</div>
-                  </div>
-                  <span class="mini-badge">Bow</span>
-                </div>
-              </div>
-
-              <div class="mini-card" style="padding:.6rem .65rem; border:1px solid var(--border);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-size:.65rem; color:var(--muted);">Total distance</span>
-                  <span style="font-size:.8rem; font-weight:600; color:#7ABA44;">142.6 km</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      </div>
+      <div style="border:1px solid rgba(217,119,6,0.22);border-radius:16px;background:linear-gradient(160deg,rgba(217,119,6,0.07),rgba(17,18,16,0.6));padding:28px;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="width:8px;height:8px;border-radius:50%;background:#D97706;"></span><span style="font-size:12px;font-weight:600;letter-spacing:1.5px;color:#F59E0B;">THE COMMUNITY IS BECOMING</span></div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:13px;">
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#D97706;"></span>Explore published hunts by species</div>
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#D97706;"></span>Discover farms, reserves, and hunting regions</div>
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#D97706;"></span>Compare experiences and conditions across countries</div>
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#D97706;"></span>See the routes, terrain, and loadouts others used</div>
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#D97706;"></span>Read the complete stories behind successful hunts</div>
+          <div style="display:flex;align-items:flex-start;gap:11px;font-size:14.5px;font-weight:300;color:#C5BBAA;line-height:1.5;"><span style="margin-top:7px;flex:none;width:6px;height:6px;border-radius:50%;background:#D97706;"></span>Understand how hunting differs around the world</div>
         </div>
+        <div style="margin-top:18px;font-size:12px;font-style:italic;color:#7d7464;">A vision we are building toward, hunt by hunt.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:48px;">
+      <div style="font-size:13px;font-weight:500;color:#9A9080;">One day, explore the world's hunts by species —</div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:16px;">
+        <span class="species-chip">Greater Kudu</span>
+        <span class="species-chip">Red Stag</span>
+        <span class="species-chip">Mountain Reedbuck</span>
+        <span class="species-chip">Wild Boar</span>
+        <span class="species-chip">Roe Deer</span>
+        <span class="species-chip">Springbok</span>
+        <span class="species-chip">Fallow Buck</span>
+        <span class="species-chip">Eland</span>
       </div>
     </div>
   </section>
 
-  <!-- CTA -->
-  <section id="cta" aria-labelledby="cta-heading">
-    <div class="container">
-      <span class="section-label">Open source</span>
-      <h2 class="section-title" id="cta-heading">Your hunting legacy<br/>starts now</h2>
-      <p class="section-sub">Hunting Portfolio is open source on GitHub. Self-host it, fork it, or follow along as it grows.</p>
-      <a href="https://github.com/armindobento1/fieldnote-hunting-portfolio" target="_blank" rel="noopener" class="btn-primary">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
-        </svg>
-        Star on GitHub
-      </a>
+  <!-- CLOSING CTA -->
+  <section id="create" style="position:relative;z-index:2;margin-top:130px;">
+    <div style="position:relative;height:560px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;"><span class="ph-label">Closing image — firelight, dusk camp, or open veld</span></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,10,0.94),rgba(9,9,10,0.72) 50%,rgba(9,9,10,0.88));"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(900px,95vw);height:560px;pointer-events:none;background:radial-gradient(ellipse at center,rgba(46,92,22,0.28) 0%,transparent 62%);"></div>
+      <div style="position:relative;z-index:3;text-align:center;padding:0 28px;">
+        <img src="logo/head-amber.svg" alt="Hunta" style="display:block;width:72px;height:auto;object-fit:contain;margin:0 auto 24px;filter:drop-shadow(0 0 28px rgba(217,119,6,0.4));" />
+        <h2 style="font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(2.4rem,5.5vw,4.2rem);line-height:1.06;letter-spacing:-1px;color:#F0EAE0;">Begin preserving<br>your <span style="color:#D97706;font-style:italic;">story.</span></h2>
+        <p style="max-width:520px;margin:22px auto 0;font-size:17px;font-weight:300;line-height:1.65;color:#C5BBAA;">Build a portfolio worthy of a lifetime in the field — and decide, hunt by hunt, what the world gets to see.</p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:34px;flex-wrap:wrap;">
+          <a href="#top" class="btn-green" style="padding:16px 32px;border-radius:8px;font-size:15px;font-weight:600;box-shadow:0 8px 26px rgba(46,92,22,0.45);">Create Your Portfolio</a>
+          <a href="#story" class="btn-ghost" style="padding:16px 28px;border-radius:8px;font-size:15px;font-weight:500;">Explore the Vision</a>
+        </div>
+        <p style="margin-top:20px;font-size:13px;font-weight:300;color:#7d7464;">Keep your records private or publish the hunts you choose.</p>
+      </div>
     </div>
   </section>
 
   <!-- FOOTER -->
-  <footer>
-    <p>
-      &copy; 2026 Hunting Portfolio &nbsp;·&nbsp;
-      <a href="https://github.com/armindobento1/fieldnote-hunting-portfolio" target="_blank" rel="noopener">GitHub</a>
-      &nbsp;·&nbsp; Built with Firebase, Vite &amp; MapLibre
-    </p>
+  <footer style="position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 32px 56px;border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="logo/head-amber.svg" alt="Hunta" style="display:block;width:26px;height:22px;object-fit:contain;" />
+      <span style="font-family:'Playfair Display',serif;font-weight:800;font-size:18px;color:#F0EAE0;">Hunta</span>
+    </div>
+    <div style="display:flex;gap:22px;flex-wrap:wrap;">
+      <a href="#story" class="foot-link">The Story</a>
+      <a href="#portfolio" class="foot-link">Your Portfolio</a>
+      <a href="#explore" class="foot-link">Explore Hunts</a>
+      <a href="#armory" class="foot-link">Armory</a>
+      <a href="#community" class="foot-link">Community</a>
+    </div>
+    <div style="font-size:12.5px;color:#6b6356;">© 2026 Hunta · Every great hunt has a story.</div>
   </footer>
 
-  <script>
-    // Scroll reveal
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12 });
-
-    document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => io.observe(el));
-
-    // Smooth step hover highlight
-    document.querySelectorAll('.step').forEach(step => {
-      step.addEventListener('mouseenter', () => {
-        document.querySelectorAll('.step').forEach(s => s.style.opacity = '0.35');
-        step.style.opacity = '1';
-      });
-      step.addEventListener('mouseleave', () => {
-        document.querySelectorAll('.step').forEach(s => s.style.opacity = '');
-      });
-    });
-  </script>
+</div>
 </body>
 </html>
