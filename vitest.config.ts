@@ -13,6 +13,12 @@ export default defineConfig({
     environment: "happy-dom",
     globals: true,
     setupFiles: ["./tests/setup.ts"],
-    exclude: ["tests/rules/**", "node_modules/**", ".next/**"],
+    exclude: [
+      "tests/rules/**",
+      "node_modules/**",
+      ".next/**",
+      "dist/**",
+      "archive/**",
+    ],
   },
 });

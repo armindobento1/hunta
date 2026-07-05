@@ -8,7 +8,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import { doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
 
-const projectId = "fieldnote-firestore-rules";
+const projectId = "hunta-firestore-rules";
 
 function validKill(ownerId = "owner") {
   const now = Timestamp.fromDate(new Date("2025-06-12T08:00:00.000Z"));
@@ -162,5 +162,38 @@ describe("Firestore ownership rules", () => {
 
     await assertSucceeds(setDoc(doc(owner, "users/owner"), profile));
     await assertFails(getDoc(doc(other, "users/owner")));
+  });
+
+  it("isolates armory items and loadouts by authenticated owner", async () => {
+    const owner = environment.authenticatedContext("owner").firestore();
+    const other = environment.authenticatedContext("other").firestore();
+    const now = Timestamp.now();
+    const weapon = { id: "weapon-1", ownerId: "owner", name: "Sako S20", kind: "weapon", weapon: { type: "rifle", model: "Sako S20", caliber: ".300 Win Mag" }, createdAt: now, updatedAt: now };
+    const loadout = { id: "loadout-1", ownerId: "owner", name: "Kudu setup", weaponId: "weapon-1", slots: {}, isDefault: true, createdAt: now, updatedAt: now };
+
+    await assertSucceeds(setDoc(doc(owner, "users/owner/armoryItems/weapon-1"), weapon));
+    await assertSucceeds(setDoc(doc(owner, "users/owner/loadouts/loadout-1"), loadout));
+    await assertFails(getDoc(doc(other, "users/owner/armoryItems/weapon-1")));
+    await assertFails(setDoc(doc(other, "users/owner/loadouts/loadout-2"), { ...loadout, id: "loadout-2" }));
+  });
+
+  it("allows public reads but only owners can write public projections", async () => {
+    const owner = environment.authenticatedContext("owner").firestore();
+    const other = environment.authenticatedContext("other").firestore();
+    const guest = environment.unauthenticatedContext().firestore();
+    const now = Timestamp.now();
+    const publicProfile = { id: "owner", displayName: "Owner", avatarUrl: null, bio: "", searchName: "owner", createdAt: now, updatedAt: now };
+    await assertSucceeds(setDoc(doc(owner, "publicProfiles/owner"), publicProfile));
+    await assertSucceeds(getDoc(doc(guest, "publicProfiles/owner")));
+    await assertFails(setDoc(doc(other, "publicProfiles/owner"), publicProfile));
+  });
+
+  it("allows users to follow only as themselves", async () => {
+    const owner = environment.authenticatedContext("owner").firestore();
+    const other = environment.authenticatedContext("other").firestore();
+    const edge = { followerId: "owner", followedId: "other", createdAt: Timestamp.now() };
+    await assertSucceeds(setDoc(doc(owner, "users/owner/following/other"), edge));
+    await assertSucceeds(setDoc(doc(owner, "publicFollowers/other/followers/owner"), edge));
+    await assertFails(setDoc(doc(other, "users/owner/following/intruder"), { ...edge, followedId: "intruder" }));
   });
 });

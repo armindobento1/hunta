@@ -36,7 +36,7 @@ export function LocationView({ kills }: { kills: Kill[] }) {
                   <p>{year}</p>
                   <div>
                     {records.map((kill) => (
-                      <KillCard key={kill.id} kill={kill} compact />
+                      <KillCard key={kill.id} kill={kill} variant="compact" />
                     ))}
                   </div>
                 </div>

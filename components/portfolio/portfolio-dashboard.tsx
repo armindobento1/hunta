@@ -11,11 +11,12 @@ import {
 } from "@/lib/domain/selectors";
 
 import { BottomNav } from "./bottom-nav";
+import { ArmoryView } from "./armory-view";
 import { EmptyPortfolio } from "./empty-portfolio";
 import { FeedView } from "./feed-view";
 import { LocationView } from "./location-view";
-import { PortfolioTabs } from "./portfolio-tabs";
-import { ProfileHeader } from "./profile-header";
+import { ProfileHeader, type PortfolioTab } from "./profile-header";
+import { SocialDiscovery } from "@/components/social/social-discovery";
 
 export function PortfolioDashboard({
   profile,
@@ -24,19 +25,24 @@ export function PortfolioDashboard({
   profile: Profile;
   kills: Kill[];
 }) {
-  const [tab, setTab] = useState<"feed" | "location">("feed");
+  const [tab, setTab] = useState<PortfolioTab>("feed");
   const [display, setDisplay] = useState<"list" | "grid">("list");
+  const [feedScope, setFeedScope] = useState<"mine" | "community">("mine");
   const activeKills = sortActiveKills(kills);
 
   return (
     <main className="portfolio-shell">
       <div className="portfolio-content">
-        <ProfileHeader profile={profile} stats={getPortfolioStats(kills)} />
-        <PortfolioTabs active={tab} onChange={setTab} />
-        {activeKills.length === 0 ? (
-          <EmptyPortfolio />
-        ) : tab === "feed" ? (
+        <ProfileHeader
+          profile={profile}
+          stats={getPortfolioStats(kills)}
+          activeTab={tab}
+          onTabChange={setTab}
+        />
+        {tab === "armory" ? <ArmoryView /> : tab === "feed" ? (
           <>
+            <div className="feed-scope"><button type="button" aria-pressed={feedScope === "mine"} onClick={() => setFeedScope("mine")}>My hunts</button><button type="button" aria-pressed={feedScope === "community"} onClick={() => setFeedScope("community")}>Community</button></div>
+            {feedScope === "community" ? <SocialDiscovery /> : activeKills.length === 0 ? <EmptyPortfolio /> : <>
             <div className="feed-toolbar">
               <span>{activeKills.length} animals</span>
               <div aria-label="Feed display">
@@ -59,10 +65,9 @@ export function PortfolioDashboard({
               </div>
             </div>
             <FeedView display={display} kills={activeKills} />
+            </>}
           </>
-        ) : (
-          <LocationView kills={activeKills} />
-        )}
+        ) : activeKills.length === 0 ? <EmptyPortfolio /> : <LocationView kills={activeKills} />}
       </div>
       <BottomNav />
     </main>

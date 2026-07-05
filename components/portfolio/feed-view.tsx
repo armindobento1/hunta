@@ -15,7 +15,11 @@ export function FeedView({
       data-testid="feed-view"
     >
       {kills.map((kill) => (
-        <KillCard key={kill.id} kill={kill} />
+        <KillCard
+          key={kill.id}
+          kill={kill}
+          variant={display === "grid" ? "grid" : "overlay"}
+        />
       ))}
     </div>
   );

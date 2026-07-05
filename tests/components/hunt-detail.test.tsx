@@ -1,13 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { HuntDetail } from "@/components/kills/hunt-detail";
 import { TrashView } from "@/components/kills/trash-view";
 import { makeKill } from "@/tests/helpers/kill";
+import { renderWithRouter } from "@/tests/helpers/render-router";
 
 describe("HuntDetail", () => {
   it("renders the authoritative facts and route metrics", () => {
-    render(
+    renderWithRouter(
       <HuntDetail
         kill={makeKill()}
         mapSlot={<div>Satellite route map</div>}
@@ -27,7 +28,7 @@ describe("HuntDetail", () => {
   it("requires explicit confirmation before moving a record to trash", async () => {
     const user = userEvent.setup();
     const onTrash = vi.fn().mockResolvedValue(undefined);
-    render(
+    renderWithRouter(
       <HuntDetail kill={makeKill()} mapSlot={<div />} onTrash={onTrash} />,
     );
 
@@ -48,7 +49,7 @@ describe("TrashView", () => {
       trashedAt: "2025-06-13T00:00:00.000Z",
     });
 
-    render(<TrashView kills={[trashed]} onRestore={onRestore} />);
+    renderWithRouter(<TrashView kills={[trashed]} onRestore={onRestore} />);
     await user.click(screen.getByRole("button", { name: /restore greater kudu/i }));
 
     expect(onRestore).toHaveBeenCalledWith("kill-1");

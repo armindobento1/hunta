@@ -2,6 +2,7 @@ import {
   type Kill,
   type KillLocation,
   type MediaAsset,
+  type Measurement,
   type RouteMetadata,
   type Weapon,
   killSchema,
@@ -17,9 +18,13 @@ export type KillEdit = Partial<{
   location: KillLocation;
   weapon: Weapon;
   ammunition: Kill["ammunition"];
+  loadoutId: string;
+  equipmentAttachments: NonNullable<Kill["equipmentAttachments"]>;
+  measurement: Measurement;
   route: RouteMetadata | null;
   description: string;
   status: Kill["status"];
+  isPublic: boolean;
   trashedAt: string | null;
 }>;
 
@@ -33,9 +38,13 @@ const editableKeys = [
   "location",
   "weapon",
   "ammunition",
+  "loadoutId",
+  "equipmentAttachments",
+  "measurement",
   "route",
   "description",
   "status",
+  "isPublic",
   "trashedAt",
 ] as const satisfies ReadonlyArray<keyof KillEdit>;
 

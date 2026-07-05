@@ -41,7 +41,7 @@ export function GpxPicker({
     <section className="editor-section" aria-labelledby="gpx-heading">
       <div className="section-heading">
         <div>
-          <p>05</p>
+          <p>07</p>
           <h2 id="gpx-heading">Walk route</h2>
         </div>
         <span>Garmin / Strava</span>

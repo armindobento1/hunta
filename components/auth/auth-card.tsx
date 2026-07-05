@@ -105,7 +105,7 @@ export function AuthCard({
   return (
     <section className="auth-card" aria-labelledby="auth-title">
       <div className="auth-card-heading">
-        <p className="eyebrow">Fieldnote</p>
+        <p className="eyebrow">Hunta</p>
         <h1 id="auth-title">
           {mode === "sign-in" ? "Welcome back" : "Start your portfolio"}
         </h1>
@@ -197,7 +197,7 @@ export function AuthCard({
       </form>
 
       <p className="auth-switch">
-        {mode === "sign-in" ? "New to Fieldnote?" : "Already have an account?"}
+        {mode === "sign-in" ? "New to Hunta?" : "Already have an account?"}
         <button
           type="button"
           disabled={pending}

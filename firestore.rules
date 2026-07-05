@@ -37,12 +37,20 @@ service cloud.firestore {
     function validLocation(location) {
       return location is map &&
         location.keys().hasAll(['latitude', 'longitude', 'placeName']) &&
-        location.keys().hasOnly(['latitude', 'longitude', 'placeName']) &&
+        location.keys().hasOnly(['latitude', 'longitude', 'placeName', 'farmName', 'source']) &&
         location.latitude is number &&
         location.latitude >= -90 && location.latitude <= 90 &&
         location.longitude is number &&
         location.longitude >= -180 && location.longitude <= 180 &&
-        shortString(location.placeName, 160);
+        shortString(location.placeName, 160) &&
+        optionalString(location, 'farmName', 200) &&
+        (!('source' in location) ||
+          (location.source is map &&
+            location.source.keys().hasAll(['provider', 'featureId', 'label']) &&
+            location.source.keys().hasOnly(['provider', 'featureId', 'label']) &&
+            location.source.provider == 'esri' &&
+            shortString(location.source.featureId, 240) &&
+            shortString(location.source.label, 240)));
     }
 
     function validWeapon(weapon) {
@@ -66,6 +74,31 @@ service cloud.firestore {
         ammunition.grain > 0 && ammunition.grain <= 2000 &&
         optionalString(ammunition, 'brand', 100) &&
         optionalString(ammunition, 'detail', 160);
+    }
+
+    function validMeasurement(value) {
+      return value is map &&
+        value.keys().hasOnly(['score', 'scoreUnit', 'scoringSystem', 'weightDressed', 'weightUndressed', 'weightUnit']) &&
+        (!('score' in value) || (value.score is number && value.score > 0)) &&
+        optionalString(value, 'scoreUnit', 40) &&
+        optionalString(value, 'scoringSystem', 80) &&
+        (!('weightDressed' in value) || (value.weightDressed is number && value.weightDressed > 0)) &&
+        (!('weightUndressed' in value) || (value.weightUndressed is number && value.weightUndressed > 0)) &&
+        (!('weightUnit' in value) || value.weightUnit in ['kg', 'lb']);
+    }
+
+    function validAttachment(value) {
+      return value is map && value.keys().hasAll(['name']) &&
+        value.keys().hasOnly(['name', 'detail']) && shortString(value.name, 120) &&
+        optionalString(value, 'detail', 160);
+    }
+
+    function validAttachments(value) {
+      return value is map && value.keys().hasOnly(['optic', 'suppressor', 'bipod', 'sling']) &&
+        (!('optic' in value) || validAttachment(value.optic)) &&
+        (!('suppressor' in value) || validAttachment(value.suppressor)) &&
+        (!('bipod' in value) || validAttachment(value.bipod)) &&
+        (!('sling' in value) || validAttachment(value.sling));
     }
 
     function validBounds(bounds) {
@@ -110,7 +143,8 @@ service cloud.firestore {
         data.keys().hasOnly([
           'id', 'ownerId', 'species', 'coverMediaId', 'media', 'country',
           'date', 'killTime', 'location', 'weapon', 'ammunition', 'route',
-          'description', 'status', 'createdAt', 'updatedAt', 'trashedAt'
+          'description', 'status', 'createdAt', 'updatedAt', 'trashedAt',
+          'measurement', 'loadoutId', 'equipmentAttachments', 'isPublic'
         ]) &&
         data.id == killId &&
         data.ownerId == userId &&
@@ -125,6 +159,10 @@ service cloud.firestore {
         validLocation(data.location) &&
         validWeapon(data.weapon) &&
         validAmmunition(data.ammunition) &&
+        (!('measurement' in data) || validMeasurement(data.measurement)) &&
+        optionalString(data, 'loadoutId', 128) &&
+        (!('equipmentAttachments' in data) || validAttachments(data.equipmentAttachments)) &&
+        (!('isPublic' in data) || data.isPublic is bool) &&
         (data.route == null || validRoute(data.route, userId, killId)) &&
         data.description is string && data.description.size() <= 5000 &&
         data.status in ['draft', 'active', 'trashed'] &&
@@ -133,6 +171,56 @@ service cloud.firestore {
         data.updatedAt is timestamp &&
         ((data.status == 'trashed' && data.trashedAt is timestamp) ||
           (data.status != 'trashed' && data.trashedAt == null));
+    }
+
+    function validArmoryItem(data, userId, itemId) {
+      return data.keys().hasAll(['id', 'ownerId', 'name', 'kind', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'ownerId', 'name', 'kind', 'weapon', 'grain', 'detail', 'createdAt', 'updatedAt']) &&
+        data.id == itemId && data.ownerId == userId && shortString(data.name, 120) &&
+        data.kind in ['weapon', 'optic', 'suppressor', 'bipod', 'sling', 'ammunition'] &&
+        optionalString(data, 'detail', 160) &&
+        ((data.kind == 'weapon' && 'weapon' in data && validWeapon(data.weapon)) ||
+          (data.kind == 'ammunition' && 'grain' in data && data.grain is number && data.grain > 0 && data.grain <= 2000) ||
+          data.kind in ['optic', 'suppressor', 'bipod', 'sling']) &&
+        data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validLoadout(data, userId, loadoutId) {
+      return data.keys().hasAll(['id', 'ownerId', 'name', 'weaponId', 'slots', 'isDefault', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'ownerId', 'name', 'weaponId', 'slots', 'isDefault', 'createdAt', 'updatedAt']) &&
+        data.id == loadoutId && data.ownerId == userId && shortString(data.name, 120) &&
+        shortString(data.weaponId, 128) && data.slots is map &&
+        data.slots.keys().hasOnly(['opticId', 'suppressorId', 'bipodId', 'slingId', 'ammunitionId']) &&
+        optionalString(data.slots, 'opticId', 128) && optionalString(data.slots, 'suppressorId', 128) &&
+        optionalString(data.slots, 'bipodId', 128) && optionalString(data.slots, 'slingId', 128) &&
+        optionalString(data.slots, 'ammunitionId', 128) && data.isDefault is bool &&
+        data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validPublicProfile(data, userId) {
+      return data.keys().hasAll(['id', 'displayName', 'avatarUrl', 'bio', 'searchName', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'displayName', 'avatarUrl', 'bio', 'searchName', 'createdAt', 'updatedAt']) &&
+        data.id == userId && shortString(data.displayName, 80) && shortString(data.searchName, 100) &&
+        (data.avatarUrl == null || (data.avatarUrl is string && data.avatarUrl.size() <= 2048)) &&
+        data.bio is string && data.bio.size() <= 280 && data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validPublicHunt(data, publicHuntId) {
+      return data.keys().hasAll(['id', 'ownerId', 'sourceKillId', 'hunter', 'species', 'coverMediaId', 'media', 'country', 'date', 'killTime', 'location', 'weapon', 'ammunition', 'routeSummary', 'description', 'publishedAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'ownerId', 'sourceKillId', 'hunter', 'species', 'coverMediaId', 'media', 'country', 'date', 'killTime', 'location', 'weapon', 'ammunition', 'equipmentAttachments', 'measurement', 'routeSummary', 'description', 'publishedAt', 'updatedAt']) &&
+        data.id == publicHuntId && data.ownerId == request.auth.uid && shortString(data.sourceKillId, 128) &&
+        data.hunter is map && data.hunter.id == data.ownerId && shortString(data.hunter.displayName, 80) &&
+        shortString(data.species, 120) && data.media is list && data.media.size() <= 30 && shortString(data.country, 100) &&
+        validLocation(data.location) && validWeapon(data.weapon) && validAmmunition(data.ammunition) &&
+        (!('measurement' in data) || validMeasurement(data.measurement)) &&
+        (!('equipmentAttachments' in data) || validAttachments(data.equipmentAttachments)) &&
+        data.description is string && data.description.size() <= 5000 && data.publishedAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validFollow(data, followerId, followedId) {
+      return data.keys().hasAll(['followerId', 'followedId', 'createdAt']) &&
+        data.keys().hasOnly(['followerId', 'followedId', 'createdAt']) &&
+        data.followerId == followerId && data.followedId == followedId && followerId != followedId && data.createdAt is timestamp;
     }
 
     match /users/{userId} {
@@ -156,6 +244,48 @@ service cloud.firestore {
           request.resource.data.createdAt == resource.data.createdAt;
         allow delete: if false;
       }
+
+      match /armoryItems/{itemId} {
+        allow read: if owns(userId);
+        allow create: if owns(userId) && validArmoryItem(request.resource.data, userId, itemId);
+        allow update: if owns(userId) && validArmoryItem(request.resource.data, userId, itemId) &&
+          request.resource.data.id == resource.data.id && request.resource.data.ownerId == resource.data.ownerId &&
+          request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if owns(userId);
+      }
+
+      match /loadouts/{loadoutId} {
+        allow read: if owns(userId);
+        allow create: if owns(userId) && validLoadout(request.resource.data, userId, loadoutId);
+        allow update: if owns(userId) && validLoadout(request.resource.data, userId, loadoutId) &&
+          request.resource.data.id == resource.data.id && request.resource.data.ownerId == resource.data.ownerId &&
+          request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if owns(userId);
+      }
+
+      match /following/{followedId} {
+        allow read: if owns(userId);
+        allow create, update, delete: if owns(userId) &&
+          (request.method == 'delete' || validFollow(request.resource.data, userId, followedId));
+      }
+    }
+
+    match /publicProfiles/{userId} {
+      allow read: if true;
+      allow create, update: if owns(userId) && validPublicProfile(request.resource.data, userId);
+      allow delete: if owns(userId);
+    }
+
+    match /publicHunts/{publicHuntId} {
+      allow read: if true;
+      allow create, update: if signedIn() && validPublicHunt(request.resource.data, publicHuntId);
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /publicFollowers/{followedId}/followers/{followerId} {
+      allow read: if true;
+      allow create, update, delete: if signedIn() && request.auth.uid == followerId &&
+        (request.method == 'delete' || validFollow(request.resource.data, followerId, followedId));
     }
   }
 }

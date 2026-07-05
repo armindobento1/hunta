@@ -2,6 +2,22 @@ import { applyKillEdit } from "@/lib/domain/kill-edit";
 import { makeKill } from "@/tests/helpers/kill";
 
 describe("applyKillEdit", () => {
+  it("updates optional trophy measurements without changing core ownership facts", () => {
+    const existing = makeKill();
+    const updated = applyKillEdit(existing, {
+      measurement: {
+        score: 54.125,
+        scoreUnit: "in",
+        scoringSystem: "SCI",
+      },
+    });
+
+    expect(updated.measurement?.score).toBe(54.125);
+    expect(updated.id).toBe(existing.id);
+    expect(updated.ownerId).toBe(existing.ownerId);
+    expect(updated.location).toEqual(existing.location);
+  });
+
   it("preserves core facts and attachments when they are omitted", () => {
     const existing = makeKill();
     const updated = applyKillEdit(

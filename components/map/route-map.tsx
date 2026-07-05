@@ -33,7 +33,7 @@ export function RouteMap({ kill }: { kill: Kill }) {
             sources: {
               satellite: {
                 type: "raster",
-                tiles: [process.env.NEXT_PUBLIC_SATELLITE_TILE_URL || DEFAULT_TILE_URL],
+                tiles: [import.meta.env.VITE_SATELLITE_TILE_URL || DEFAULT_TILE_URL],
                 tileSize: 256,
                 attribution: "Tiles © Esri",
               },

@@ -18,7 +18,7 @@ export function WeaponFields({
     <section className="editor-section" aria-labelledby="weapon-heading">
       <div className="section-heading">
         <div>
-          <p>04</p>
+          <p>06</p>
           <h2 id="weapon-heading">Equipment</h2>
         </div>
         <span>Exact details</span>

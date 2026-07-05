@@ -19,6 +19,9 @@ describe("AuthCard", () => {
     render(<AuthCard actions={actions()} />);
 
     expect(
+      screen.getByText("Hunta", { selector: ".eyebrow" }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("heading", { name: /welcome back/i }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /create account/i }));
@@ -26,6 +29,7 @@ describe("AuthCard", () => {
     expect(
       screen.getByRole("heading", { name: /start your portfolio/i }),
     ).toBeInTheDocument();
+    expect(screen.getByText("Already have an account?")).toBeInTheDocument();
     expect(screen.getByLabelText(/display name/i)).toBeInTheDocument();
   });
 

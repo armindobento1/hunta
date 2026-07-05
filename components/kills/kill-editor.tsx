@@ -1,7 +1,5 @@
-"use client";
-
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Spinner } from "@/components/ui/spinner";
 import { applyKillEdit } from "@/lib/domain/kill-edit";
@@ -9,6 +7,10 @@ import type { Kill, MediaAsset, RouteMetadata } from "@/lib/domain/kill";
 import { getKill, saveKill } from "@/lib/firebase/kill-repository";
 import { uploadGpx, uploadMedia } from "@/lib/firebase/storage-repository";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useArmory } from "@/lib/hooks/use-armory";
+import { useProfile } from "@/lib/hooks/use-profile";
+import { buildPublicHunt, buildPublicProfile } from "@/lib/domain/public-social";
+import { publishHunt, savePublicProfile, unpublishHunt } from "@/lib/firebase/public-social-repository";
 
 import { KillForm } from "./kill-form";
 import type { KillFormSubmission, UploadProgressItem } from "./types";
@@ -33,7 +35,9 @@ function equipment(submission: KillFormSubmission): Kill["weapon"] {
 
 export function KillEditor({ killId }: { killId?: string }) {
   const { user } = useAuth();
-  const router = useRouter();
+  const { items: armoryItems, loadouts } = useArmory();
+  const { profile } = useProfile();
+  const navigate = useNavigate();
   const [id] = useState(killId ?? recordId);
   const [initialKill, setInitialKill] = useState<Kill | null>(null);
   const [loading, setLoading] = useState(Boolean(killId));
@@ -47,10 +51,10 @@ export function KillEditor({ killId }: { killId?: string }) {
       .then((kill) => {
         setInitialKill(kill);
         setLoading(false);
-        if (!kill) setError("That fieldnote could not be found.");
+        if (!kill) setError("That hunt record could not be found.");
       })
       .catch(() => {
-        setError("That fieldnote could not be loaded.");
+        setError("That hunt record could not be loaded.");
         setLoading(false);
       });
   }, [killId, user]);
@@ -80,6 +84,8 @@ export function KillEditor({ killId }: { killId?: string }) {
           latitude: submission.latitude,
           longitude: submission.longitude,
           placeName: submission.placeName.trim(),
+          farmName: submission.farmName.trim(),
+          ...(submission.locationSourceProvider === "esri" && submission.locationSourceFeatureId && submission.locationSourceLabel ? { source: { provider: "esri" as const, featureId: submission.locationSourceFeatureId, label: submission.locationSourceLabel } } : {}),
         },
         weapon: equipment(submission),
         ammunition: {
@@ -91,7 +97,41 @@ export function KillEditor({ killId }: { killId?: string }) {
             ? { detail: submission.ammunitionDetail.trim() }
             : {}),
         },
+        ...(submission.loadoutId ? { loadoutId: submission.loadoutId } : {}),
+        ...([submission.optic, submission.suppressor, submission.bipod, submission.sling].some((value) => value.trim()) ? { equipmentAttachments: {
+          ...(submission.optic.trim() ? { optic: { name: submission.optic.trim() } } : {}),
+          ...(submission.suppressor.trim() ? { suppressor: { name: submission.suppressor.trim() } } : {}),
+          ...(submission.bipod.trim() ? { bipod: { name: submission.bipod.trim() } } : {}),
+          ...(submission.sling.trim() ? { sling: { name: submission.sling.trim() } } : {}),
+        } } : {}),
+        ...([
+          submission.measureScore,
+          submission.measureWeightDressed,
+          submission.measureWeightUndressed,
+        ].some(Number.isFinite)
+          ? {
+              measurement: {
+                ...(Number.isFinite(submission.measureScore)
+                  ? { score: submission.measureScore }
+                  : {}),
+                ...(submission.measureScoreUnit.trim()
+                  ? { scoreUnit: submission.measureScoreUnit.trim() }
+                  : {}),
+                ...(submission.measureScoringSystem.trim()
+                  ? { scoringSystem: submission.measureScoringSystem.trim() }
+                  : {}),
+                ...(Number.isFinite(submission.measureWeightDressed)
+                  ? { weightDressed: submission.measureWeightDressed }
+                  : {}),
+                ...(Number.isFinite(submission.measureWeightUndressed)
+                  ? { weightUndressed: submission.measureWeightUndressed }
+                  : {}),
+                weightUnit: submission.measureWeightUnit,
+              },
+            }
+          : {}),
         description: submission.description.trim(),
+        isPublic: submission.isPublic,
       } satisfies Partial<Kill>;
 
       let draft: Kill | null = null;
@@ -163,12 +203,17 @@ export function KillEditor({ killId }: { killId?: string }) {
             status: "active",
           });
       await saveKill(complete);
-      router.push(`/portfolio/kills/${id}`);
+      if (profile) {
+        await savePublicProfile(buildPublicProfile(profile));
+        if (submission.isPublic) await publishHunt(buildPublicHunt(complete, profile, initialKill?.isPublic ? initialKill.updatedAt : now));
+        else if (initialKill?.isPublic) await unpublishHunt(user.uid, id);
+      }
+      navigate(`/portfolio/kills/${id}`);
     } catch (saveError) {
       setError(
         saveError instanceof Error
           ? saveError.message
-          : "Your fieldnote could not be saved. Your draft is still available.",
+          : "Your hunt record could not be saved. Your draft is still available.",
       );
     } finally {
       setSaving(false);
@@ -178,7 +223,7 @@ export function KillEditor({ killId }: { killId?: string }) {
   if (loading) {
     return (
       <main className="centered-state">
-        <Spinner label="Loading fieldnote" />
+        <Spinner label="Loading hunt record" />
       </main>
     );
   }
@@ -186,7 +231,7 @@ export function KillEditor({ killId }: { killId?: string }) {
   if (killId && !initialKill) {
     return (
       <main className="centered-state">
-        <p role="alert">{error || "Fieldnote not found."}</p>
+        <p role="alert">{error || "Hunt record not found."}</p>
       </main>
     );
   }
@@ -198,6 +243,8 @@ export function KillEditor({ killId }: { killId?: string }) {
       uploads={uploads}
       saving={saving}
       saveError={error}
+      armoryItems={armoryItems}
+      loadouts={loadouts}
     />
   );
 }

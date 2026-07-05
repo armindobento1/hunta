@@ -1,11 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 
-import HomePage from "@/app/page";
+import { HomePage } from "@/src/pages/home-page";
+import { renderWithRouter } from "@/tests/helpers/render-router";
 
 describe("HomePage", () => {
   it("introduces the private hunting portfolio", () => {
-    render(<HomePage />);
+    renderWithRouter(<HomePage />);
 
+    expect(screen.getByLabelText("Hunta")).toHaveTextContent("H");
+    expect(screen.queryByText("F")).not.toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: /your hunts, remembered/i }),
     ).toBeInTheDocument();

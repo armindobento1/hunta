@@ -1,5 +1,5 @@
 import { ArrowUpRight, Camera } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 export function EmptyPortfolio() {
   return (
@@ -8,12 +8,12 @@ export function EmptyPortfolio() {
         <Camera />
       </span>
       <p className="eyebrow">No records yet</p>
-      <h2>Your first Fieldnote starts here.</h2>
+      <h2>Your first hunt record starts here.</h2>
       <p>
         Add the photograph, exact facts, and route from a hunt. Nothing is
         shared publicly.
       </p>
-      <Link className="empty-action" href="/portfolio/kills/new">
+      <Link className="empty-action" to="/portfolio/kills/new">
         Record a hunt <ArrowUpRight size={17} />
       </Link>
     </section>

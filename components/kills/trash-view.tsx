@@ -1,8 +1,6 @@
-"use client";
-
 import { ArchiveRestore, ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import type { Kill } from "@/lib/domain/kill";
@@ -27,12 +25,12 @@ export function TrashView({
 
   return (
     <main className="trash-page">
-      <Link href="/portfolio">
+      <Link to="/portfolio">
         <ArrowLeft aria-hidden="true" /> Portfolio
       </Link>
       <p className="eyebrow">Recoverable records</p>
       <h1>Trash</h1>
-      <p>Nothing here is permanently deleted. Restore a fieldnote at any time.</p>
+      <p>Nothing here is permanently deleted. Restore a hunt record at any time.</p>
       {kills.length === 0 ? (
         <div className="empty-trash">Trash is empty.</div>
       ) : (

@@ -2,6 +2,26 @@ import { killSchema } from "@/lib/domain/kill";
 import { makeKill } from "@/tests/helpers/kill";
 
 describe("killSchema", () => {
+  it("keeps legacy records readable while accepting optional farm and measurement facts", () => {
+    expect(killSchema.safeParse(makeKill()).success).toBe(true);
+
+    const enriched = makeKill({
+      location: {
+        ...makeKill().location,
+        farmName: "Welgevonden Game Reserve",
+      },
+      measurement: {
+        score: 56.875,
+        scoreUnit: "in",
+        scoringSystem: "SCI",
+        weightDressed: 241,
+        weightUnit: "kg",
+      },
+    });
+
+    expect(killSchema.safeParse(enriched).success).toBe(true);
+  });
+
   it.each(["species", "country", "date", "killTime"] as const)(
     "rejects a missing required fact: %s",
     (field) => {

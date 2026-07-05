@@ -20,6 +20,12 @@ export const killLocationSchema = z
     latitude: z.number().finite().min(-90).max(90),
     longitude: z.number().finite().min(-180).max(180),
     placeName: trimmed(160),
+    farmName: z.string().trim().min(1).max(200).optional(),
+    source: z.object({
+      provider: z.literal("esri"),
+      featureId: trimmed(240),
+      label: trimmed(240),
+    }).strict().optional(),
   })
   .strict();
 
@@ -51,6 +57,29 @@ export const ammunitionSchema = z
     detail: z.string().trim().max(160).optional(),
   })
   .strict();
+
+export const measurementSchema = z
+  .object({
+    score: z.number().finite().positive().optional(),
+    scoreUnit: z.string().trim().min(1).max(40).optional(),
+    scoringSystem: z.string().trim().min(1).max(80).optional(),
+    weightDressed: z.number().finite().positive().optional(),
+    weightUndressed: z.number().finite().positive().optional(),
+    weightUnit: z.enum(["kg", "lb"]).optional(),
+  })
+  .strict();
+
+const attachmentSnapshotSchema = z.object({
+  name: trimmed(120),
+  detail: z.string().trim().max(160).optional(),
+}).strict();
+
+export const equipmentAttachmentsSchema = z.object({
+  optic: attachmentSnapshotSchema.optional(),
+  suppressor: attachmentSnapshotSchema.optional(),
+  bipod: attachmentSnapshotSchema.optional(),
+  sling: attachmentSnapshotSchema.optional(),
+}).strict();
 
 export const routeBoundsSchema = z
   .object({
@@ -95,9 +124,13 @@ export const killSchema = z
     location: killLocationSchema,
     weapon: weaponSchema,
     ammunition: ammunitionSchema,
+    loadoutId: z.string().min(1).optional(),
+    equipmentAttachments: equipmentAttachmentsSchema.optional(),
+    measurement: measurementSchema.optional(),
     route: routeMetadataSchema.nullable(),
     description: z.string().trim().max(5_000),
     status: z.enum(["draft", "active", "trashed"]),
+    isPublic: z.boolean().optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
     trashedAt: z.string().datetime().nullable(),
@@ -160,6 +193,7 @@ export type MediaAsset = z.infer<typeof mediaAssetSchema>;
 export type KillLocation = z.infer<typeof killLocationSchema>;
 export type Weapon = z.infer<typeof weaponSchema>;
 export type Ammunition = z.infer<typeof ammunitionSchema>;
+export type Measurement = z.infer<typeof measurementSchema>;
 export type RouteBounds = z.infer<typeof routeBoundsSchema>;
 export type RouteMetadata = z.infer<typeof routeMetadataSchema>;
 export type Kill = z.infer<typeof killSchema>;

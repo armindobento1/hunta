@@ -1,9 +1,13 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { PortfolioDashboard } from "@/components/portfolio/portfolio-dashboard";
 import type { Profile } from "@/lib/domain/profile";
 import { makeKill } from "@/tests/helpers/kill";
+import { renderWithRouter } from "@/tests/helpers/render-router";
+
+vi.mock("@/lib/hooks/use-auth", () => ({ useAuth: () => ({ user: { uid: "owner-1" } }) }));
+vi.mock("@/lib/hooks/use-armory", () => ({ useArmory: () => ({ items: [], loadouts: [], loading: false, error: null }) }));
 
 const profile: Profile = {
   id: "owner-1",
@@ -16,9 +20,11 @@ const profile: Profile = {
 
 describe("PortfolioDashboard", () => {
   it("guides a new user to create their first record", () => {
-    render(<PortfolioDashboard profile={profile} kills={[]} />);
+    renderWithRouter(<PortfolioDashboard profile={profile} kills={[]} />);
 
-    expect(screen.getByText(/first fieldnote starts here/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/first hunt record starts here/i),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /record a hunt/i })).toHaveAttribute(
       "href",
       "/portfolio/kills/new",
@@ -28,7 +34,9 @@ describe("PortfolioDashboard", () => {
   it("renders derived statistics and chronologically sorted cards", () => {
     const older = makeKill({ id: "older", date: "2024-10-05" });
     const newest = makeKill({ id: "newest", species: "Impala" });
-    render(<PortfolioDashboard profile={profile} kills={[older, newest]} />);
+    renderWithRouter(
+      <PortfolioDashboard profile={profile} kills={[older, newest]} />,
+    );
 
     expect(screen.getByText("2", { selector: "strong" })).toBeInTheDocument();
     expect(screen.getByText("16.8", { selector: "strong" })).toBeInTheDocument();
@@ -39,7 +47,9 @@ describe("PortfolioDashboard", () => {
 
   it("switches between list and grid card treatments", async () => {
     const user = userEvent.setup();
-    render(<PortfolioDashboard profile={profile} kills={[makeKill()]} />);
+    renderWithRouter(
+      <PortfolioDashboard profile={profile} kills={[makeKill()]} />,
+    );
 
     const grid = screen.getByRole("button", { name: /grid view/i });
     expect(grid).toHaveAttribute("aria-pressed", "false");
@@ -50,7 +60,9 @@ describe("PortfolioDashboard", () => {
 
   it("groups the same records by country, place, and year", async () => {
     const user = userEvent.setup();
-    render(<PortfolioDashboard profile={profile} kills={[makeKill()]} />);
+    renderWithRouter(
+      <PortfolioDashboard profile={profile} kills={[makeKill()]} />,
+    );
 
     await user.click(screen.getByRole("button", { name: /by location/i }));
 
@@ -59,6 +71,19 @@ describe("PortfolioDashboard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Eastern Cape")).toBeInTheDocument();
     expect(screen.getByText("2025")).toBeInTheDocument();
+  });
+
+  it("shows the armory design without inventing equipment records", async () => {
+    const user = userEvent.setup();
+    renderWithRouter(
+      <PortfolioDashboard profile={profile} kills={[]} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Armory" }));
+
+    expect(screen.getByRole("heading", { name: /your armory/i })).toBeInTheDocument();
+    expect(screen.getByText(/no equipment saved yet/i)).toBeInTheDocument();
+    expect(screen.queryByText(/sako s20/i)).not.toBeInTheDocument();
   });
 
   it("excludes drafts and trash from portfolio cards", () => {
@@ -74,7 +99,7 @@ describe("PortfolioDashboard", () => {
       trashedAt: "2025-06-13T00:00:00.000Z",
     });
 
-    render(
+    renderWithRouter(
       <PortfolioDashboard profile={profile} kills={[draft, trashed]} />,
     );
     expect(screen.queryByRole("link", { name: /view .* hunt/i })).toBeNull();

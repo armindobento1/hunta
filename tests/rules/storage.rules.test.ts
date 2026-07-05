@@ -8,7 +8,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import { getBytes, ref, uploadBytes } from "firebase/storage";
 
-const projectId = "fieldnote-storage-rules";
+const projectId = "hunta-storage-rules";
 
 describe("Storage ownership rules", () => {
   let environment: RulesTestEnvironment;

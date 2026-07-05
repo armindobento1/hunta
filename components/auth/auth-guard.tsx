@@ -1,20 +1,11 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
 
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/lib/hooks/use-auth";
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { user, loading, error } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !user && !error) {
-      router.replace("/auth");
-    }
-  }, [error, loading, router, user]);
 
   if (loading) {
     return (
@@ -32,5 +23,5 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     );
   }
 
-  return user ? children : null;
+  return user ? children : <Navigate replace to="/auth" />;
 }

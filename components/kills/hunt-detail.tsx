@@ -1,8 +1,6 @@
-"use client";
-
 import { ArrowLeft, Edit3, Route, Trash2 } from "lucide-react";
-import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { RouteMap } from "@/components/map/route-map";
@@ -43,10 +41,10 @@ export function HuntDetail({
         }
       >
         <div className="hunt-hero-nav">
-          <Link href="/portfolio">
+          <Link to="/portfolio">
             <ArrowLeft aria-hidden="true" /> Portfolio
           </Link>
-          <Link href={`/portfolio/kills/${kill.id}/edit`}>
+          <Link to={`/portfolio/kills/${kill.id}/edit`}>
             <Edit3 aria-hidden="true" /> Edit
           </Link>
         </div>
