@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:absolute;inset:0;background:{{ pageBg }};">
+  <div style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <!-- nav header -->
+    <div style="padding:58px 16px 0;display:flex;align-items:center;gap:12px;">
+      <span style="flex:none;width:11px;height:11px;border-left:2px solid {{ accent }};border-bottom:2px solid {{ accent }};transform:rotate(45deg);margin-left:2px;"></span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:600;letter-spacing:0.5px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">PRIVATE FIELD RECORD</div>
+        <div style="font-size:24px;font-weight:700;letter-spacing:-0.5px;color:{{ text }};line-height:1.1;">New hunt record</div>
+      </div>
+      <div style="flex:none;padding:8px 15px;border-radius:20px;background:{{ accentBtn }};box-shadow:0 2px 8px {{ accentShadow }};font-size:13px;font-weight:600;color:#fff;">Save</div>
+    </div>
+
+    <!-- 01 LOADOUT (prominent) -->
+    <div style="padding:22px 16px 0;">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
+        <span style="font-size:11px;font-weight:700;color:{{ accent }};font-family:'SF Mono',ui-monospace,monospace;">01</span>
+        <span style="font-size:12px;font-weight:700;letter-spacing:0.6px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">SELECT LOADOUT</span>
+      </div>
+      <div style="border-radius:17px;overflow:hidden;background:{{ loadoutBg }};box-shadow:0 4px 16px {{ loadoutShadow }};border:0.5px solid {{ loadoutBorder }};">
+        <div style="padding:14px 16px;background:{{ loadoutHead }};display:flex;align-items:center;gap:10px;">
+          <span style="flex:none;width:30px;height:30px;border-radius:9px;background:rgba(111,191,140,0.18);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#9FE3B8;font-family:'SF Mono',ui-monospace,monospace;">K</span>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:7px;"><span style="font-size:17px;font-weight:700;letter-spacing:-0.3px;color:#fff;">Kudu Setup</span><span style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:11px;background:rgba(111,191,140,0.2);"><span style="font-size:9px;font-weight:700;letter-spacing:0.3px;color:#9FE3B8;font-family:'SF Mono',ui-monospace,monospace;">DEFAULT</span></span></div>
+            <div style="font-size:11.5px;font-weight:500;color:rgba(255,255,255,0.55);font-family:'SF Mono',ui-monospace,monospace;">.300 WM · ELD-X 200gr</div>
+          </div>
+          <span style="flex:none;display:flex;flex-direction:column;gap:3px;"><span style="width:7px;height:7px;border-top:2px solid rgba(255,255,255,0.5);border-right:2px solid rgba(255,255,255,0.5);transform:rotate(-45deg);"></span><span style="width:7px;height:7px;border-bottom:2px solid rgba(255,255,255,0.5);border-right:2px solid rgba(255,255,255,0.5);transform:rotate(45deg);margin-top:-2px;"></span></span>
+        </div>
+        <div style="display:flex;padding:11px 16px;gap:0;">
+          <div style="flex:1;"><div style="font-size:9.5px;font-weight:700;letter-spacing:0.5px;color:rgba(255,255,255,0.5);font-family:'SF Mono',ui-monospace,monospace;">WEAPON</div><div style="margin-top:2px;font-size:13px;font-weight:600;color:#fff;">Sako 85</div></div>
+          <div style="flex:1;"><div style="font-size:9.5px;font-weight:700;letter-spacing:0.5px;color:rgba(255,255,255,0.5);font-family:'SF Mono',ui-monospace,monospace;">OPTIC</div><div style="margin-top:2px;font-size:13px;font-weight:600;color:#fff;">Z8i</div></div>
+          <div style="flex:1;"><div style="font-size:9.5px;font-weight:700;letter-spacing:0.5px;color:rgba(255,255,255,0.5);font-family:'SF Mono',ui-monospace,monospace;">AMMO</div><div style="margin-top:2px;font-size:13px;font-weight:600;color:#fff;">200gr</div></div>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:{{ muted }};">Weapon &amp; ammunition below are pre-filled from this loadout.</div>
+    </div>
+
+    <!-- 02 HUNT FACTS -->
+    <div style="padding:26px 16px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-size:11px;font-weight:700;color:{{ accent }};font-family:'SF Mono',ui-monospace,monospace;">02</span><span style="font-size:12px;font-weight:700;letter-spacing:0.6px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">HUNT FACTS</span></div>
+        <span style="font-size:10.5px;font-weight:700;letter-spacing:0.4px;color:{{ reqText }};font-family:'SF Mono',ui-monospace,monospace;">REQUIRED</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;gap:11px;">
+          <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:{{ label }};margin-bottom:6px;">Species</div><div style="height:44px;border-radius:11px;background:{{ inputBg }};border:1px solid {{ inputBorder }};display:flex;align-items:center;padding:0 13px;font-size:15px;font-weight:500;color:{{ text }};">Greater Kudu</div></div>
+          <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:{{ label }};margin-bottom:6px;">Country</div><div style="height:44px;border-radius:11px;background:{{ inputBg }};border:1px solid {{ inputBorder }};display:flex;align-items:center;padding:0 13px;font-size:15px;font-weight:500;color:{{ text }};">South Africa</div></div>
+        </div>
+        <div style="display:flex;gap:11px;">
+          <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:{{ label }};margin-bottom:6px;">Date</div><div style="height:44px;border-radius:11px;background:{{ inputBg }};border:1px solid {{ inputBorder }};display:flex;align-items:center;padding:0 13px;font-size:15px;font-weight:500;color:{{ text }};">12 Jun 2025</div></div>
+          <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:{{ label }};margin-bottom:6px;">Kill time</div><div style="height:44px;border-radius:11px;background:{{ inputBg }};border:1px solid {{ inputBorder }};display:flex;align-items:center;padding:0 13px;font-size:15px;font-weight:500;color:{{ text }};">06:40</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 LOCATION -->
+    <div style="padding:26px 16px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-size:11px;font-weight:700;color:{{ accent }};font-family:'SF Mono',ui-monospace,monospace;">03</span><span style="font-size:12px;font-weight:700;letter-spacing:0.6px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">LOCATION</span></div>
+      </div>
+      <!-- Farm name: the one required field, highlighted -->
+      <div style="border-radius:13px;background:{{ reqFieldBg }};border:1.5px solid {{ accent }};padding:12px 13px 13px;margin-bottom:12px;box-shadow:0 1px 6px {{ reqGlow }};">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
+          <span style="font-size:12.5px;font-weight:700;color:{{ text }};">Farm name <span style="color:{{ accent }};">*</span></span>
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:11px;background:{{ reqBadgeBg }};"><span style="width:5px;height:5px;border-radius:50%;background:{{ accent }};"></span><span style="font-size:9.5px;font-weight:700;letter-spacing:0.4px;color:{{ reqText }};font-family:'SF Mono',ui-monospace,monospace;">REQUIRED</span></span>
+        </div>
+        <div style="height:44px;border-radius:10px;background:{{ inputBg }};border:1px solid {{ inputBorder }};display:flex;align-items:center;padding:0 13px;font-size:15px;font-weight:500;color:{{ text }};">Welgevonden Game Reserve</div>
+      </div>
+      <!-- optional location fields -->
+      <div style="margin-bottom:12px;"><div style="font-size:12.5px;font-weight:600;color:{{ label }};margin-bottom:6px;">Nearest place</div><div style="height:44px;border-radius:11px;background:{{ inputBg }};border:1px solid {{ inputBorder }};display:flex;align-items:center;padding:0 13px;font-size:15px;font-weight:500;color:{{ text }};">Eastern Cape, South Africa</div></div>
+      <div><div style="font-size:12.5px;font-weight:600;color:{{ label }};margin-bottom:6px;">Map pin</div>
+        <div style="position:relative;height:118px;border-radius:13px;overflow:hidden;border:1px solid {{ inputBorder }};background:{{ mapBg }};">
+          <div style="position:absolute;inset:0;background-image:linear-gradient({{ mapLine }} 1px,transparent 1px),linear-gradient(90deg,{{ mapLine }} 1px,transparent 1px);background-size:26px 26px;"></div>
+          <div style="position:absolute;left:50%;top:48%;transform:translate(-50%,-100%);"><span style="display:block;width:20px;height:20px;border-radius:50% 50% 50% 0;background:{{ accentBtn }};transform:rotate(-45deg);box-shadow:0 3px 8px {{ accentShadow }};"></span></div>
+          <div style="position:absolute;left:11px;bottom:9px;font-size:10.5px;font-weight:600;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;background:{{ mapChip }};padding:3px 7px;border-radius:7px;">-32.291, 24.534</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 MEASUREMENTS (optional) -->
+    <div style="padding:26px 16px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-size:11px;font-weight:700;color:{{ accent }};font-family:'SF Mono',ui-monospace,monospace;">04</span><span style="font-size:12px;font-weight:700;letter-spacing:0.6px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">MEASUREMENTS</span></div>
+        <span style="font-size:10.5px;font-weight:600;letter-spacing:0.4px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">OPTIONAL</span>
+      </div>
+      <div style="font-size:12px;color:{{ muted }};margin-bottom:12px;">Add trophy detail later if you don't have it now.</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div><div style="font-size:12.5px;font-weight:600;color:{{ label }};margin-bottom:6px;">Score / size <span style="font-weight:500;color:{{ muted }};">· SCI / Rowland Ward</span></div>
+          <div style="display:flex;gap:0;height:44px;border-radius:11px;background:{{ inputBg }};border:1px solid {{ inputBorder }};overflow:hidden;"><div style="flex:1;display:flex;align-items:center;padding:0 13px;font-size:15px;font-weight:500;color:{{ ph }};">e.g. 53 ⅜</div><div style="flex:none;width:60px;display:flex;align-items:center;justify-content:center;background:{{ unitBg }};font-size:13px;font-weight:600;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;border-left:1px solid {{ inputBorder }};">in</div></div>
+        </div>
+        <div style="display:flex;gap:11px;">
+          <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:{{ label }};margin-bottom:6px;">Dressed weight</div><div style="display:flex;height:44px;border-radius:11px;background:{{ inputBg }};border:1px solid {{ inputBorder }};overflow:hidden;"><div style="flex:1;display:flex;align-items:center;padding:0 12px;font-size:15px;font-weight:500;color:{{ ph }};">—</div><div style="flex:none;width:48px;display:flex;align-items:center;justify-content:center;background:{{ unitBg }};font-size:12.5px;font-weight:600;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;border-left:1px solid {{ inputBorder }};">kg</div></div></div>
+          <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:{{ label }};margin-bottom:6px;">Undressed weight</div><div style="display:flex;height:44px;border-radius:11px;background:{{ inputBg }};border:1px solid {{ inputBorder }};overflow:hidden;"><div style="flex:1;display:flex;align-items:center;padding:0 12px;font-size:15px;font-weight:500;color:{{ ph }};">—</div><div style="flex:none;width:48px;display:flex;align-items:center;justify-content:center;background:{{ unitBg }};font-size:12.5px;font-weight:600;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;border-left:1px solid {{ inputBorder }};">kg</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05 HUNT STORY -->
+    <div style="padding:26px 16px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-size:11px;font-weight:700;color:{{ accent }};font-family:'SF Mono',ui-monospace,monospace;">05</span><span style="font-size:12px;font-weight:700;letter-spacing:0.6px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">HUNT STORY</span></div>
+        <span style="font-size:10.5px;font-weight:600;letter-spacing:0.4px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">OPTIONAL</span>
+      </div>
+      <div style="min-height:80px;border-radius:13px;background:{{ inputBg }};border:1px solid {{ inputBorder }};padding:12px 13px;font-size:14px;line-height:1.45;color:{{ ph }};">How the stalk unfolded…</div>
+    </div>
+
+    <div style="padding:24px 16px 0;">
+      <div style="text-align:center;padding:14px 0;border-radius:13px;background:{{ accentBtn }};box-shadow:0 4px 14px {{ accentShadow }};font-size:15px;font-weight:600;color:#fff;">Save hunt record</div>
+    </div>
+    <div style="height:40px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.mode === 'dark';
+    return {
+      pageBg: dark ? '#000000' : '#FFFFFF',
+      text: dark ? '#FFFFFF' : '#1C1C1E',
+      label: dark ? '#C7C7CC' : '#3C3C43',
+      muted: dark ? '#98989F' : '#8E8E93',
+      ph: dark ? '#6A6A70' : '#B0B0B6',
+      accent: dark ? '#6FBF8C' : '#1F3D2B',
+      accentBtn: dark ? '#2E7D4F' : '#1F3D2B',
+      accentShadow: dark ? 'rgba(46,125,79,0.45)' : 'rgba(31,61,43,0.32)',
+      inputBg: dark ? '#1C1C1E' : '#F5F5F7',
+      inputBorder: dark ? 'rgba(84,84,88,0.5)' : 'rgba(60,60,67,0.13)',
+      unitBg: dark ? '#242427' : '#ECECEF',
+      reqText: dark ? '#6FBF8C' : '#1F3D2B',
+      reqFieldBg: dark ? 'rgba(46,125,79,0.1)' : 'rgba(31,61,43,0.04)',
+      reqBadgeBg: dark ? 'rgba(46,125,79,0.18)' : '#E8F0EA',
+      reqGlow: dark ? 'rgba(46,125,79,0.25)' : 'rgba(31,61,43,0.1)',
+      mapBg: dark ? '#121417' : '#EEF1EE',
+      mapLine: dark ? 'rgba(255,255,255,0.05)' : 'rgba(31,61,43,0.07)',
+      mapChip: dark ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.85)',
+      // loadout premium card
+      loadoutBg: dark ? '#16181B' : '#0E1F16',
+      loadoutHead: dark ? 'linear-gradient(180deg,#1B2A21 0%,#16181B 100%)' : 'linear-gradient(180deg,#15301F 0%,#0E1F16 100%)',
+      loadoutBorder: dark ? 'rgba(111,191,140,0.18)' : 'rgba(255,255,255,0.06)',
+      loadoutShadow: dark ? 'rgba(0,0,0,0.5)' : 'rgba(14,31,22,0.3)',
+    };
+  }
+}
+</script>
+</body>
+</html>

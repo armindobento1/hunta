@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:absolute;left:0;right:0;bottom:0;height:84px;background:{{ frost }};backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);border-top:0.5px solid {{ sep }};display:flex;align-items:flex-start;justify-content:space-around;padding-top:10px;z-index:20;">
+  <!-- Feed -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px;">
+    <div style="position:relative;width:23px;height:20px;">
+      <span style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:9px solid {{ feedColor }};"></span>
+      <span style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:15px;height:11px;background:{{ feedColor }};border-radius:0 0 2px 2px;"></span>
+    </div>
+    <span style="font-size:10px;font-weight:{{ feedWeight }};color:{{ feedColor }};">Feed</span>
+  </div>
+  <!-- Leaderboard -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px;">
+    <div style="display:flex;align-items:flex-end;gap:3px;height:20px;">
+      <span style="width:5px;height:11px;background:{{ lbColor }};border-radius:2px 2px 0 0;"></span>
+      <span style="width:5px;height:19px;background:{{ lbColor }};border-radius:2px 2px 0 0;"></span>
+      <span style="width:5px;height:15px;background:{{ lbColor }};border-radius:2px 2px 0 0;"></span>
+    </div>
+    <span style="font-size:10px;font-weight:{{ lbWeight }};color:{{ lbColor }};">Leaders</span>
+  </div>
+  <!-- center add -->
+  <div style="display:flex;flex-direction:column;align-items:center;margin-top:-4px;">
+    <div style="width:52px;height:52px;border-radius:50%;background:{{ accentBtn }};box-shadow:0 6px 16px {{ accentShadow }};display:flex;align-items:center;justify-content:center;">
+      <div style="position:relative;width:22px;height:22px;"><span style="position:absolute;top:50%;left:0;right:0;height:2.5px;margin-top:-1.25px;background:#fff;border-radius:2px;"></span><span style="position:absolute;left:50%;top:0;bottom:0;width:2.5px;margin-left:-1.25px;background:#fff;border-radius:2px;"></span></div>
+    </div>
+  </div>
+  <!-- Map -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px;">
+    <div style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;">
+      <span style="width:15px;height:15px;border-radius:50% 50% 50% 0;background:{{ mapColor }};transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;"><span style="width:5px;height:5px;border-radius:50%;background:{{ mapHole }};transform:rotate(45deg);"></span></span>
+    </div>
+    <span style="font-size:10px;font-weight:{{ mapWeight }};color:{{ mapColor }};">Map</span>
+  </div>
+  <!-- Profile -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;width:62px;">
+    <div style="position:relative;width:24px;height:20px;display:flex;align-items:flex-end;justify-content:center;"><span style="position:absolute;top:0;width:9px;height:9px;border-radius:50%;background:{{ profileColor }};"></span><span style="width:17px;height:11px;border-radius:9px 9px 3px 3px;background:{{ profileColor }};"></span></div>
+    <span style="font-size:10px;font-weight:{{ profileWeight }};color:{{ profileColor }};">Profile</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:84},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;feed&quot;,&quot;leaderboard&quot;,&quot;map&quot;,&quot;profile&quot;],&quot;default&quot;:&quot;feed&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.mode === 'dark';
+    const active = this.props.active || 'feed';
+    const accent = dark ? '#6FBF8C' : '#1F3D2B';
+    const idle = dark ? '#7C7C82' : '#9A9AA0';
+    const col = (k) => active === k ? accent : idle;
+    const wt = (k) => active === k ? '600' : '500';
+    return {
+      frost: dark ? 'rgba(20,20,22,0.72)' : 'rgba(255,255,255,0.8)',
+      sep: dark ? 'rgba(84,84,88,0.55)' : 'rgba(60,60,67,0.13)',
+      accentBtn: dark ? '#2E7D4F' : '#1F3D2B',
+      accentShadow: dark ? 'rgba(46,125,79,0.45)' : 'rgba(31,61,43,0.32)',
+      mapHole: dark ? '#15171A' : '#FFFFFF',
+      feedColor: col('feed'), feedWeight: wt('feed'),
+      lbColor: col('leaderboard'), lbWeight: wt('leaderboard'),
+      mapColor: col('map'), mapWeight: wt('map'),
+      profileColor: col('profile'), profileWeight: wt('profile'),
+    };
+  }
+}
+</script>
+</body>
+</html>

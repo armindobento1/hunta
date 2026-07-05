@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@keyframes none-x { from { opacity: 1 } to { opacity: 1 } }
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;border-radius:54px;padding:11px;background:#0a0a0a;box-shadow:0 30px 70px -20px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.25);box-sizing:content-box;">
+  <div style="position:absolute;inset:11px;border-radius:43px;box-shadow:inset 0 0 0 2px rgba(255,255,255,0.06);pointer-events:none;z-index:50;"></div>
+  <div style="width:390px;height:844px;border-radius:43px;overflow:hidden;position:relative;background:{{ screenBg }};font-family:-apple-system,'SF Pro Text','SF Pro Display',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:{{ textColor }};">
+    {{ children }}
+    <!-- status bar -->
+    <div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 8px;z-index:40;pointer-events:none;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;">
+      <span style="font-size:15px;font-weight:600;letter-spacing:0.3px;color:{{ statusColor }};">9:41</span>
+      <span style="display:flex;align-items:center;gap:7px;color:{{ statusColor }};">
+        <span style="display:flex;align-items:flex-end;gap:2px;height:11px;">
+          <span style="width:3px;height:5px;background:currentColor;border-radius:1px;"></span>
+          <span style="width:3px;height:7px;background:currentColor;border-radius:1px;"></span>
+          <span style="width:3px;height:9px;background:currentColor;border-radius:1px;"></span>
+          <span style="width:3px;height:11px;background:currentColor;border-radius:1px;"></span>
+        </span>
+        <span style="width:16px;height:11px;border:1.5px solid currentColor;border-radius:3px;position:relative;display:inline-block;opacity:0.95;">
+          <span style="position:absolute;inset:1.5px;background:currentColor;border-radius:1px;"></span>
+          <span style="position:absolute;right:-3px;top:3px;width:1.5px;height:4px;background:currentColor;border-radius:0 1px 1px 0;"></span>
+        </span>
+      </span>
+    </div>
+    <!-- dynamic island -->
+    <div style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:35px;background:#000;border-radius:20px;z-index:45;"></div>
+    <!-- home indicator -->
+    <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:138px;height:5px;border-radius:3px;background:{{ homeColor }};z-index:45;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:412,&quot;height&quot;:866},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;},&quot;statusLight&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.mode === 'dark';
+    const statusLight = this.props.statusLight === true || this.props.statusLight === 'true';
+    return {
+      screenBg: dark ? '#000000' : '#FFFFFF',
+      statusColor: (statusLight || dark) ? '#FFFFFF' : '#1C1C1E',
+      homeColor: dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
+      textColor: dark ? '#FFFFFF' : '#1C1C1E',
+    };
+  }
+}
+</script>
+</body>
+</html>

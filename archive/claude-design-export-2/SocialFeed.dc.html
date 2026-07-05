@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:absolute;inset:0;background:{{ pageBg }};">
+  <div style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <!-- header -->
+    <div style="padding:58px 16px 0;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:28px;font-weight:800;letter-spacing:-0.7px;color:{{ text }};">Feed</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span style="position:relative;width:23px;height:23px;display:flex;align-items:center;justify-content:center;"><span style="width:13px;height:13px;border-radius:50%;border:2px solid {{ icon }};"></span><span style="position:absolute;bottom:1px;right:1px;width:7px;height:2px;background:{{ icon }};border-radius:2px;transform:rotate(45deg);transform-origin:right;"></span></span>
+        <span style="position:relative;width:22px;height:22px;"><span style="position:absolute;top:0;left:1px;right:1px;height:14px;border:2px solid {{ icon }};border-radius:4px;"></span><span style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:2px;height:6px;background:{{ icon }};border-radius:2px;"></span></span>
+      </div>
+    </div>
+
+    <!-- following / discover -->
+    <div style="margin:15px 16px 0;padding:2px;background:{{ segTrack }};border-radius:9px;display:flex;">
+      <div style="flex:1;text-align:center;padding:6px 0;border-radius:7px;background:{{ segActiveBg }};box-shadow:{{ segShadow }};font-size:13px;font-weight:600;color:{{ segActiveText }};">Following</div>
+      <div style="flex:1;text-align:center;padding:6px 0;border-radius:7px;font-size:13px;font-weight:500;color:{{ muted }};">Discover</div>
+    </div>
+
+    <!-- stories rail -->
+    <div style="display:flex;gap:15px;overflow-x:auto;padding:16px 16px 4px;-webkit-overflow-scrolling:touch;">
+      <sc-for list="{{ stories }}" as="st" hint-placeholder-count="6">
+        <div style="flex:none;display:flex;flex-direction:column;align-items:center;gap:5px;width:60px;">
+          <div style="padding:2.5px;border-radius:50%;background:{{ st.ring }};">
+            <div style="padding:2px;border-radius:50%;background:{{ pageBg }};">
+              <image-slot id="{{ st.slot }}" shape="circle" fit="cover" placeholder="{{ st.ph }}" style="display:block;width:50px;height:50px;"></image-slot>
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:500;color:{{ body }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px;">{{ st.name }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- posts -->
+    <div style="padding:8px 0 0;display:flex;flex-direction:column;">
+      <sc-for list="{{ posts }}" as="p" hint-placeholder-count="2">
+        <div style="border-top:0.5px solid {{ sep }};padding:14px 0 18px;">
+          <!-- post header -->
+          <div style="display:flex;align-items:center;gap:11px;padding:0 16px;">
+            <image-slot id="{{ p.avatar }}" shape="circle" fit="cover" placeholder="·" style="flex:none;display:block;width:40px;height:40px;"></image-slot>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:14.5px;font-weight:700;color:{{ text }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.handle }}</span><span style="flex:none;width:13px;height:13px;border-radius:50%;background:{{ accent }};display:flex;align-items:center;justify-content:center;"><span style="width:5px;height:3px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg);margin-top:-1px;"></span></span></div>
+              <div style="margin-top:1px;font-size:12px;color:{{ muted }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.meta }}</div>
+            </div>
+            <span style="flex:none;display:flex;gap:3px;"><span style="width:3.5px;height:3.5px;border-radius:50%;background:{{ muted }};"></span><span style="width:3.5px;height:3.5px;border-radius:50%;background:{{ muted }};"></span><span style="width:3.5px;height:3.5px;border-radius:50%;background:{{ muted }};"></span></span>
+          </div>
+          <!-- photo -->
+          <div style="padding:12px 16px 0;">
+            <dc-import name="KillCard" variant="overlay" mode="{{ mode }}" slot="{{ p.slot }}" species="{{ p.species }}" place="{{ p.place }}" date="{{ p.date }}" cal="{{ p.cal }}" hint-size="358px,300px"></dc-import>
+          </div>
+          <!-- strava stat strip -->
+          <div style="margin:11px 16px 0;display:flex;border-radius:13px;background:{{ statBg }};border:0.5px solid {{ statBorder }};overflow:hidden;">
+            <sc-for list="{{ p.stats }}" as="s" hint-placeholder-count="4">
+              <div style="flex:1;padding:11px 6px;text-align:center;border-left:0.5px solid {{ statBorder }};">
+                <div style="font-size:9px;font-weight:700;letter-spacing:0.5px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">{{ s.k }}</div>
+                <div style="margin-top:3px;font-size:15px;font-weight:700;letter-spacing:-0.3px;color:{{ text }};">{{ s.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <!-- actions -->
+          <div style="padding:13px 16px 0;display:flex;align-items:center;gap:18px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="position:relative;width:22px;height:20px;display:flex;align-items:center;justify-content:center;">
+                <span style="width:13px;height:13px;background:{{ kudosFill }};border-radius:3px 3px 3px 0;"></span><span style="position:absolute;top:0;left:9px;width:6px;height:8px;background:{{ kudosFill }};border-radius:0 4px 4px 0;"></span>
+              </span>
+              <span style="font-size:13.5px;font-weight:600;color:{{ text }};">{{ p.kudos }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="width:19px;height:17px;border:2px solid {{ icon }};border-radius:6px 6px 6px 2px;"></span>
+              <span style="font-size:13.5px;font-weight:600;color:{{ text }};">{{ p.comments }}</span>
+            </div>
+            <span style="margin-left:auto;width:18px;height:18px;border:2px solid {{ icon }};border-radius:4px;border-bottom:none;border-right:none;transform:rotate(45deg);"></span>
+          </div>
+          <!-- caption -->
+          <div style="padding:11px 16px 0;font-size:14px;line-height:1.45;color:{{ body }};"><span style="font-weight:700;color:{{ text }};">{{ p.handleShort }}</span> {{ p.caption }}</div>
+          <div style="padding:6px 16px 0;font-size:12.5px;color:{{ muted }};">{{ p.time }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="height:104px;"></div>
+  </div>
+
+  <dc-import name="TabBar" active="feed" mode="{{ mode }}" hint-size="100%,84px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.mode === 'dark';
+    return {
+      mode: this.props.mode || 'light',
+      stories: [
+        { name: 'You', slot: 'sf_st_you', ph: 'You', ring: dark ? '#3A3A3E' : '#D8D8DE' },
+        { name: 'willem_pj', slot: 'sf_st1', ph: '·', ring: 'linear-gradient(135deg,#2E7D4F,#9FE3B8)' },
+        { name: 'hendrik_k', slot: 'sf_st2', ph: '·', ring: 'linear-gradient(135deg,#2E7D4F,#9FE3B8)' },
+        { name: 'anya_v', slot: 'sf_st3', ph: '·', ring: 'linear-gradient(135deg,#2E7D4F,#9FE3B8)' },
+        { name: 'kobus_m', slot: 'sf_st4', ph: '·', ring: 'linear-gradient(135deg,#2E7D4F,#9FE3B8)' },
+        { name: 'dirk_le', slot: 'sf_st5', ph: '·', ring: 'linear-gradient(135deg,#2E7D4F,#9FE3B8)' },
+      ],
+      posts: [
+        {
+          handle: 'willem_pj', handleShort: 'willem_pj',
+          meta: 'Welgevonden Reserve · Eastern Cape',
+          avatar: 'sf_av1', slot: 'sf_post1',
+          species: 'Greater Kudu', place: 'Eastern Cape, ZA', date: '12 Jun', cal: '.300 WM',
+          stats: [
+            { k: 'STALK', v: '12.4 km' },
+            { k: 'TIME', v: '4h 05m' },
+            { k: 'ASCENT', v: '612 m' },
+            { k: 'SCORE', v: '56 ⅞' },
+          ],
+          kudos: '142', comments: '23',
+          caption: 'Nine days of glassing before this old bull stepped clear. Fair chase, one shot. A season made.',
+          time: '3 hours ago',
+        },
+        {
+          handle: 'anya_v', handleShort: 'anya_v',
+          meta: 'Bitterroot · Montana, USA',
+          avatar: 'sf_av2', slot: 'sf_post2',
+          species: 'Rocky Mountain Elk', place: 'Bitterroot, MT', date: '5 Oct', cal: 'BOW',
+          stats: [
+            { k: 'STALK', v: '18.7 km' },
+            { k: 'TIME', v: '6h 41m' },
+            { k: 'ASCENT', v: '1,240 m' },
+            { k: 'RANGE', v: '38 m' },
+          ],
+          kudos: '208', comments: '41',
+          caption: 'Bugled him in to 38 m at first light. Backcountry archery — every metre earned on foot.',
+          time: 'Yesterday',
+        },
+      ],
+      pageBg: dark ? '#000000' : '#FFFFFF',
+      text: dark ? '#FFFFFF' : '#1C1C1E',
+      body: dark ? '#C7C7CC' : '#3C3C43',
+      muted: dark ? '#98989F' : '#8E8E93',
+      icon: dark ? '#E5E5EA' : '#1C1C1E',
+      sep: dark ? 'rgba(84,84,88,0.4)' : 'rgba(60,60,67,0.1)',
+      accent: dark ? '#6FBF8C' : '#1F3D2B',
+      kudosFill: dark ? '#6FBF8C' : '#1F3D2B',
+      segTrack: dark ? 'rgba(118,118,128,0.24)' : 'rgba(118,118,128,0.12)',
+      segActiveBg: dark ? '#636366' : '#FFFFFF',
+      segActiveText: dark ? '#FFFFFF' : '#1C1C1E',
+      segShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.06)',
+      statBg: dark ? '#141416' : '#F7F7F8',
+      statBorder: dark ? 'rgba(84,84,88,0.4)' : 'rgba(60,60,67,0.1)',
+    };
+  }
+}
+</script>
+</body>
+</html>

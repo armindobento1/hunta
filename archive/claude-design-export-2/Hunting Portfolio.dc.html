@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<script src="./image-slot.js"></script>
+<style>
+  body { background:#e9e9ec; font-family:-apple-system,'SF Pro Text','SF Pro Display',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+</style>
+</helmet>
+<div style="position:absolute;left:80px;top:36px;font-family:-apple-system,'SF Pro Display',system-ui,sans-serif;">
+  <div style="font-size:30px;font-weight:700;letter-spacing:-0.6px;color:#1c1c1e;">Hunting Portfolio — iOS</div>
+  <div style="margin-top:5px;font-size:15px;color:#6b6b70;">Instagram × Strava, for hunting · clean Apple aesthetic · drop your own photos onto any slot</div>
+</div>
+
+<div data-drags-parent="1" style="position:absolute;left:80px;top:120px;font:700 14px/1 -apple-system,system-ui,sans-serif;letter-spacing:0.6px;color:#8a8a8f;text-transform:uppercase;">Light mode</div>
+
+<div style="position:absolute;left:80px;top:158px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Profile · Feed</div>
+  <dc-import name="Phone" mode="light" hint-size="412px,866px"><dc-import name="FeedScreen" mode="light" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+
+<!-- new screens: loadout & competition (light) -->
+<div data-drags-parent="1" style="position:absolute;left:1010px;top:120px;font:700 14px/1 -apple-system,system-ui,sans-serif;letter-spacing:0.6px;color:#8a8a8f;text-transform:uppercase;">Loadout &amp; competition</div>
+<div style="position:absolute;left:1010px;top:158px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Armory · gear &amp; loadouts</div>
+  <dc-import name="Phone" mode="light" hint-size="412px,866px"><dc-import name="ArmoryScreen" mode="light" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+<div style="position:absolute;left:1462px;top:158px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Log a kill · loadout + measurements</div>
+  <dc-import name="Phone" mode="light" hint-size="412px,866px"><dc-import name="LogKillScreen" mode="light" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+<div style="position:absolute;left:1914px;top:158px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Species leaderboard</div>
+  <dc-import name="Phone" mode="light" hint-size="412px,866px"><dc-import name="LeaderboardScreen" mode="light" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+<div style="position:absolute;left:2366px;top:158px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Feed · Instagram × Strava</div>
+  <dc-import name="Phone" mode="light" hint-size="412px,866px"><dc-import name="SocialFeed" mode="light" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+
+<!-- card studio -->
+<div style="position:absolute;left:592px;top:158px;width:360px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Kill card · treatments</div>
+  <div style="display:flex;flex-direction:column;gap:22px;">
+    <div>
+      <div style="font:500 11px/1 'SF Mono',monospace;color:#8a8a8f;margin-bottom:8px;">A · CAPTION BELOW</div>
+      <dc-import name="KillCard" variant="below" mode="light" slot="studio_a" species="Red Stag" place="Highlands, Scotland" date="28 Sep 2024" cal=".308 WIN" hint-size="360px,300px"></dc-import>
+    </div>
+    <div>
+      <div style="font:500 11px/1 'SF Mono',monospace;color:#8a8a8f;margin-bottom:8px;">B · OVERLAY (used in feed)</div>
+      <dc-import name="KillCard" variant="overlay" mode="light" slot="studio_b" species="Gemsbok" place="Kalahari, Namibia" date="3 Jul 2023" cal=".30-06" hint-size="360px,300px"></dc-import>
+    </div>
+    <div>
+      <div style="font:500 11px/1 'SF Mono',monospace;color:#8a8a8f;margin-bottom:8px;">C · COMPACT (by-location list)</div>
+      <div style="border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+        <dc-import name="KillCard" variant="compact" mode="light" slot="studio_c1" species="Roe Deer" place="Bavaria, Germany" date="14 May 2024" cal=".243" hint-size="360px,78px"></dc-import>
+        <div style="height:0.5px;background:rgba(60,60,67,0.13);margin-left:85px;"></div>
+        <dc-import name="KillCard" variant="compact" mode="light" slot="studio_c2" species="Mule Deer" place="Colorado, USA" date="19 Oct 2023" cal="BOW" hint-size="360px,78px"></dc-import>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div data-drags-parent="1" style="position:absolute;left:80px;top:1100px;font:700 14px/1 -apple-system,system-ui,sans-serif;letter-spacing:0.6px;color:#8a8a8f;text-transform:uppercase;">Dark mode</div>
+
+<div style="position:absolute;left:80px;top:1138px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Profile · Feed</div>
+  <dc-import name="Phone" mode="dark" hint-size="412px,866px"><dc-import name="FeedScreen" mode="dark" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+
+<div style="position:absolute;left:562px;top:1138px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Armory</div>
+  <dc-import name="Phone" mode="dark" hint-size="412px,866px"><dc-import name="ArmoryScreen" mode="dark" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+<div style="position:absolute;left:1014px;top:1138px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Log a kill</div>
+  <dc-import name="Phone" mode="dark" hint-size="412px,866px"><dc-import name="LogKillScreen" mode="dark" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+<div style="position:absolute;left:1466px;top:1138px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Leaderboard</div>
+  <dc-import name="Phone" mode="dark" hint-size="412px,866px"><dc-import name="LeaderboardScreen" mode="dark" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+<div style="position:absolute;left:1918px;top:1138px;width:412px;">
+  <div data-drags-parent="1" style="font:600 13px/1 -apple-system,system-ui,sans-serif;color:#6b6b70;margin-bottom:12px;">Feed · Instagram × Strava</div>
+  <dc-import name="Phone" mode="dark" hint-size="412px,866px"><dc-import name="SocialFeed" mode="dark" hint-size="390px,844px"></dc-import></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

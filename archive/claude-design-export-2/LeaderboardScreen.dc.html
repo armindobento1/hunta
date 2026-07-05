@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:absolute;inset:0;background:{{ pageBg }};">
+  <div style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <!-- nav header -->
+    <div style="padding:60px 16px 0;">
+      <div style="font-size:12px;font-weight:600;letter-spacing:0.5px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">GLOBAL · 2025 SEASON</div>
+      <div style="font-size:28px;font-weight:700;letter-spacing:-0.6px;color:{{ text }};line-height:1.05;">Leaderboard</div>
+    </div>
+
+    <!-- species selector -->
+    <div style="margin-top:16px;display:flex;gap:8px;overflow-x:auto;padding:0 16px 2px;-webkit-overflow-scrolling:touch;">
+      <sc-for list="{{ species }}" as="s" hint-placeholder-count="5">
+        <div style="flex:none;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:20px;background:{{ s.bg }};border:1px solid {{ s.border }};">
+          <span style="font-size:13px;font-weight:600;color:{{ s.color }};white-space:nowrap;">{{ s.name }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- ranked-by note -->
+    <div style="padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:13px;font-weight:600;color:{{ text }};">Greater Kudu</span>
+      <span style="font-size:11.5px;font-weight:600;letter-spacing:0.4px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">RANKED BY SCI SCORE</span>
+    </div>
+
+    <!-- podium -->
+    <div style="padding:18px 16px 0;display:flex;align-items:flex-end;justify-content:center;gap:10px;">
+      <!-- 2nd -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+        <image-slot id="lb_p2" shape="circle" fit="cover" placeholder="2nd" style="display:block;width:58px;height:58px;box-shadow:0 2px 8px rgba(0,0,0,0.18);"></image-slot>
+        <div style="margin-top:8px;font-size:13px;font-weight:700;color:{{ text }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px;">@hendrik_k</div>
+        <div style="font-size:12px;font-weight:600;color:{{ accent }};font-family:'SF Mono',ui-monospace,monospace;">54 ⅛</div>
+        <div style="margin-top:8px;width:100%;height:60px;border-radius:13px 13px 0 0;background:{{ podSilver }};display:flex;align-items:flex-start;justify-content:center;padding-top:9px;"><span style="font-size:20px;font-weight:800;color:{{ podSilverText }};font-family:'SF Mono',ui-monospace,monospace;">2</span></div>
+      </div>
+      <!-- 1st -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+        <span style="font-size:18px;line-height:1;margin-bottom:4px;color:{{ gold }};">♛</span>
+        <image-slot id="lb_p1" shape="circle" fit="cover" placeholder="1st" style="display:block;width:72px;height:72px;box-shadow:0 0 0 3px {{ gold }},0 4px 12px rgba(0,0,0,0.22);"></image-slot>
+        <div style="margin-top:8px;font-size:14px;font-weight:700;color:{{ text }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:104px;">@willem_pj</div>
+        <div style="font-size:13px;font-weight:700;color:{{ accent }};font-family:'SF Mono',ui-monospace,monospace;">56 ⅞</div>
+        <div style="margin-top:8px;width:100%;height:88px;border-radius:14px 14px 0 0;background:{{ podGold }};display:flex;align-items:flex-start;justify-content:center;padding-top:11px;box-shadow:0 -2px 14px {{ goldGlow }};"><span style="font-size:26px;font-weight:800;color:{{ podGoldText }};font-family:'SF Mono',ui-monospace,monospace;">1</span></div>
+      </div>
+      <!-- 3rd -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+        <image-slot id="lb_p3" shape="circle" fit="cover" placeholder="3rd" style="display:block;width:54px;height:54px;box-shadow:0 2px 8px rgba(0,0,0,0.18);"></image-slot>
+        <div style="margin-top:8px;font-size:13px;font-weight:700;color:{{ text }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px;">@marcus_h</div>
+        <div style="font-size:12px;font-weight:600;color:{{ accent }};font-family:'SF Mono',ui-monospace,monospace;">53 ⅜</div>
+        <div style="margin-top:8px;width:100%;height:44px;border-radius:13px 13px 0 0;background:{{ podBronze }};display:flex;align-items:flex-start;justify-content:center;padding-top:7px;"><span style="font-size:18px;font-weight:800;color:{{ podBronzeText }};font-family:'SF Mono',ui-monospace,monospace;">3</span></div>
+      </div>
+    </div>
+
+    <!-- ranked list -->
+    <div style="padding:18px 16px 0;">
+      <div style="border-radius:16px;overflow:hidden;background:{{ cardBg }};box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:{{ r.rowBg }};border-bottom:0.5px solid {{ sep }};">
+            <span style="flex:none;width:22px;text-align:center;font-size:15px;font-weight:700;color:{{ r.rankColor }};font-family:'SF Mono',ui-monospace,monospace;">{{ r.rank }}</span>
+            <image-slot id="{{ r.avatar }}" shape="circle" fit="cover" placeholder="·" style="flex:none;display:block;width:38px;height:38px;"></image-slot>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14.5px;font-weight:600;color:{{ text }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.handle }}</div>
+              <div style="margin-top:1px;font-size:12px;color:{{ muted }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.place }}</div>
+            </div>
+            <image-slot id="{{ r.thumb }}" shape="rounded" radius="9" fit="cover" placeholder="·" style="flex:none;display:block;width:42px;height:42px;background:{{ coverBg }};"></image-slot>
+            <span style="flex:none;font-size:13px;font-weight:700;color:{{ accent }};font-family:'SF Mono',ui-monospace,monospace;min-width:46px;text-align:right;">{{ r.score }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="height:104px;"></div>
+  </div>
+
+  <dc-import name="TabBar" active="leaderboard" mode="{{ mode }}" hint-size="100%,84px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.mode === 'dark';
+    const accent = dark ? '#6FBF8C' : '#1F3D2B';
+    const text = dark ? '#FFFFFF' : '#1C1C1E';
+    const muted = dark ? '#98989F' : '#8E8E93';
+    const youBg = dark ? 'rgba(46,125,79,0.14)' : 'rgba(31,61,43,0.05)';
+    const cardBg = dark ? '#1C1C1E' : '#FFFFFF';
+    const spec="Greater Kudu";
+    const speciesList = ['Greater Kudu','Red Stag','Gemsbok','Mule Deer','Roe Deer','Elk'];
+    const rowData = [
+      { rank: '4', handle: '@johan_vd', place: 'Limpopo, ZA', score: '52 ¾', avatar: 'lb_r4', thumb: 'lb_t4', you: false },
+      { rank: '5', handle: '@pieter_b', place: 'Namibia', score: '52 ¼', avatar: 'lb_r5', thumb: 'lb_t5', you: false },
+      { rank: '6', handle: '@you · Marcus', place: 'Eastern Cape, ZA', score: '53 ⅜', avatar: 'lb_r6', thumb: 'lb_t6', you: true },
+      { rank: '7', handle: '@andre_s', place: 'Free State, ZA', score: '51 ⅞', avatar: 'lb_r7', thumb: 'lb_t7', you: false },
+      { rank: '8', handle: '@kobus_m', place: 'Botswana', score: '51 ½', avatar: 'lb_r8', thumb: 'lb_t8', you: false },
+      { rank: '9', handle: '@dirk_le', place: 'Karoo, ZA', score: '50 ⅝', avatar: 'lb_r9', thumb: 'lb_t9', you: false },
+    ];
+    return {
+      species: speciesList.map((name, i) => ({
+        name,
+        bg: i === 0 ? (dark ? '#2E7D4F' : '#1F3D2B') : (dark ? '#1C1C1E' : '#F2F2F4'),
+        border: i === 0 ? 'transparent' : (dark ? 'rgba(84,84,88,0.5)' : 'rgba(60,60,67,0.1)'),
+        color: i === 0 ? '#FFFFFF' : (dark ? '#C7C7CC' : '#3C3C43'),
+      })),
+      rows: rowData.map(r => ({
+        ...r,
+        rowBg: r.you ? youBg : 'transparent',
+        rankColor: r.you ? accent : muted,
+      })),
+      pageBg: dark ? '#000000' : '#FFFFFF',
+      coverBg: dark ? '#15171A' : '#E9E9EC',
+      cardBg, text, muted, accent,
+      sep: dark ? 'rgba(84,84,88,0.4)' : 'rgba(60,60,67,0.1)',
+      accentBtn: dark ? '#2E7D4F' : '#1F3D2B',
+      accentShadow: dark ? 'rgba(46,125,79,0.45)' : 'rgba(31,61,43,0.32)',
+      frost: dark ? 'rgba(20,20,22,0.72)' : 'rgba(255,255,255,0.8)',
+      tabIdle: dark ? '#7C7C82' : '#9A9AA0',
+      gold: '#D4A53A',
+      goldGlow: dark ? 'rgba(212,165,58,0.3)' : 'rgba(212,165,58,0.35)',
+      podGold: dark ? 'linear-gradient(180deg,#3A2F14 0%,#241C0C 100%)' : 'linear-gradient(180deg,#F2D98C 0%,#E5C45F 100%)',
+      podGoldText: dark ? '#E5C45F' : '#7A5E11',
+      podSilver: dark ? '#26262A' : '#E4E4E9',
+      podSilverText: dark ? '#A8A8B0' : '#7A7A82',
+      podBronze: dark ? '#2A211A' : '#E8D6C4',
+      podBronzeText: dark ? '#C49A6C' : '#8A5E33',
+    };
+  }
+}
+</script>
+</body>
+</html>

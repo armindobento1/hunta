@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ isOverlay }}" hint-placeholder-val="{{ true }}">
+  <div style="position:relative;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);background:{{ coverBg }};">
+    <image-slot id="{{ slot }}" shape="rect" fit="cover" placeholder="{{ placeholder }}" style="display:block;width:100%;height:300px;"></image-slot>
+    <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.18) 38%, rgba(0,0,0,0) 62%);pointer-events:none;"></div>
+    <div style="position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,0.18);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.4);">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.4px;color:#fff;font-family:'SF Mono',ui-monospace,monospace;">{{ cal }}</span>
+    </div>
+    <div style="position:absolute;left:16px;right:16px;bottom:15px;">
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.3px;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,0.35);">{{ species }}</div>
+      <div style="margin-top:3px;font-size:13.5px;font-weight:500;color:rgba(255,255,255,0.92);text-shadow:0 1px 6px rgba(0,0,0,0.4);">{{ place }} · {{ date }}</div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ isBelow }}" hint-placeholder-val="{{ false }}">
+  <div style="border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);background:{{ cardBg }};">
+    <image-slot id="{{ slot }}" shape="rect" fit="cover" placeholder="{{ placeholder }}" style="display:block;width:100%;height:230px;"></image-slot>
+    <div style="padding:13px 15px 15px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div>
+          <div style="font-size:18px;font-weight:700;letter-spacing:-0.2px;color:{{ text }};">{{ species }}</div>
+          <div style="margin-top:3px;font-size:13.5px;font-weight:400;color:{{ muted }};">{{ place }} · {{ date }}</div>
+        </div>
+        <span style="flex:none;margin-top:2px;display:inline-flex;align-items:center;padding:4px 9px;border-radius:7px;background:{{ tintBg }};">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.3px;color:{{ tintText }};font-family:'SF Mono',ui-monospace,monospace;">{{ cal }}</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ isGrid }}" hint-placeholder-val="{{ false }}">
+  <div style="position:relative;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);background:{{ coverBg }};cursor:pointer;" style-active="transform:scale(0.97)">
+    <image-slot id="{{ slot }}" shape="rect" fit="cover" placeholder="photo" style="display:block;width:100%;height:158px;"></image-slot>
+    <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 45%, rgba(0,0,0,0) 65%);pointer-events:none;"></div>
+    <span style="position:absolute;top:9px;right:9px;padding:3px 7px;border-radius:14px;background:rgba(255,255,255,0.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:9.5px;font-weight:600;color:#fff;font-family:'SF Mono',ui-monospace,monospace;">{{ cal }}</span>
+    <div style="position:absolute;left:11px;right:11px;bottom:10px;">
+      <div style="font-size:14.5px;font-weight:700;letter-spacing:-0.2px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ species }}</div>
+      <div style="margin-top:1px;font-size:11px;font-weight:500;color:rgba(255,255,255,0.9);text-shadow:0 1px 5px rgba(0,0,0,0.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ date }}</div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ isCompact }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;align-items:center;gap:12px;padding:9px 14px 9px 11px;background:{{ cardBg }};">
+    <image-slot id="{{ slot }}" shape="rounded" radius="11" fit="cover" placeholder="photo" style="flex:none;display:block;width:60px;height:60px;"></image-slot>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:16px;font-weight:600;letter-spacing:-0.1px;color:{{ text }};">{{ species }}</div>
+      <div style="margin-top:2px;font-size:13px;color:{{ muted }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ place }} · {{ date }}</div>
+    </div>
+    <span style="flex:none;font-size:11px;font-weight:600;color:{{ tintText }};font-family:'SF Mono',ui-monospace,monospace;">{{ cal }}</span>
+    <span style="flex:none;width:8px;height:8px;border-right:2px solid {{ chevron }};border-bottom:2px solid {{ chevron }};transform:rotate(-45deg);margin-left:2px;"></span>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:360,&quot;height&quot;:340},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;overlay&quot;,&quot;below&quot;,&quot;compact&quot;],&quot;default&quot;:&quot;overlay&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;species&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Greater Kudu&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;place&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Eastern Cape, South Africa&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;date&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;12 Jun 2025&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;cal&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;.300 WIN&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;slot&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;kill&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const dark = p.mode === 'dark';
+    const v = p.variant || 'overlay';
+    return {
+      isOverlay: v === 'overlay',
+      isBelow: v === 'below',
+      isCompact: v === 'compact',
+      isGrid: v === 'grid',
+      slot: p.slot || 'kill',
+      species: p.species ?? 'Greater Kudu',
+      place: p.place ?? 'Eastern Cape, South Africa',
+      date: p.date ?? '12 Jun 2025',
+      cal: p.cal ?? '.300 WIN',
+      placeholder: p.placeholder ?? 'Drop animal photo',
+      coverBg: dark ? '#15171A' : '#E9E9EC',
+      cardBg: dark ? '#1C1C1E' : '#FFFFFF',
+      text: dark ? '#FFFFFF' : '#1C1C1E',
+      muted: dark ? '#98989F' : '#8E8E93',
+      tintBg: dark ? 'rgba(79,158,107,0.18)' : '#E8F0EA',
+      tintText: dark ? '#6FBF8C' : '#1F3D2B',
+      chevron: dark ? '#5A5A5E' : '#C7C7CC',
+    };
+  }
+}
+</script>
+</body>
+</html>

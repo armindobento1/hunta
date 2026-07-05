@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:absolute;inset:0;background:{{ pageBg }};">
+  <div style="position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <!-- nav header -->
+    <div style="padding:60px 16px 0;display:flex;align-items:center;gap:12px;">
+      <span style="flex:none;width:11px;height:11px;border-left:2px solid {{ accent }};border-bottom:2px solid {{ accent }};transform:rotate(45deg);margin-left:2px;"></span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;color:{{ muted }};">Marcus Halvorsen</div>
+        <div style="font-size:26px;font-weight:700;letter-spacing:-0.6px;color:{{ text }};line-height:1.05;">Armory</div>
+      </div>
+      <div style="flex:none;display:flex;align-items:center;gap:5px;padding:7px 13px 7px 11px;border-radius:20px;background:{{ accentBtn }};box-shadow:0 2px 8px {{ accentShadow }};">
+        <span style="position:relative;width:13px;height:13px;"><span style="position:absolute;top:50%;left:0;right:0;height:2px;margin-top:-1px;background:#fff;border-radius:2px;"></span><span style="position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;border-radius:2px;"></span></span>
+        <span style="font-size:13px;font-weight:600;color:#fff;">Add gear</span>
+      </div>
+    </div>
+
+    <!-- profile sub-tabs -->
+    <div style="margin:16px 16px 0;padding:2px;background:{{ segTrack }};border-radius:9px;display:flex;">
+      <div style="flex:1;text-align:center;padding:6px 0;border-radius:7px;font-size:13px;font-weight:500;color:{{ muted }};">Feed</div>
+      <div style="flex:1;text-align:center;padding:6px 0;border-radius:7px;font-size:13px;font-weight:500;color:{{ muted }};">By Location</div>
+      <div style="flex:1;text-align:center;padding:6px 0;border-radius:7px;background:{{ segActiveBg }};box-shadow:{{ segShadow }};font-size:13px;font-weight:600;color:{{ segActiveText }};">Armory</div>
+    </div>
+
+    <!-- GEAR LIBRARY -->
+    <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="4">
+      <div style="padding:22px 16px 0;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px;">
+          <span style="font-size:12px;font-weight:700;letter-spacing:0.7px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">{{ sec.label }}</span>
+          <span style="font-size:12.5px;font-weight:500;color:{{ accent }};">{{ sec.count }}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <sc-for list="{{ sec.items }}" as="g" hint-placeholder-count="2">
+            <div style="border-radius:15px;overflow:hidden;background:{{ cardBg }};box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+              <image-slot id="{{ g.slot }}" shape="rect" fit="cover" placeholder="{{ g.ph }}" style="display:block;width:100%;height:92px;background:{{ coverBg }};"></image-slot>
+              <div style="padding:10px 12px 12px;">
+                <div style="font-size:14.5px;font-weight:600;letter-spacing:-0.2px;color:{{ text }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ g.name }}</div>
+                <div style="margin-top:3px;font-size:11px;font-weight:500;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ g.spec }}</div>
+              </div>
+            </div>
+          </sc-for>
+          <div style="border-radius:15px;border:1.5px dashed {{ dashed }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:148px;">
+            <span style="position:relative;width:20px;height:20px;"><span style="position:absolute;top:50%;left:0;right:0;height:2px;margin-top:-1px;background:{{ muted }};border-radius:2px;"></span><span style="position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:{{ muted }};border-radius:2px;"></span></span>
+            <span style="font-size:12px;font-weight:500;color:{{ muted }};">Add {{ sec.add }}</span>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+
+    <!-- LOADOUTS -->
+    <div style="padding:30px 16px 0;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:12px;font-weight:700;letter-spacing:0.7px;color:{{ muted }};font-family:'SF Mono',ui-monospace,monospace;">LOADOUTS</span>
+        <span style="font-size:12.5px;font-weight:500;color:{{ accent }};">New loadout</span>
+      </div>
+      <div style="font-size:13px;color:{{ muted }};margin-bottom:13px;">Saved combinations of weapon, optic &amp; ammo.</div>
+      <div style="display:flex;flex-direction:column;gap:13px;">
+        <sc-for list="{{ loadouts }}" as="lo" hint-placeholder-count="2">
+          <div style="border-radius:17px;overflow:hidden;background:{{ loadoutBg }};box-shadow:0 4px 16px {{ loadoutShadow }};border:0.5px solid {{ loadoutBorder }};">
+            <div style="position:relative;padding:15px 16px 13px;background:{{ loadoutHead }};">
+              <div style="display:flex;align-items:center;gap:9px;">
+                <span style="flex:none;width:30px;height:30px;border-radius:9px;background:{{ crestBg }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:{{ crestText }};font-family:'SF Mono',ui-monospace,monospace;">{{ lo.tag }}</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:17px;font-weight:700;letter-spacing:-0.3px;color:{{ loadoutText }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ lo.name }}</div>
+                  <div style="font-size:11.5px;font-weight:500;color:{{ loadoutMuted }};font-family:'SF Mono',ui-monospace,monospace;">{{ lo.use }}</div>
+                </div>
+                <sc-if value="{{ lo.isDefault }}" hint-placeholder-val="{{ true }}">
+                  <span style="flex:none;display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:13px;background:{{ defBg }};"><span style="width:5px;height:5px;border-radius:50%;background:{{ defDot }};"></span><span style="font-size:10px;font-weight:700;letter-spacing:0.4px;color:{{ defText }};font-family:'SF Mono',ui-monospace,monospace;">DEFAULT</span></span>
+                </sc-if>
+              </div>
+            </div>
+            <div style="padding:4px 16px 6px;">
+              <sc-for list="{{ lo.rows }}" as="r" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid {{ loadoutSep }};">
+                  <span style="flex:none;font-size:9.5px;font-weight:700;letter-spacing:0.6px;color:{{ loadoutMuted }};font-family:'SF Mono',ui-monospace,monospace;width:54px;">{{ r.k }}</span>
+                  <span style="flex:1;min-width:0;font-size:14px;font-weight:600;color:{{ loadoutText }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.v }}</span>
+                  <span style="flex:none;font-size:11px;font-weight:500;color:{{ loadoutMuted }};font-family:'SF Mono',ui-monospace,monospace;">{{ r.s }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:9px;padding:11px 16px 15px;">
+              <div style="flex:1;text-align:center;padding:9px 0;border-radius:10px;background:{{ loadoutBtn }};font-size:13px;font-weight:600;color:{{ loadoutBtnText }};">Edit</div>
+              <div style="flex:1;text-align:center;padding:9px 0;border-radius:10px;background:{{ setDefBg }};border:1px solid {{ setDefBorder }};font-size:13px;font-weight:600;color:{{ setDefText }};">{{ lo.action }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="height:104px;"></div>
+  </div>
+
+  <dc-import name="TabBar" active="profile" mode="{{ mode }}" hint-size="100%,84px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.mode === 'dark';
+    return {
+      sections: [
+        { label: 'RIFLES', count: '2', add: 'rifle', items: [
+          { name: 'Sako 85 Bavarian', spec: '.300 WIN MAG', slot: 'arm_rifle1', ph: 'rifle' },
+          { name: 'Tikka T3x Lite', spec: '.308 WIN', slot: 'arm_rifle2', ph: 'rifle' },
+        ]},
+        { label: 'BOWS', count: '1', add: 'bow', items: [
+          { name: 'Hoyt RX-7', spec: 'COMPOUND · 70lb', slot: 'arm_bow1', ph: 'bow' },
+        ]},
+        { label: 'SIGHTS / OPTICS', count: '2', add: 'optic', items: [
+          { name: 'Swarovski Z8i', spec: '2-16×50', slot: 'arm_optic1', ph: 'scope' },
+          { name: 'Leupold VX-5HD', spec: '3-15×44', slot: 'arm_optic2', ph: 'scope' },
+        ]},
+        { label: 'AMMUNITION', count: '2', add: 'ammo', items: [
+          { name: 'Hornady ELD-X', spec: '200gr · .300', slot: 'arm_ammo1', ph: 'box' },
+          { name: 'Federal Fusion', spec: '165gr · .308', slot: 'arm_ammo2', ph: 'box' },
+        ]},
+      ],
+      loadouts: [
+        { name: 'Kudu Setup', use: 'PLAINS GAME', tag: 'K', isDefault: true, action: 'Default', rows: [
+          { k: 'WEAPON', v: 'Sako 85 Bavarian', s: '.300 WM' },
+          { k: 'OPTIC', v: 'Swarovski Z8i', s: '2-16×50' },
+          { k: 'AMMO', v: 'Hornady ELD-X', s: '200gr' },
+        ]},
+        { name: 'Highland Stag', use: 'MOUNTAIN', tag: 'H', isDefault: false, action: 'Set default', rows: [
+          { k: 'WEAPON', v: 'Tikka T3x Lite', s: '.308 WIN' },
+          { k: 'OPTIC', v: 'Leupold VX-5HD', s: '3-15×44' },
+          { k: 'AMMO', v: 'Federal Fusion', s: '165gr' },
+        ]},
+        { name: 'Bow Season', use: 'ARCHERY', tag: 'B', isDefault: false, action: 'Set default', rows: [
+          { k: 'WEAPON', v: 'Hoyt RX-7', s: '70lb' },
+          { k: 'SIGHT', v: 'HHA Tetra', s: '5-pin' },
+          { k: 'ARROW', v: 'Easton Axis', s: '340sp' },
+        ]},
+      ],
+      pageBg: dark ? '#000000' : '#FFFFFF',
+      coverBg: dark ? '#15171A' : '#E9E9EC',
+      cardBg: dark ? '#1C1C1E' : '#FFFFFF',
+      text: dark ? '#FFFFFF' : '#1C1C1E',
+      muted: dark ? '#98989F' : '#8E8E93',
+      sep: dark ? 'rgba(84,84,88,0.55)' : 'rgba(60,60,67,0.13)',
+      dashed: dark ? 'rgba(120,120,128,0.4)' : 'rgba(60,60,67,0.22)',
+      segTrack: dark ? 'rgba(118,118,128,0.24)' : 'rgba(118,118,128,0.12)',
+      segActiveBg: dark ? '#636366' : '#FFFFFF',
+      segActiveText: dark ? '#FFFFFF' : '#1C1C1E',
+      segShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.06)',
+      accent: dark ? '#6FBF8C' : '#1F3D2B',
+      accentBtn: dark ? '#2E7D4F' : '#1F3D2B',
+      accentShadow: dark ? 'rgba(46,125,79,0.45)' : 'rgba(31,61,43,0.32)',
+      frost: dark ? 'rgba(20,20,22,0.72)' : 'rgba(255,255,255,0.8)',
+      tabIdle: dark ? '#7C7C82' : '#9A9AA0',
+      // loadout card (premium)
+      loadoutBg: dark ? '#16181B' : '#0E1F16',
+      loadoutHead: dark ? 'linear-gradient(180deg,#1B2A21 0%,#16181B 100%)' : 'linear-gradient(180deg,#15301F 0%,#0E1F16 100%)',
+      loadoutBorder: dark ? 'rgba(111,191,140,0.18)' : 'rgba(255,255,255,0.06)',
+      loadoutShadow: dark ? 'rgba(0,0,0,0.5)' : 'rgba(14,31,22,0.3)',
+      loadoutText: '#FFFFFF',
+      loadoutMuted: 'rgba(255,255,255,0.55)',
+      loadoutSep: 'rgba(255,255,255,0.1)',
+      crestBg: 'rgba(111,191,140,0.18)',
+      crestText: '#9FE3B8',
+      defBg: 'rgba(111,191,140,0.2)',
+      defDot: '#6FBF8C',
+      defText: '#9FE3B8',
+      loadoutBtn: 'rgba(255,255,255,0.1)',
+      loadoutBtnText: '#FFFFFF',
+      setDefBg: 'transparent',
+      setDefBorder: 'rgba(255,255,255,0.2)',
+      setDefText: 'rgba(255,255,255,0.92)',
+    };
+  }
+}
+</script>
+</body>
+</html>
