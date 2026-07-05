@@ -1,6 +1,6 @@
-# Fieldnote — Hunting Portfolio
+# Hunta — Hunting Portfolio
 
-Fieldnote is a private, multi-user hunting portfolio: Instagram-style field
+Hunta is a private, multi-user hunting portfolio: Instagram-style field
 records with Strava-style GPX routes. Each account owns a collection of complete
 kill records organized as Profile → Country → Year → Animal.
 
@@ -19,7 +19,7 @@ kill records organized as Profile → Country → Year → Animal.
 
 ## Stack
 
-Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Firebase Auth, Firestore,
+Vite · React 19 · React Router · TypeScript · Tailwind CSS 4 · Firebase Auth, Firestore,
 and Storage · MapLibre GL JS · Vitest · Firebase Emulator Suite · Vercel.
 
 ## Local setup
@@ -32,7 +32,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Populate `.env.local` with the Firebase Web app values. Public Firebase Web
+Populate `.env.local` with the `VITE_FIREBASE_*` Firebase Web app values. Public Firebase Web
 configuration is safe to expose; authorization is enforced by Firestore and
 Storage rules. Never add service-account keys to client environment variables.
 
@@ -74,7 +74,7 @@ firebase deploy --only firestore,storage
 
 ## Repository map
 
-- `app/` — routes for auth, portfolio, records, trash, and profile settings.
+- `src/` — Vite entry, route pages, clean route tree, providers, and styles.
 - `components/` — responsive UI, record workflow, and route map.
 - `lib/domain/` — authoritative schemas, edit integrity, ordering, grouping.
 - `lib/gpx/` — source-preserving GPX parsing and derivation.
@@ -82,7 +82,8 @@ firebase deploy --only firestore,storage
 - `tests/` — domain, component, and emulator security tests.
 - `firestore.rules`, `storage.rules` — production ownership boundary.
 - `vault/` — stable engineering knowledge; begin at `vault/_index.md`.
-- `Hunting Portfolio App/` — original design-canvas source retained verbatim.
+- `archive/next-app/` — excluded legacy Next.js shell retained for reference.
+- `archive/claude-design-export-*` — original design-canvas sources retained verbatim.
 
 ## Privacy model
 

@@ -1,4 +1,4 @@
-# AGENTS.md — Hunting Portfolio App
+# AGENTS.md — Hunta
 
 This file OVERRIDES default behavior. Read it, the vault `_index.md`, and the
 audit `README.md` before doing any work.
@@ -25,7 +25,8 @@ confidence check. If memory + docs answer with high confidence, act. If not,
 inspect the *minimal* code needed and stop once you have enough.
 
 ## Stack (decided defaults — confirm before large changes)
-- **Next.js (App Router) + TypeScript**, deployed on **Vercel**.
+- **Vite + React + TypeScript + React Router**, deployed on **Vercel** as a
+  clean-URL single-page app.
 - **Tailwind CSS + shadcn/ui** for components (clean hand-off from Codex/Stitch design).
 - **MapLibre GL JS** for the satellite walk view; **GPX parsing** for Garmin/Strava route import (store raw GPX verbatim + derive distance/time).
 - **Data: Firebase Auth + Cloud Firestore + Cloud Storage.** Documents and files
@@ -34,14 +35,15 @@ inspect the *minimal* code needed and stop once you have enough.
   server-only assumptions in client code so a Capacitor wrap stays cheap.
 
 ## Project structure
-One line per top-level dir. Native/build dirs (`.next/`, future `ios/`, `android/`
+One line per top-level dir. Native/build dirs (`dist/`, future `ios/`, `android/`
 from Capacitor) must NOT be hand-edited or moved.
 
 | Dir | Owns |
 |-----|------|
-| `app/` | Next.js App Router routes (feed, country/year groupings, kill detail). |
+| `src/` | Vite entry, clean route tree, route pages, providers, and global styles. |
 | `components/` | Reusable UI (KillCard, MapView, MediaGallery, forms). |
 | `lib/` | Domain logic: kill model, GPX parsing, distance/time derivation, grouping. |
+| `archive/` | Non-shipped legacy shells retained for reference; never active source. |
 | `data/` | Static onboarding copy only; never fabricated user records. |
 | `public/` | Static media placeholders (real uploads move to Blob later). |
 | `vault/` | Engineering docs (Layer 3). Not shipped. |
@@ -91,8 +93,8 @@ Store learnings (only if genuinely valuable).
 ## Verification (must pass before anything is "done")
 These are the release gates — run all, never claim done without them:
 - `npm run typecheck`  (`tsc --noEmit`)
-- `npm run lint`       (ESLint / `next lint`)
-- `npm run build`      (`next build`)
+- `npm run lint`       (ESLint)
+- `npm run build`      (`tsc --noEmit && vite build`)
 - tests once they exist.
 Until the app exists, "done" for a task = the scaffold/docs change is internally
 consistent and the relevant vault note is updated.
@@ -112,3 +114,105 @@ scripts over repetitive manual edits. One vault update pass at the end of a task
   rewrite a whole folder; one batched pass per task. See `vault/_index.md`.
 - Audit: topic + version; even decimals = auditor (codex), odd = implementer
   (Codex); implementer never marks an audit resolved. See `audit/README.md`.
+
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
+
+This project is indexed by GitNexus as **Hunta** (520 symbols, 1300 relationships, 36 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+
+> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
+
+## Always Do
+
+- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
+- **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
+- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
+- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
+- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
+
+## When Debugging
+
+1. `gitnexus_query({query: "<error or symptom>"})` — find execution flows related to the issue
+2. `gitnexus_context({name: "<suspect function>"})` — see all callers, callees, and process participation
+3. `READ gitnexus://repo/Hunta/process/{processName}` — trace the full execution flow step by step
+4. For regressions: `gitnexus_detect_changes({scope: "compare", base_ref: "main"})` — see what your branch changed
+
+## When Refactoring
+
+- **Renaming**: MUST use `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` first. Review the preview — graph edits are safe, text_search edits need manual review. Then run with `dry_run: false`.
+- **Extracting/Splitting**: MUST run `gitnexus_context({name: "target"})` to see all incoming/outgoing refs, then `gitnexus_impact({target: "target", direction: "upstream"})` to find all external callers before moving code.
+- After any refactor: run `gitnexus_detect_changes({scope: "all"})` to verify only expected files changed.
+
+## Never Do
+
+- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
+- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
+- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
+- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
+
+## Tools Quick Reference
+
+| Tool | When to use | Command |
+|------|-------------|---------|
+| `query` | Find code by concept | `gitnexus_query({query: "auth validation"})` |
+| `context` | 360-degree view of one symbol | `gitnexus_context({name: "validateUser"})` |
+| `impact` | Blast radius before editing | `gitnexus_impact({target: "X", direction: "upstream"})` |
+| `detect_changes` | Pre-commit scope check | `gitnexus_detect_changes({scope: "staged"})` |
+| `rename` | Safe multi-file rename | `gitnexus_rename({symbol_name: "old", new_name: "new", dry_run: true})` |
+| `cypher` | Custom graph queries | `gitnexus_cypher({query: "MATCH ..."})` |
+
+## Impact Risk Levels
+
+| Depth | Meaning | Action |
+|-------|---------|--------|
+| d=1 | WILL BREAK — direct callers/importers | MUST update these |
+| d=2 | LIKELY AFFECTED — indirect deps | Should test |
+| d=3 | MAY NEED TESTING — transitive | Test if critical path |
+
+## Resources
+
+| Resource | Use for |
+|----------|---------|
+| `gitnexus://repo/Hunta/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/Hunta/clusters` | All functional areas |
+| `gitnexus://repo/Hunta/processes` | All execution flows |
+| `gitnexus://repo/Hunta/process/{name}` | Step-by-step execution trace |
+
+## Self-Check Before Finishing
+
+Before completing any code modification task, verify:
+1. `gitnexus_impact` was run for all modified symbols
+2. No HIGH/CRITICAL risk warnings were ignored
+3. `gitnexus_detect_changes()` confirms changes match expected scope
+4. All d=1 (WILL BREAK) dependents were updated
+
+## Keeping the Index Fresh
+
+After committing code changes, the GitNexus index becomes stale. Re-run analyze to update it:
+
+```bash
+npx gitnexus analyze
+```
+
+If the index previously included embeddings, preserve them by adding `--embeddings`:
+
+```bash
+npx gitnexus analyze --embeddings
+```
+
+To check whether embeddings exist, inspect `.gitnexus/meta.json` — the `stats.embeddings` field shows the count (0 means no embeddings). **Running analyze without `--embeddings` will delete any previously generated embeddings.**
+
+> Claude Code users: A PostToolUse hook handles this automatically after `git commit` and `git merge`.
+
+## CLI
+
+| Task | Read this skill file |
+|------|---------------------|
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+
+<!-- gitnexus:end -->

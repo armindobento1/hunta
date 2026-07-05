@@ -1,4 +1,4 @@
-# Vault Index — Hunting Portfolio App
+# Vault Index — Hunta
 
 Entry point for all stable engineering knowledge. **Start here; never scan the
 whole vault.** Patch the smallest affected note; prefer updating over creating.
@@ -26,9 +26,9 @@ whole vault.** Patch the smallest affected note; prefer updating over creating.
 ## Documentation map (note ↔ code)
 | Note | Documents |
 |------|-----------|
-| System-Architecture | overall `app/` + `lib/` + `data/` flow |
+| System-Architecture | overall `src/` + `components/` + `lib/` flow |
 | Data-Model | `data/` types, `lib/` kill model |
-| Portfolio-v1 | `app/`, `components/`, `lib/firebase/`, rules, tests |
+| Portfolio-v1 | `src/`, `components/`, `lib/firebase/`, rules, tests |
 
 > Token sinks (never read for context): none yet. Session logs/backups, when
 > added, will be marked here.

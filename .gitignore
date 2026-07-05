@@ -43,3 +43,7 @@ next-env.d.ts
 
 # vault session logs / backups (token sinks — keep out of context, optional to ignore)
 vault/**/*.backup.md
+.gitnexus
+
+# claude code local settings
+.claude/settings.local.json

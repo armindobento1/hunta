@@ -1,0 +1,9 @@
+# Keep the knowledge graph to active source only (see CLAUDE.md project structure).
+# Legacy shells and design exports — never active source.
+archive/
+
+# Docs and working artifacts — not code; read via vault/_index.md instead.
+vault/
+audit/
+docs/
+dist/
