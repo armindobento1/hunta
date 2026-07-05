@@ -36,8 +36,11 @@ reparses the source before rendering.
 The mobile-first iOS-style presentation uses the five-tab v2 navigation and
 the supplied Hunta dog mark. Armory equipment and loadouts are independent
 owner-scoped records. Hunt creation can select a loadout to prefill factual
-equipment snapshots. Location entry searches real Esri geocoder results and
-keeps manual coordinate refinement optional.
+equipment snapshots. Location entry is pin-first: a satellite MapLibre picker
+(`components/map/location-picker-map.tsx`) sets exact lat/lng by tap, Esri
+geocoder search only jumps the map near a town/region, farm name is free text
+that search never overwrites, and manual coordinate refinement stays optional.
+Pin-set coordinates clear stale geocoder source metadata.
 
 The feed offers My Hunts plus a public Community view with Discover and Following modes. Account search uses normalized public profile prefixes. Publishing is opt-in per hunt and warns that farm names and exact GPS coordinates become public.
 

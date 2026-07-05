@@ -256,7 +256,7 @@ export function KillForm({
         </div>
       </section>
 
-      <LocationFields register={register} setValue={setValue} errors={errors} country={country} />
+      <LocationFields register={register} setValue={setValue} control={control} errors={errors} country={country} />
       <section className="editor-section" aria-labelledby="measurements-heading">
         <div className="section-heading">
           <div>

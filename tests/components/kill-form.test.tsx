@@ -5,6 +5,28 @@ import { KillForm } from "@/components/kills/kill-form";
 import { makeKill } from "@/tests/helpers/kill";
 import { renderWithRouter } from "@/tests/helpers/render-router";
 
+vi.mock("@/components/map/location-picker-map", () => ({
+  LocationPickerMap: ({ onPick }: { onPick(latitude: number, longitude: number): void }) => (
+    <button type="button" onClick={() => onPick(-32.51234, 26.25678)}>
+      Simulate pin drop
+    </button>
+  ),
+}));
+
+vi.mock("@/lib/location/search-locations", () => ({
+  searchLocations: vi.fn().mockResolvedValue([
+    {
+      id: "loc-1",
+      label: "Graaff-Reinet",
+      context: "Eastern Cape, South Africa",
+      country: "South Africa",
+      region: "Eastern Cape",
+      latitude: -32.25,
+      longitude: 24.55,
+    },
+  ]),
+}));
+
 describe("KillForm", () => {
   it("blocks save until factual fields and a cover photo are present", async () => {
     const user = userEvent.setup();
@@ -119,6 +141,34 @@ describe("KillForm", () => {
       coverMediaId: "media-1",
       existingMedia: makeKill().media,
     });
+  });
+
+  it("drops a map pin without touching the typed farm name", async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<KillForm onSave={vi.fn()} />);
+
+    await user.type(screen.getByLabelText(/farm name/i), "Karreekloof");
+    await user.click(screen.getByRole("button", { name: /simulate pin drop/i }));
+
+    expect(screen.getByText(/pin at -32\.51234, 26\.25678/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/farm name/i)).toHaveValue("Karreekloof");
+  });
+
+  it("search jump moves the pin but never overwrites the farm name", async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<KillForm onSave={vi.fn()} />);
+
+    await user.type(screen.getByLabelText(/farm name/i), "Karreekloof");
+    await user.type(
+      screen.getByLabelText(/jump map to a town or region/i),
+      "Graaff",
+    );
+    await user.click(await screen.findByRole("option", { name: /graaff-reinet/i }));
+
+    expect(screen.getByLabelText(/farm name/i)).toHaveValue("Karreekloof");
+    expect(screen.getByText(/pin at -32\.25000, 24\.55000/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/place name/i)).toHaveValue("Eastern Cape, South Africa");
+    expect(screen.getByLabelText(/country/i)).toHaveValue("South Africa");
   });
 
   it("fills coordinates only after current-position permission succeeds", async () => {

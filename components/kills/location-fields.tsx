@@ -2,11 +2,13 @@
 
 import { LocateFixed, MapPin, Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
+import { LocationPickerMap } from "@/components/map/location-picker-map";
 import { searchLocations, type LocationSearchResult } from "@/lib/location/search-locations";
 
 import type { EditorFields } from "./kill-form";
@@ -14,11 +16,13 @@ import type { EditorFields } from "./kill-form";
 export function LocationFields({
   register,
   setValue,
+  control,
   errors,
   country,
 }: {
   register: UseFormRegister<EditorFields>;
   setValue: UseFormSetValue<EditorFields>;
+  control: Control<EditorFields>;
   errors: FieldErrors<EditorFields>;
   country: string;
 }) {
@@ -27,7 +31,10 @@ export function LocationFields({
   const [results, setResults] = useState<LocationSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [refine, setRefine] = useState(false);
-  const farmRegistration = register("farmName", { required: "Farm name is required." });
+  const latitude = useWatch({ control, name: "latitude" });
+  const longitude = useWatch({ control, name: "longitude" });
+  const placeName = useWatch({ control, name: "placeName" });
+  const hasPin = Number.isFinite(latitude) && Number.isFinite(longitude);
 
   useEffect(() => {
     if (query.trim().length < 3) return;
@@ -42,14 +49,23 @@ export function LocationFields({
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [country, query]);
 
-  function choose(result: LocationSearchResult) {
-    setQuery(result.label);
+  function dropPin(nextLatitude: number, nextLongitude: number) {
+    setValue("latitude", nextLatitude, { shouldValidate: true });
+    setValue("longitude", nextLongitude, { shouldValidate: true });
+    // Pinned coordinates are user-authored facts — drop stale geocoder provenance.
+    setValue("locationSourceProvider", "");
+    setValue("locationSourceFeatureId", "");
+    setValue("locationSourceLabel", "");
+    setLocationError(null);
+  }
+
+  function jumpTo(result: LocationSearchResult) {
+    setQuery("");
     setResults([]);
-    setValue("farmName", result.label, { shouldValidate: true });
-    setValue("placeName", result.context || result.region || result.label, { shouldValidate: true });
-    if (!country && result.country) setValue("country", result.country, { shouldValidate: true });
     setValue("latitude", result.latitude, { shouldValidate: true });
     setValue("longitude", result.longitude, { shouldValidate: true });
+    if (!placeName?.trim()) setValue("placeName", result.context || result.region || result.label, { shouldValidate: true });
+    if (!country && result.country) setValue("country", result.country, { shouldValidate: true });
     setValue("locationSourceProvider", "esri");
     setValue("locationSourceFeatureId", result.id);
     setValue("locationSourceLabel", result.label);
@@ -63,10 +79,8 @@ export function LocationFields({
     }
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setValue("latitude", coords.latitude, { shouldValidate: true });
-        setValue("longitude", coords.longitude, { shouldValidate: true });
+        dropPin(coords.latitude, coords.longitude);
         setRefine(true);
-        setLocationError(null);
       },
       () => setLocationError("Position permission was not granted."),
       { enableHighAccuracy: true, timeout: 15_000 },
@@ -93,12 +107,14 @@ export function LocationFields({
             <span className="req-dot" aria-hidden="true" /> Required
           </span>
         </div>
-        <div className="location-search-box">
-          <Search aria-hidden="true" />
-          <Input id="farm-name" placeholder="Search a farm, reserve, or place" autoComplete="off" aria-invalid={Boolean(errors.farmName)} aria-describedby={errors.farmName ? "farm-name-error" : undefined} {...farmRegistration} onChange={(event) => { farmRegistration.onChange(event); setQuery(event.target.value); if (event.target.value.trim().length < 3) setResults([]); }} />
-          {searching ? <span className="location-searching">Searching…</span> : null}
-        </div>
-        {results.length ? <div className="location-results" role="listbox" aria-label="Location search results">{results.map((result) => <button type="button" role="option" aria-selected="false" key={result.id} onClick={() => choose(result)}><MapPin aria-hidden="true" /><span><strong>{result.label}</strong><small>{result.context}</small></span></button>)}</div> : null}
+        <Input
+          id="farm-name"
+          placeholder="Name of the farm, reserve, or concession"
+          autoComplete="off"
+          aria-invalid={Boolean(errors.farmName)}
+          aria-describedby={errors.farmName ? "farm-name-error" : undefined}
+          {...register("farmName", { required: "Farm name is required." })}
+        />
         {errors.farmName ? (
           <p id="farm-name-error" className="field-error" role="alert">
             {errors.farmName.message}
@@ -116,6 +132,56 @@ export function LocationFields({
           {...register("placeName", { required: "Place name is required." })}
         />
       </FormField>
+      <div className="req-field-wrapper">
+        <div className="req-field-header">
+          <span className="req-field-label">
+            Drop the pin <span className="req-asterisk">*</span>
+          </span>
+          <span className="req-badge">
+            <span className="req-dot" aria-hidden="true" />{" "}
+            {hasPin ? "Pin set" : "Required"}
+          </span>
+        </div>
+        <p className="section-hint">
+          Tap the satellite map to mark the exact kill location. Search below to
+          jump the map near a town or region first — private farms are usually
+          not searchable.
+        </p>
+        <div className="location-search-box">
+          <Search aria-hidden="true" />
+          <Input
+            id="map-search"
+            aria-label="Jump map to a town or region"
+            placeholder="Jump map to a town or region"
+            autoComplete="off"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              if (event.target.value.trim().length < 3) setResults([]);
+            }}
+          />
+          {searching ? <span className="location-searching">Searching…</span> : null}
+        </div>
+        {results.length ? (
+          <div className="location-results" role="listbox" aria-label="Location search results">
+            {results.map((result) => (
+              <button type="button" role="option" aria-selected="false" key={result.id} onClick={() => jumpTo(result)}>
+                <MapPin aria-hidden="true" />
+                <span>
+                  <strong>{result.label}</strong>
+                  <small>{result.context}</small>
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <LocationPickerMap latitude={latitude} longitude={longitude} onPick={dropPin} />
+        {hasPin ? (
+          <p className="pin-readout">
+            <MapPin aria-hidden="true" size={14} /> Pin at {latitude.toFixed(5)}, {longitude.toFixed(5)}
+          </p>
+        ) : null}
+      </div>
       <button className="coordinate-toggle" type="button" onClick={() => setRefine((value) => !value)}>{refine ? "Hide exact coordinates" : "Refine exact coordinates (optional)"}</button>
       {refine ? <div className="editor-grid two-columns">
         <FormField
