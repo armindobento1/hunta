@@ -10,6 +10,8 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import { useArmory } from "@/lib/hooks/use-armory";
 import { useProfile } from "@/lib/hooks/use-profile";
 import { buildPublicHunt, buildPublicProfile } from "@/lib/domain/public-social";
+import { buildFarm } from "@/lib/domain/farm";
+import { ensureFarm, findFarmsNear } from "@/lib/firebase/farm-repository";
 import { publishHunt, savePublicProfile, unpublishHunt } from "@/lib/firebase/public-social-repository";
 
 import { KillForm } from "./kill-form";
@@ -75,6 +77,20 @@ export function KillEditor({ killId }: { killId?: string }) {
     try {
       let media: MediaAsset[] = [...submission.existingMedia];
       let route: RouteMetadata | null = initialKill?.route ?? null;
+      // Farms are a public projection: an entry is created only when this
+      // hunt is being published. Linking to an existing farm (farmId chosen
+      // in the form) is allowed for private hunts — the farm is already public.
+      let farmId = submission.farmId.trim() || undefined;
+      if (submission.isPublic && !farmId && submission.farmName.trim()) {
+        const farm = await ensureFarm(buildFarm({
+          name: submission.farmName,
+          latitude: submission.latitude,
+          longitude: submission.longitude,
+          country: submission.country.trim(),
+          placeName: submission.placeName.trim(),
+        }, user.uid, now));
+        farmId = farm.id;
+      }
       const factualEdit = {
         species: submission.species.trim(),
         country: submission.country.trim(),
@@ -85,6 +101,7 @@ export function KillEditor({ killId }: { killId?: string }) {
           longitude: submission.longitude,
           placeName: submission.placeName.trim(),
           farmName: submission.farmName.trim(),
+          ...(farmId ? { farmId } : {}),
           ...(submission.locationSourceProvider === "esri" && submission.locationSourceFeatureId && submission.locationSourceLabel ? { source: { provider: "esri" as const, featureId: submission.locationSourceFeatureId, label: submission.locationSourceLabel } } : {}),
         },
         weapon: equipment(submission),
@@ -245,6 +262,7 @@ export function KillEditor({ killId }: { killId?: string }) {
       saveError={error}
       armoryItems={armoryItems}
       loadouts={loadouts}
+      findNearbyFarms={findFarmsNear}
     />
   );
 }

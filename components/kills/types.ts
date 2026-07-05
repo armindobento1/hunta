@@ -13,6 +13,7 @@ export interface KillFormSubmission {
   killTime: string;
   placeName: string;
   farmName: string;
+  farmId: string;
   latitude: number;
   longitude: number;
   weaponType: "rifle" | "bow";

@@ -32,6 +32,7 @@ export async function searchPublicProfiles(searchName: string): Promise<PublicPr
 export async function getPublicProfile(uid: string): Promise<PublicProfile | null> { const snapshot = await getDoc(doc(profiles(), uid)); return snapshot.exists() ? parseProfile(snapshot.data()) : null; }
 export async function getPublicHunt(id: string): Promise<PublicHunt | null> { const snapshot = await getDoc(doc(hunts(), id)); return snapshot.exists() ? parseHunt(snapshot.data()) : null; }
 export async function getPublicHuntsByOwner(uid: string): Promise<PublicHunt[]> { const snapshot = await getDocs(query(hunts(), where("ownerId", "==", uid), orderBy("date", "desc"), limit(100))); return snapshot.docs.map((entry) => parseHunt(entry.data())); }
+export async function getPublicHuntsByFarm(farmId: string): Promise<PublicHunt[]> { const snapshot = await getDocs(query(hunts(), where("location.farmId", "==", farmId), orderBy("date", "desc"), limit(100))); return snapshot.docs.map((entry) => parseHunt(entry.data())); }
 
 export function subscribeToPublicHunts(onValue: (hunts: PublicHunt[]) => void, onError: (error: Error) => void, ownerId?: string): Unsubscribe {
   const constraints = ownerId ? [where("ownerId", "==", ownerId), orderBy("date", "desc"), limit(100)] : [orderBy("date", "desc"), limit(100)];

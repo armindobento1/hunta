@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
+import type { FarmSuggestion } from "@/lib/domain/farm";
 import type { Kill, MediaAsset } from "@/lib/domain/kill";
 import { resolveLoadout, type ArmoryItem, type Loadout } from "@/lib/domain/armory";
 
@@ -27,6 +28,7 @@ export interface EditorFields {
   killTime: string;
   placeName: string;
   farmName: string;
+  farmId: string;
   latitude: number;
   longitude: number;
   weaponType: "rifle" | "bow";
@@ -62,6 +64,7 @@ function defaults(initial?: Kill): EditorFields {
     killTime: initial?.killTime ?? "",
     placeName: initial?.location.placeName ?? "",
     farmName: initial?.location.farmName ?? "",
+    farmId: initial?.location.farmId ?? "",
     latitude: initial?.location.latitude ?? Number.NaN,
     longitude: initial?.location.longitude ?? Number.NaN,
     weaponType: initial?.weapon.type ?? "rifle",
@@ -100,6 +103,7 @@ export function KillForm({
   saveError,
   armoryItems = [],
   loadouts = [],
+  findNearbyFarms,
 }: {
   initialKill?: Kill;
   onSave(submission: KillFormSubmission): Promise<void> | void;
@@ -108,6 +112,7 @@ export function KillForm({
   saveError?: string | null;
   armoryItems?: ArmoryItem[];
   loadouts?: Loadout[];
+  findNearbyFarms?(country: string, latitude: number, longitude: number): Promise<FarmSuggestion[]>;
 }) {
   const {
     register,
@@ -256,7 +261,7 @@ export function KillForm({
         </div>
       </section>
 
-      <LocationFields register={register} setValue={setValue} control={control} errors={errors} country={country} />
+      <LocationFields register={register} setValue={setValue} control={control} errors={errors} country={country} findNearbyFarms={findNearbyFarms} />
       <section className="editor-section" aria-labelledby="measurements-heading">
         <div className="section-heading">
           <div>

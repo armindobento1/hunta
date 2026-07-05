@@ -6,7 +6,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
+import { deleteDoc, doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
 
 const projectId = "hunta-firestore-rules";
 
@@ -186,6 +186,78 @@ describe("Firestore ownership rules", () => {
     await assertSucceeds(setDoc(doc(owner, "publicProfiles/owner"), publicProfile));
     await assertSucceeds(getDoc(doc(guest, "publicProfiles/owner")));
     await assertFails(setDoc(doc(other, "publicProfiles/owner"), publicProfile));
+  });
+
+  it("lets any signed-in user create an immutable community farm entry", async () => {
+    const owner = environment.authenticatedContext("owner").firestore();
+    const other = environment.authenticatedContext("other").firestore();
+    const guest = environment.unauthenticatedContext().firestore();
+    const now = Timestamp.now();
+    const farmId = "baviaans-lodge_-33.02_27.90";
+    const farm = {
+      id: farmId,
+      name: "Baviaans Lodge",
+      searchName: "baviaans lodge",
+      latitude: -33.0183,
+      longitude: 27.9035,
+      country: "South Africa",
+      placeName: "Eastern Cape",
+      createdBy: "owner",
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await assertFails(setDoc(doc(guest, `farms/${farmId}`), farm));
+    await assertFails(setDoc(doc(other, `farms/${farmId}`), farm)); // createdBy must match author
+    await assertFails(setDoc(doc(owner, `farms/${farmId}`), { ...farm, latitude: 123 }));
+    await assertFails(setDoc(doc(owner, `farms/${farmId}`), { ...farm, extra: "field" }));
+    await assertSucceeds(setDoc(doc(owner, `farms/${farmId}`), farm));
+    await assertSucceeds(getDoc(doc(guest, `farms/${farmId}`)));
+    // No client may move, rename, or delete a farm once created — not even its creator.
+    await assertFails(updateDoc(doc(owner, `farms/${farmId}`), { name: "Renamed" }));
+    await assertFails(setDoc(doc(other, `farms/${farmId}`), { ...farm, createdBy: "other" }));
+    await assertFails(deleteDoc(doc(owner, `farms/${farmId}`)));
+  });
+
+  it("rejects a published hunt that references a nonexistent farm", async () => {
+    const owner = environment.authenticatedContext("owner").firestore();
+    const now = Timestamp.now();
+    const farmId = "baviaans-lodge_-33.02_27.90";
+    const publicHunt = {
+      id: "owner_kill-1",
+      ownerId: "owner",
+      sourceKillId: "kill-1",
+      hunter: { id: "owner", displayName: "Owner", avatarUrl: null },
+      species: "Greater Kudu",
+      coverMediaId: null,
+      media: [],
+      country: "South Africa",
+      date: "2025-06-12",
+      killTime: "06:42",
+      location: { latitude: -33.0183, longitude: 27.9035, placeName: "Eastern Cape", farmName: "Baviaans Lodge", farmId },
+      weapon: { type: "rifle", model: "Sako S20", caliber: ".300 Win Mag" },
+      ammunition: { grain: 180 },
+      routeSummary: null,
+      description: "",
+      publishedAt: now,
+      updatedAt: now,
+    };
+
+    await assertFails(setDoc(doc(owner, "publicHunts/owner_kill-1"), publicHunt));
+
+    await assertSucceeds(setDoc(doc(owner, `farms/${farmId}`), {
+      id: farmId,
+      name: "Baviaans Lodge",
+      searchName: "baviaans lodge",
+      latitude: -33.0183,
+      longitude: 27.9035,
+      country: "South Africa",
+      placeName: "Eastern Cape",
+      createdBy: "owner",
+      createdAt: now,
+      updatedAt: now,
+    }));
+    await assertSucceeds(setDoc(doc(owner, "publicHunts/owner_kill-1"), publicHunt));
   });
 
   it("allows users to follow only as themselves", async () => {

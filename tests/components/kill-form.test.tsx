@@ -171,6 +171,39 @@ describe("KillForm", () => {
     expect(screen.getByLabelText(/country/i)).toHaveValue("South Africa");
   });
 
+  it("suggests nearby community farms after a pin drop and adopts the chosen one", async () => {
+    const user = userEvent.setup();
+    const now = "2025-06-12T08:00:00.000Z";
+    const findNearbyFarms = vi.fn().mockResolvedValue([
+      {
+        farm: {
+          id: "baviaans-lodge_-32.51_26.26",
+          name: "Baviaans Lodge",
+          searchName: "baviaans lodge",
+          latitude: -32.512,
+          longitude: 26.257,
+          country: "South Africa",
+          placeName: "Eastern Cape",
+          createdBy: "someone-else",
+          createdAt: now,
+          updatedAt: now,
+        },
+        distanceKm: 0.4,
+      },
+    ]);
+    renderWithRouter(<KillForm onSave={vi.fn()} findNearbyFarms={findNearbyFarms} />);
+
+    await user.click(screen.getByRole("button", { name: /simulate pin drop/i }));
+    await user.click(await screen.findByRole("button", { name: /baviaans lodge/i }));
+
+    expect(screen.getByLabelText(/farm name/i)).toHaveValue("Baviaans Lodge");
+    expect(findNearbyFarms).toHaveBeenCalledWith("", -32.51234, 26.25678);
+
+    // Typing a different farm name breaks the community-farm link.
+    await user.type(screen.getByLabelText(/farm name/i), " Annex");
+    expect(screen.getByLabelText(/farm name/i)).toHaveValue("Baviaans Lodge Annex");
+  });
+
   it("fills coordinates only after current-position permission succeeds", async () => {
     const user = userEvent.setup();
     const getCurrentPosition = vi.fn((success) =>

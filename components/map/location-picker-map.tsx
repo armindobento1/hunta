@@ -16,7 +16,8 @@ export function LocationPickerMap({
 }: {
   latitude: number;
   longitude: number;
-  onPick(latitude: number, longitude: number): void;
+  /** Omit for a read-only pin view (e.g. a farm page). */
+  onPick?(latitude: number, longitude: number): void;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -57,7 +58,7 @@ export function LocationPickerMap({
           zoom: hasPoint ? PICK_ZOOM : 1.4,
         });
         map.on("click", (event) => {
-          onPickRef.current(event.lngLat.lat, event.lngLat.lng);
+          onPickRef.current?.(event.lngLat.lat, event.lngLat.lng);
         });
         if (hasPoint) {
           markerRef.current = new maplibregl.Marker({ color: PIN_COLOR })
@@ -107,10 +108,10 @@ export function LocationPickerMap({
 
   return (
     <div
-      className="location-picker-map"
+      className={`location-picker-map${onPick ? "" : " location-picker-readonly"}`}
       ref={container}
       role="application"
-      aria-label="Satellite map — tap to drop the kill location pin"
+      aria-label={onPick ? "Satellite map — tap to drop the kill location pin" : "Satellite map"}
     />
   );
 }

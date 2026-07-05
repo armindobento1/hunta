@@ -21,6 +21,7 @@ export const killLocationSchema = z
     longitude: z.number().finite().min(-180).max(180),
     placeName: trimmed(160),
     farmName: z.string().trim().min(1).max(200).optional(),
+    farmId: z.string().min(1).max(240).optional(),
     source: z.object({
       provider: z.literal("esri"),
       featureId: trimmed(240),

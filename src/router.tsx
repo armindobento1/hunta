@@ -14,6 +14,7 @@ import { ProfilePage } from "@/src/pages/profile-page";
 import { TrashPage } from "@/src/pages/trash-page";
 import { PortfolioDataProvider } from "@/src/providers/portfolio-data-provider";
 import { PublicProfilePage } from "@/src/pages/public-profile-page";
+import { FarmPage } from "@/src/pages/farm-page";
 import { PublicHuntPage } from "@/src/pages/public-hunt-page";
 import { SocialDataProvider } from "@/src/providers/social-data-provider";
 
@@ -32,6 +33,7 @@ export const APP_ROUTES: RouteObject[] = [
   { id: "auth", path: "/auth", element: <AuthPage /> },
   { id: "public-profile", path: "/people/:uid", element: <PublicProfilePage /> },
   { id: "public-hunt", path: "/people/:uid/hunts/:publicHuntId", element: <PublicHuntPage /> },
+  { id: "farm", path: "/farms/:farmId", element: <FarmPage /> },
   {
     id: "private",
     element: <PrivateRoutes />,

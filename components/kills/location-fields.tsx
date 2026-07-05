@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { LocationPickerMap } from "@/components/map/location-picker-map";
+import type { FarmSuggestion } from "@/lib/domain/farm";
 import { searchLocations, type LocationSearchResult } from "@/lib/location/search-locations";
 
 import type { EditorFields } from "./kill-form";
@@ -19,12 +20,14 @@ export function LocationFields({
   control,
   errors,
   country,
+  findNearbyFarms,
 }: {
   register: UseFormRegister<EditorFields>;
   setValue: UseFormSetValue<EditorFields>;
   control: Control<EditorFields>;
   errors: FieldErrors<EditorFields>;
   country: string;
+  findNearbyFarms?(country: string, latitude: number, longitude: number): Promise<FarmSuggestion[]>;
 }) {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -34,7 +37,20 @@ export function LocationFields({
   const latitude = useWatch({ control, name: "latitude" });
   const longitude = useWatch({ control, name: "longitude" });
   const placeName = useWatch({ control, name: "placeName" });
+  const farmId = useWatch({ control, name: "farmId" });
   const hasPin = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const [farmSuggestions, setFarmSuggestions] = useState<FarmSuggestion[]>([]);
+
+  useEffect(() => {
+    if (!findNearbyFarms || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      findNearbyFarms(country, latitude, longitude)
+        .then((suggestions) => { if (!cancelled) setFarmSuggestions(suggestions); })
+        .catch(() => { if (!cancelled) setFarmSuggestions([]); });
+    }, 400);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [findNearbyFarms, country, latitude, longitude]);
 
   useEffect(() => {
     if (query.trim().length < 3) return;
@@ -57,6 +73,13 @@ export function LocationFields({
     setValue("locationSourceFeatureId", "");
     setValue("locationSourceLabel", "");
     setLocationError(null);
+  }
+
+  function adoptFarm(suggestion: FarmSuggestion) {
+    setValue("farmName", suggestion.farm.name, { shouldValidate: true });
+    setValue("farmId", suggestion.farm.id);
+    if (!placeName?.trim()) setValue("placeName", suggestion.farm.placeName, { shouldValidate: true });
+    if (!country && suggestion.farm.country) setValue("country", suggestion.farm.country, { shouldValidate: true });
   }
 
   function jumpTo(result: LocationSearchResult) {
@@ -113,8 +136,30 @@ export function LocationFields({
           autoComplete="off"
           aria-invalid={Boolean(errors.farmName)}
           aria-describedby={errors.farmName ? "farm-name-error" : undefined}
-          {...register("farmName", { required: "Farm name is required." })}
+          {...register("farmName", {
+            required: "Farm name is required.",
+            onChange: () => { if (farmId) setValue("farmId", ""); },
+          })}
         />
+        {hasPin && farmSuggestions.length ? (
+          <div className="farm-suggestions" aria-label="Nearby community farms">
+            <p>Hunted at a known farm?</p>
+            {farmSuggestions.map((suggestion) => (
+              <button
+                type="button"
+                key={suggestion.farm.id}
+                className={farmId === suggestion.farm.id ? "farm-suggestion-active" : undefined}
+                onClick={() => adoptFarm(suggestion)}
+              >
+                <MapPin aria-hidden="true" />
+                <span>
+                  <strong>{suggestion.farm.name}</strong>
+                  <small>{suggestion.farm.placeName} · {suggestion.distanceKm.toFixed(1)} km from your pin</small>
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
         {errors.farmName ? (
           <p id="farm-name-error" className="field-error" role="alert">
             {errors.farmName.message}

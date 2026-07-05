@@ -37,13 +37,14 @@ service cloud.firestore {
     function validLocation(location) {
       return location is map &&
         location.keys().hasAll(['latitude', 'longitude', 'placeName']) &&
-        location.keys().hasOnly(['latitude', 'longitude', 'placeName', 'farmName', 'source']) &&
+        location.keys().hasOnly(['latitude', 'longitude', 'placeName', 'farmName', 'farmId', 'source']) &&
         location.latitude is number &&
         location.latitude >= -90 && location.latitude <= 90 &&
         location.longitude is number &&
         location.longitude >= -180 && location.longitude <= 180 &&
         shortString(location.placeName, 160) &&
         optionalString(location, 'farmName', 200) &&
+        optionalString(location, 'farmId', 240) &&
         (!('source' in location) ||
           (location.source is map &&
             location.source.keys().hasAll(['provider', 'featureId', 'label']) &&
@@ -212,9 +213,23 @@ service cloud.firestore {
         data.hunter is map && data.hunter.id == data.ownerId && shortString(data.hunter.displayName, 80) &&
         shortString(data.species, 120) && data.media is list && data.media.size() <= 30 && shortString(data.country, 100) &&
         validLocation(data.location) && validWeapon(data.weapon) && validAmmunition(data.ammunition) &&
+        (!('farmId' in data.location) ||
+          exists(/databases/$(database)/documents/farms/$(data.location.farmId))) &&
         (!('measurement' in data) || validMeasurement(data.measurement)) &&
         (!('equipmentAttachments' in data) || validAttachments(data.equipmentAttachments)) &&
         data.description is string && data.description.size() <= 5000 && data.publishedAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validFarm(data, farmId) {
+      return data.keys().hasAll(['id', 'name', 'searchName', 'latitude', 'longitude', 'country', 'placeName', 'createdBy', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'name', 'searchName', 'latitude', 'longitude', 'country', 'placeName', 'createdBy', 'createdAt', 'updatedAt']) &&
+        data.id == farmId && data.createdBy == request.auth.uid &&
+        shortString(data.name, 200) && shortString(data.searchName, 200) &&
+        data.searchName == data.searchName.lower() &&
+        data.latitude is number && data.latitude >= -90 && data.latitude <= 90 &&
+        data.longitude is number && data.longitude >= -180 && data.longitude <= 180 &&
+        shortString(data.country, 100) && shortString(data.placeName, 160) &&
+        data.createdAt is timestamp && data.updatedAt is timestamp;
     }
 
     function validFollow(data, followerId, followedId) {
@@ -280,6 +295,16 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if signedIn() && validPublicHunt(request.resource.data, publicHuntId);
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /farms/{farmId} {
+      // Community farm directory. Entries are created only at publish time by
+      // the publishing client; they are immutable from clients afterwards so
+      // no user can move or rename another hunter's farm pin. Owner claims and
+      // corrections arrive later through moderated/admin paths.
+      allow read: if true;
+      allow create: if signedIn() && validFarm(request.resource.data, farmId);
+      allow update, delete: if false;
     }
 
     match /publicFollowers/{followedId}/followers/{followerId} {
