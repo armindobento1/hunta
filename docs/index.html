@@ -27,18 +27,6 @@
     @keyframes huntaPin{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
     @keyframes huntaDash{to{stroke-dashoffset:-26;}}
 
-    /* image placeholders (no photography yet) */
-    .ph{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;
-      background:linear-gradient(145deg,#161812,#0d0f0c 70%);
-      background-image:linear-gradient(145deg,#161812,#0d0f0c 70%),
-        repeating-linear-gradient(135deg,rgba(255,255,255,0.018) 0,rgba(255,255,255,0.018) 1px,transparent 1px,transparent 9px);
-      overflow:hidden;}
-    .ph::after{content:"";position:absolute;inset:0;
-      background:radial-gradient(ellipse at 30% 25%,rgba(46,92,22,0.16),transparent 60%),
-                 radial-gradient(ellipse at 75% 80%,rgba(217,119,6,0.10),transparent 55%);}
-    .ph-label{position:relative;z-index:1;font-size:10.5px;font-weight:500;letter-spacing:0.6px;
-      color:#5d564a;padding:6px 10px;line-height:1.35;}
-
     /* link hovers (replaces dc style-hover) */
     .nav-link{font-size:13.5px;color:var(--muted);white-space:nowrap;transition:color .15s;}
     .nav-link:hover{color:var(--text);}
@@ -84,7 +72,7 @@
 
   <!-- HERO -->
   <header id="top" style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-    <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;"><span class="ph-label">Cinematic landscape — hunter above a valley at first light</span></div>
+    <div style="position:absolute;inset:0;width:100%;height:100%;background:url(img/hero.jpg) center/cover no-repeat;"></div>
     <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,10,0.96) 0%,rgba(9,9,10,0.55) 42%,rgba(9,9,10,0.35) 70%,rgba(9,9,10,0.6) 100%);"></div>
     <div style="position:absolute;inset:0;pointer-events:none;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.02) 0,rgba(255,255,255,0.02) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(255,255,255,0.02) 0,rgba(255,255,255,0.02) 1px,transparent 1px,transparent 40px);"></div>
     <div style="position:absolute;top:18%;left:50%;transform:translateX(-50%);width:min(1000px,90vw);height:640px;pointer-events:none;background:radial-gradient(ellipse at center,rgba(46,92,22,0.26) 0%,transparent 66%);"></div>
@@ -120,12 +108,12 @@
     </div>
 
     <div class="frag-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:48px;">
-      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">boots in wet grass</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">Before sunrise</div></div>
-      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">route on a topo map</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">The route</div></div>
-      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">rifle / bow ready</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">Preparation</div></div>
-      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">distant landscape</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">The country</div></div>
-      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">field photograph</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">The moment</div></div>
-      <div style="position:relative;"><div class="ph" style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;"><span class="ph-label">journal entry</span></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">Afterward</div></div>
+      <div style="position:relative;"><div style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;background:url(img/frag-boots.jpg) center/cover no-repeat;"></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">Before sunrise</div></div>
+      <div style="position:relative;"><div style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;background:url(img/frag-route.jpg) center/cover no-repeat;"></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">The route</div></div>
+      <div style="position:relative;"><div style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;background:url(img/frag-rifle.jpg) center/cover no-repeat;"></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">Preparation</div></div>
+      <div style="position:relative;"><div style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;background:url(img/frag-landscape.jpg) center/cover no-repeat;"></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">The country</div></div>
+      <div style="position:relative;"><div style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;background:url(img/frag-field.jpg) center/cover no-repeat;"></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">The moment</div></div>
+      <div style="position:relative;"><div style="display:block;width:100%;height:220px;border:1px solid rgba(255,255,255,0.07);border-radius:10px;background:url(img/frag-journal.jpg) center/cover no-repeat;"></div><div style="position:absolute;left:10px;bottom:10px;right:10px;font-size:10.5px;font-weight:600;letter-spacing:1px;color:#F0EAE0;text-shadow:0 1px 6px rgba(0,0,0,0.7);">Afterward</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:14px;margin-top:22px;color:#7d7464;font-size:13px;font-weight:300;">
       <span style="flex:none;width:7px;height:7px;border-radius:50%;background:#2E5C16;"></span>
@@ -146,7 +134,7 @@
     <div style="margin-top:46px;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;background:#111210;box-shadow:0 40px 90px rgba(0,0,0,0.55);">
       <div class="pf-grid" style="display:grid;grid-template-columns:1.4fr 1fr;">
         <div style="position:relative;border-right:1px solid rgba(255,255,255,0.06);">
-          <div class="ph" style="display:block;width:100%;height:430px;"><span class="ph-label">Cover photograph — the hunt</span></div>
+          <div style="display:block;width:100%;height:430px;background:url(img/cover-reedbuck.jpg) center/cover no-repeat;"></div>
           <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,10,0.85),transparent 45%);pointer-events:none;"></div>
           <div style="position:absolute;left:20px;right:20px;bottom:96px;">
             <div style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;background:rgba(46,92,22,0.85);backdrop-filter:blur(6px);">
@@ -157,10 +145,10 @@
             <div style="margin-top:3px;font-size:13.5px;color:#D8CFBE;">Sneeuberg, South Africa · 14 May 2026</div>
           </div>
           <div style="position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;">
-            <div class="ph" style="display:block;width:100%;height:74px;border-radius:8px;"><span class="ph-label">photo</span></div>
-            <div class="ph" style="display:block;width:100%;height:74px;border-radius:8px;"><span class="ph-label">photo</span></div>
-            <div class="ph" style="display:block;width:100%;height:74px;border-radius:8px;"><span class="ph-label">photo</span></div>
-            <div class="ph" style="display:block;width:100%;height:74px;border-radius:8px;"><span class="ph-label">video</span></div>
+            <div style="display:block;width:100%;height:74px;border-radius:8px;background:url(img/frag-boots.jpg) center/cover no-repeat;"></div>
+            <div style="display:block;width:100%;height:74px;border-radius:8px;background:url(img/frag-route.jpg) center/cover no-repeat;"></div>
+            <div style="display:block;width:100%;height:74px;border-radius:8px;background:url(img/frag-rifle.jpg) center/cover no-repeat;"></div>
+            <div style="display:block;width:100%;height:74px;border-radius:8px;background:url(img/frag-landscape.jpg) center/cover no-repeat;"></div>
           </div>
         </div>
         <div style="padding:22px 24px;">
@@ -185,7 +173,7 @@
   <!-- STORY DETAIL -->
   <section style="position:relative;z-index:2;margin-top:130px;">
     <div style="position:relative;height:560px;">
-      <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;"><span class="ph-label">Greater Kudu — cinematic cover photograph, Eastern Cape</span></div>
+      <div style="position:absolute;inset:0;width:100%;height:100%;background:url(img/cover-kudu.jpg) center/cover no-repeat;"></div>
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,10,0.95) 4%,rgba(9,9,10,0.3) 50%,rgba(9,9,10,0.55) 100%);"></div>
       <div style="position:absolute;left:0;right:0;bottom:0;max-width:1180px;margin:0 auto;padding:0 32px 50px;">
         <div style="font-size:11.5px;font-weight:600;letter-spacing:2.5px;color:#D97706;">A HUNT, PRESERVED</div>
@@ -206,15 +194,15 @@
         <p style="margin-top:20px;font-family:'Playfair Display',serif;font-size:clamp(1.5rem,2.6vw,2rem);font-weight:500;font-style:italic;line-height:1.45;color:#F0EAE0;">"We began moving before the first light reached the valley. The wind had changed twice before we found the tracks…"</p>
         <p style="margin-top:24px;font-size:16px;font-weight:300;line-height:1.75;color:#9A9080;">By the time the sun cleared the ridge we had closed to under two hundred metres, the bull quartering away through the spekboom. What Hunta keeps is not the trophy alone — it is the cold of that first hour, the ground we covered, and the people who were there to see it.</p>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:30px;">
-          <div class="ph" style="display:block;width:100%;height:130px;border-radius:10px;"><span class="ph-label">first light</span></div>
-          <div class="ph" style="display:block;width:100%;height:130px;border-radius:10px;"><span class="ph-label">the stalk</span></div>
-          <div class="ph" style="display:block;width:100%;height:130px;border-radius:10px;"><span class="ph-label">the moment</span></div>
+          <div style="display:block;width:100%;height:130px;border-radius:10px;background:url(img/frag-landscape.jpg) center/cover no-repeat;"></div>
+          <div style="display:block;width:100%;height:130px;border-radius:10px;background:url(img/frag-field.jpg) center/cover no-repeat;"></div>
+          <div style="display:block;width:100%;height:130px;border-radius:10px;background:url(img/frag-rifle.jpg) center/cover no-repeat;"></div>
         </div>
       </div>
 
       <aside style="display:flex;flex-direction:column;gap:18px;">
         <div style="position:relative;border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;background:#0c0f0c;height:190px;">
-          <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.9;"><span class="ph-label">satellite terrain</span></div>
+          <div style="position:absolute;inset:0;width:100%;height:100%;opacity:0.9;background:url(img/map-terrain.jpg) center/cover no-repeat;"></div>
           <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.05) 0,rgba(255,255,255,0.05) 1px,transparent 1px,transparent 22px),repeating-linear-gradient(90deg,rgba(255,255,255,0.05) 0,rgba(255,255,255,0.05) 1px,transparent 1px,transparent 22px);"></div>
           <svg viewBox="0 0 320 190" style="position:absolute;inset:0;width:100%;height:100%;">
             <path d="M40 160 C90 150 70 110 120 100 S190 80 210 60 250 50 270 40" fill="none" stroke="#4A8A28" stroke-width="2.5" stroke-dasharray="7 6" style="animation:huntaDash 1.4s linear infinite;"/>
@@ -255,7 +243,7 @@
           <span style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#F0EAE0;">Highland Loadout</span>
           <span style="font-size:11px;font-weight:600;letter-spacing:0.5px;color:#7bbf4f;padding:4px 10px;border-radius:999px;background:rgba(46,92,22,0.2);">SAVED</span>
         </div>
-        <div class="ph" style="position:relative;height:150px;border-bottom:1px solid rgba(255,255,255,0.06);"><span class="ph-label">rifle / bow profile photo</span></div>
+        <div style="position:relative;height:150px;border-bottom:1px solid rgba(255,255,255,0.06);background:url(img/armory-rifle.jpg) center/cover no-repeat;"></div>
         <div style="padding:6px 18px 14px;">
           <div style="display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:#7d7464;width:78px;flex:none;text-transform:uppercase;">Rifle</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#F0EAE0;">Sako S20</span><span style="width:7px;height:7px;border-radius:50%;background:#2E5C16;flex:none;"></span></div>
           <div style="display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="font-size:10px;font-weight:600;letter-spacing:0.8px;color:#7d7464;width:78px;flex:none;text-transform:uppercase;">Calibre</span><span style="flex:1;font-size:13.5px;font-weight:500;color:#F0EAE0;">.300 Win Mag</span><span style="width:7px;height:7px;border-radius:50%;background:#2E5C16;flex:none;"></span></div>
@@ -278,7 +266,7 @@
     </div>
 
     <div style="position:relative;border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;height:520px;background:#0a0d0a;box-shadow:0 30px 80px rgba(0,0,0,0.55);">
-      <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;"><span class="ph-label">Dark satellite terrain — mountain valley</span></div>
+      <div style="position:absolute;inset:0;width:100%;height:100%;background:url(img/map-terrain.jpg) center/cover no-repeat;"></div>
       <div style="position:absolute;inset:0;background:linear-gradient(120deg,rgba(9,9,10,0.55),rgba(9,9,10,0.15) 45%,rgba(9,9,10,0.5));"></div>
       <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(120,200,120,0.06) 0,rgba(120,200,120,0.06) 1px,transparent 1px,transparent 34px),repeating-linear-gradient(90deg,rgba(120,200,120,0.06) 0,rgba(120,200,120,0.06) 1px,transparent 1px,transparent 34px);"></div>
       <svg viewBox="0 0 1100 520" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;">
@@ -308,19 +296,19 @@
 
     <div style="position:relative;margin-top:54px;height:340px;">
       <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;opacity:0.32;-webkit-mask-image:linear-gradient(to bottom,#000,transparent);mask-image:linear-gradient(to bottom,#000,transparent);">
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
-        <div class="ph" style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/frag-landscape.jpg) center/cover no-repeat;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/frag-boots.jpg) center/cover no-repeat;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/cover-kudu.jpg) center/cover no-repeat;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/frag-route.jpg) center/cover no-repeat;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/frag-field.jpg) center/cover no-repeat;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/cover-reedbuck.jpg) center/cover no-repeat;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/frag-journal.jpg) center/cover no-repeat;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/frag-rifle.jpg) center/cover no-repeat;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/closing-camp.jpg) center/cover no-repeat;"></div>
+        <div style="display:block;width:100%;height:150px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:url(img/hero.jpg) center/cover no-repeat;"></div>
       </div>
       <div style="position:absolute;left:50%;top:0;transform:translateX(-50%);width:min(300px,80vw);border:1px solid rgba(255,255,255,0.1);border-radius:14px;overflow:hidden;background:#111210;box-shadow:0 30px 70px rgba(0,0,0,0.6);text-align:left;">
-        <div class="ph" style="display:block;width:100%;height:180px;"><span class="ph-label">published hunt</span></div>
+        <div style="display:block;width:100%;height:180px;background:url(img/card-stag.jpg) center/cover no-repeat;"></div>
         <div style="padding:14px 16px 16px;">
           <div style="display:flex;align-items:center;gap:9px;">
             <span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#2E5C16,#1c3a0e);border:1px solid rgba(255,255,255,0.1);"></span>
@@ -373,7 +361,7 @@
   <!-- CLOSING CTA -->
   <section id="create" style="position:relative;z-index:2;margin-top:130px;">
     <div style="position:relative;height:560px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-      <div class="ph" style="position:absolute;inset:0;width:100%;height:100%;"><span class="ph-label">Closing image — firelight, dusk camp, or open veld</span></div>
+      <div style="position:absolute;inset:0;width:100%;height:100%;background:url(img/closing-camp.jpg) center/cover no-repeat;"></div>
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,10,0.94),rgba(9,9,10,0.72) 50%,rgba(9,9,10,0.88));"></div>
       <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(900px,95vw);height:560px;pointer-events:none;background:radial-gradient(ellipse at center,rgba(46,92,22,0.28) 0%,transparent 62%);"></div>
       <div style="position:relative;z-index:3;text-align:center;padding:0 28px;">
