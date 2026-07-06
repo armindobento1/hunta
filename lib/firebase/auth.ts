@@ -1,13 +1,17 @@
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
+  OAuthProvider,
   sendPasswordResetEmail,
+  signInWithCredential,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
   updateProfile,
   type UserCredential,
 } from "firebase/auth";
+
+import { isNativePlatform } from "@/lib/native/platform";
 
 import { getFirebaseServices } from "./config";
 
@@ -17,6 +21,8 @@ const messages: Record<string, string> = {
   "auth/invalid-credential":
     "That email and password combination is not correct.",
   "auth/invalid-email": "Enter a valid email address.",
+  "auth/missing-credential":
+    "Sign-in was cancelled before it finished. Please try again.",
   "auth/popup-closed-by-user": "Google sign-in was closed before it finished.",
   "auth/too-many-requests":
     "Too many attempts. Wait a moment before trying again.",
@@ -39,8 +45,45 @@ export function authErrorMessage(error: unknown): string {
 
 export async function signInWithGoogle(): Promise<UserCredential> {
   const { auth } = getFirebaseServices();
+
+  if (isNativePlatform()) {
+    const { FirebaseAuthentication } = await import(
+      "@capacitor-firebase/authentication"
+    );
+    const result = await FirebaseAuthentication.signInWithGoogle();
+    const idToken = result.credential?.idToken;
+    if (!idToken) throw { code: "auth/missing-credential" };
+    return signInWithCredential(
+      auth,
+      GoogleAuthProvider.credential(idToken, result.credential?.accessToken),
+    );
+  }
+
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
+  return signInWithPopup(auth, provider);
+}
+
+export async function signInWithApple(): Promise<UserCredential> {
+  const { auth } = getFirebaseServices();
+  const provider = new OAuthProvider("apple.com");
+
+  if (isNativePlatform()) {
+    const { FirebaseAuthentication } = await import(
+      "@capacitor-firebase/authentication"
+    );
+    const result = await FirebaseAuthentication.signInWithApple();
+    const idToken = result.credential?.idToken;
+    if (!idToken) throw { code: "auth/missing-credential" };
+    return signInWithCredential(
+      auth,
+      provider.credential({
+        idToken,
+        rawNonce: result.credential?.nonce,
+      }),
+    );
+  }
+
   return signInWithPopup(auth, provider);
 }
 

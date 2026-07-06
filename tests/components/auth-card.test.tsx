@@ -6,6 +6,7 @@ import { AuthCard, type AuthCardActions } from "@/components/auth/auth-card";
 function actions(overrides: Partial<AuthCardActions> = {}): AuthCardActions {
   return {
     google: vi.fn().mockResolvedValue(undefined),
+    apple: vi.fn().mockResolvedValue(undefined),
     signIn: vi.fn().mockResolvedValue(undefined),
     signUp: vi.fn().mockResolvedValue(undefined),
     reset: vi.fn().mockResolvedValue(undefined),

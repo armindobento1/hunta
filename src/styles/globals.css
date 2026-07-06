@@ -315,8 +315,18 @@ a {
 }
 
 .google-button,
+.apple-button,
 .auth-submit {
   width: 100%;
+}
+
+.apple-button {
+  margin-top: 0.6rem;
+}
+
+.apple-mark {
+  font-size: 1.05rem;
+  line-height: 1;
 }
 
 .google-mark {
