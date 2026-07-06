@@ -98,6 +98,9 @@ Before touching any guardian file below, understand which invariant it protects.
    `npm run test:rules` passing and should get a security review.
 
 ## High-risk areas (impact-check before editing)
+**Before editing any area below, read its section in
+`vault/Playbooks/Hunta-Playbook.md`** — blast radius, known traps, and the
+tests each change must keep passing.
 - Kill data model & persistence (`lib/domain/`, `lib/firebase/`) — touches every invariant.
 - GPX parsing / distance-time derivation (`lib/gpx/`) — Invariant 2.
 - Media upload/storage — Invariant 3.

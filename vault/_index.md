@@ -7,6 +7,11 @@ whole vault.** Patch the smallest affected note; prefer updating over creating.
 - [[System-Architecture]] — stack, layers, how a kill flows from input to display.
 - [[Data-Model]] — the **Kill** entity and the Profile → Country → Year → Animal hierarchy. **Read this before touching `data/` or `lib/`.**
 
+## Playbooks
+- [[Hunta-Playbook]] — **read the matching section before editing any risk
+  area**: kill model/edits, GPX facts, media/trash, auth boundary, feed
+  ordering — blast radius, traps, required tests per area.
+
 ## Frontend
 - [[Portfolio-v1]] — implemented routes, components, state flow, and verification.
 
