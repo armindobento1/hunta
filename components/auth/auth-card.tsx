@@ -10,12 +10,15 @@ import {
   authErrorMessage,
   createEmailAccount,
   resetPassword,
+  signInWithApple,
   signInWithEmail,
   signInWithGoogle,
 } from "@/lib/firebase/auth";
+import { isIOSNativePlatform } from "@/lib/native/platform";
 
 export interface AuthCardActions {
   google(): Promise<unknown>;
+  apple(): Promise<unknown>;
   signIn(email: string, password: string): Promise<unknown>;
   signUp(
     displayName: string,
@@ -27,6 +30,7 @@ export interface AuthCardActions {
 
 const defaultActions: AuthCardActions = {
   google: signInWithGoogle,
+  apple: signInWithApple,
   signIn: signInWithEmail,
   signUp: createEmailAccount,
   reset: resetPassword,
@@ -127,6 +131,20 @@ export function AuthCard({
         </span>
         Continue with Google
       </Button>
+
+      {isIOSNativePlatform() ? (
+        <Button
+          className="apple-button"
+          disabled={pending}
+          onClick={() => run(actions.apple)}
+          variant="secondary"
+        >
+          <span className="apple-mark" aria-hidden="true">
+
+          </span>
+          Continue with Apple
+        </Button>
+      ) : null}
 
       <div className="auth-divider">
         <span>or use email</span>

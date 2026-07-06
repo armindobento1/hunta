@@ -1,7 +1,12 @@
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import {
+  browserLocalPersistence,
+  browserPopupRedirectResolver,
   connectAuthEmulator,
   getAuth,
+  indexedDBLocalPersistence,
+  initializeAuth,
+  inMemoryPersistence,
   type Auth,
 } from "firebase/auth";
 import {
@@ -15,6 +20,8 @@ import {
   type FirebaseStorage,
 } from "firebase/storage";
 import { z } from "zod";
+
+import { isNativePlatform } from "@/lib/native/platform";
 
 const firebaseConfigSchema = z.object({
   apiKey: z.string().min(1),
@@ -34,6 +41,31 @@ export interface FirebaseServices {
 
 let services: FirebaseServices | null = null;
 let emulatorConnected = false;
+
+// Explicit persistence order keeps sessions alive across restarts inside the
+// Capacitor WebView, where getAuth()'s defaults are unreliable; in-memory is
+// the last resort for environments without web storage (e.g. tests).
+// The popup/redirect resolver must NOT be configured on native: it makes auth
+// initialization wait on an iframe to the authDomain, which can never respond
+// inside the capacitor:// origin, so every sign-in call hangs forever.
+function createAuth(app: FirebaseApp): Auth {
+  const persistence = [
+    indexedDBLocalPersistence,
+    browserLocalPersistence,
+    inMemoryPersistence,
+  ];
+  try {
+    return isNativePlatform()
+      ? initializeAuth(app, { persistence })
+      : initializeAuth(app, {
+          persistence,
+          popupRedirectResolver: browserPopupRedirectResolver,
+        });
+  } catch {
+    // initializeAuth throws if auth was already initialized for this app.
+    return getAuth(app);
+  }
+}
 
 function environmentConfig() {
   return {
@@ -57,7 +89,7 @@ export function getFirebaseServices(): FirebaseServices {
 
   const config = firebaseConfigSchema.parse(environmentConfig());
   const app = getApps().length > 0 ? getApp() : initializeApp(config);
-  const auth = getAuth(app);
+  const auth = createAuth(app);
   const db = getFirestore(app);
   const storage = getStorage(app);
 
