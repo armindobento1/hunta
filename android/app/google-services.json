@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "105459367595",
+    "project_id": "onfoothunta",
+    "storage_bucket": "onfoothunta.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105459367595:android:436a166bd0a23582e981ee",
+        "android_client_info": {
+          "package_name": "com.hunta.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "105459367595-6lln1stumeu7ir14frnsnplnofh137iv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hunta.app",
+            "certificate_hash": "404b09406a0da6702f7dfb43462f0357c4b2986d"
+          }
+        },
+        {
+          "client_id": "105459367595-8ptamr0ejd44slftjdjoq50inb8k7hac.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqpkp0rDF6ZQPNlJ76LV1Q1UNlnJ8UXEM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "105459367595-8ptamr0ejd44slftjdjoq50inb8k7hac.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "105459367595-04ik8fictuq89o2sfj0acopqvka62c8r.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hunta.app"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105459367595:android:d88171e71fac1f10e981ee",
+        "android_client_info": {
+          "package_name": "com.onfoothunta.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "105459367595-oi8ra62ulqop6n8dnav3jecf0l358lhg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.onfoothunta.app",
+            "certificate_hash": "404b09406a0da6702f7dfb43462f0357c4b2986d"
+          }
+        },
+        {
+          "client_id": "105459367595-8ptamr0ejd44slftjdjoq50inb8k7hac.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqpkp0rDF6ZQPNlJ76LV1Q1UNlnJ8UXEM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "105459367595-8ptamr0ejd44slftjdjoq50inb8k7hac.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "105459367595-04ik8fictuq89o2sfj0acopqvka62c8r.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hunta.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
