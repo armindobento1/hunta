@@ -18,7 +18,7 @@ whole vault.** Patch the smallest affected note; prefer updating over creating.
 - _(per-feature notes: route import, grouping, media upload — added as built)_
 
 ## Decisions
-- _(locked-in design choices + rationale)_
+- [[Capacitor-Wrap]] — iOS/Android native shells, config-only native edits, Google sign-in gating, build requirements.
 
 ## Bugs
 - _(past incidents + fixes)_
