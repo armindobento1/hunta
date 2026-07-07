@@ -910,7 +910,7 @@ a {
 .kill-editor {
   width: min(64rem, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 2rem 0 7rem;
+  padding: max(2rem, calc(env(safe-area-inset-top) + 0.75rem)) 0 7rem;
 }
 
 .editor-header {
@@ -1237,7 +1237,7 @@ a {
 .hunt-hero-nav {
   display: flex;
   justify-content: space-between;
-  padding: 1.5rem clamp(1rem, 5vw, 4rem);
+  padding: max(1.5rem, calc(env(safe-area-inset-top) + 0.5rem)) clamp(1rem, 5vw, 4rem) 1.5rem;
 }
 
 .hunt-hero-nav a {
@@ -1526,7 +1526,7 @@ a {
   width: min(48rem, calc(100% - 2rem));
   min-height: 100svh;
   margin: 0 auto;
-  padding: 3rem 0 6rem;
+  padding: max(3rem, calc(env(safe-area-inset-top) + 0.75rem)) 0 6rem;
 }
 
 .trash-page > a,

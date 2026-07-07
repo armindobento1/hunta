@@ -16,7 +16,6 @@ import { EmptyPortfolio } from "./empty-portfolio";
 import { FeedView } from "./feed-view";
 import { LocationView } from "./location-view";
 import { ProfileHeader, type PortfolioTab } from "./profile-header";
-import { SocialDiscovery } from "@/components/social/social-discovery";
 
 export function PortfolioDashboard({
   profile,
@@ -27,7 +26,6 @@ export function PortfolioDashboard({
 }) {
   const [tab, setTab] = useState<PortfolioTab>("feed");
   const [display, setDisplay] = useState<"list" | "grid">("list");
-  const [feedScope, setFeedScope] = useState<"mine" | "community">("mine");
   const activeKills = sortActiveKills(kills);
 
   return (
@@ -41,8 +39,7 @@ export function PortfolioDashboard({
         />
         {tab === "armory" ? <ArmoryView /> : tab === "feed" ? (
           <>
-            <div className="feed-scope"><button type="button" aria-pressed={feedScope === "mine"} onClick={() => setFeedScope("mine")}>My hunts</button><button type="button" aria-pressed={feedScope === "community"} onClick={() => setFeedScope("community")}>Community</button></div>
-            {feedScope === "community" ? <SocialDiscovery /> : activeKills.length === 0 ? <EmptyPortfolio /> : <>
+            {activeKills.length === 0 ? <EmptyPortfolio /> : <>
             <div className="feed-toolbar">
               <span>{activeKills.length} animals</span>
               <div aria-label="Feed display">

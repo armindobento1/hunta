@@ -3,6 +3,8 @@ import { Outlet, type RouteObject, useRoutes } from "react-router-dom";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { AuthPage } from "@/src/pages/auth-page";
 import { EditKillPage } from "@/src/pages/edit-kill-page";
+import { DiscoverPage } from "@/src/pages/discover-page";
+import { HomeFeedPage } from "@/src/pages/home-feed-page";
 import { HomePage } from "@/src/pages/home-page";
 import { KillDetailPage } from "@/src/pages/kill-detail-page";
 import { LeaderboardPage } from "@/src/pages/leaderboard-page";
@@ -38,6 +40,8 @@ export const APP_ROUTES: RouteObject[] = [
     id: "private",
     element: <PrivateRoutes />,
     children: [
+      { id: "home-feed", path: "/home", element: <HomeFeedPage /> },
+      { id: "discover", path: "/discover", element: <DiscoverPage /> },
       { id: "portfolio", path: "/portfolio", element: <PortfolioPage /> },
       {
         id: "leaderboard",
