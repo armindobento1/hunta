@@ -1,6 +1,7 @@
 import { Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { BrandLogo } from "@/components/brand";
 import { BottomNav } from "@/components/portfolio/bottom-nav";
 import { HuntPostCard } from "@/components/social/hunt-post-card";
 import { Spinner } from "@/components/ui/spinner";
@@ -19,7 +20,10 @@ export function HomeFeedPage() {
     <main className="portfolio-shell">
       <div className="portfolio-content">
         <header className="app-top-bar">
-          <span className="app-wordmark">Hunta</span>
+          <span className="app-wordmark-row">
+            <BrandLogo size={24} className="app-logo" label="" />
+            <span className="app-wordmark">Hunta</span>
+          </span>
           <Link
             className="top-bar-action"
             to="/portfolio/leaderboard"
