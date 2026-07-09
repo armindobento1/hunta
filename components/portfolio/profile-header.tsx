@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import type { Profile } from "@/lib/domain/profile";
 import type { PortfolioStats } from "@/lib/domain/selectors";
 
@@ -41,9 +43,13 @@ export function ProfileHeader({
           <p className="profile-kicker">Private portfolio</p>
           <h1 className="ios-name">{profile.displayName}</h1>
         </div>
-        <span className="ios-more-btn" aria-hidden="true">
+        <Link
+          className="ios-more-btn"
+          to="/portfolio/profile"
+          aria-label="Profile settings"
+        >
           <span /><span /><span />
-        </span>
+        </Link>
       </div>
       {profile.bio ? <p className="ios-bio">{profile.bio}</p> : null}
       <dl className="ios-stats">
