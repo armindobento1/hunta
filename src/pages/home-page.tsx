@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 
+import { AuthRedirect } from "@/components/auth/auth-redirect";
 import { BrandMark } from "@/components/brand/brand-mark";
 
 export function HomePage() {
   return (
     <main className="welcome-shell">
+      <AuthRedirect />
       <div className="welcome-glow" aria-hidden="true" />
       <section className="welcome-copy">
         <p className="eyebrow">Hunting portfolio community</p>

@@ -4,8 +4,11 @@
 
 The customer-facing product name is **Hunta**.
 
-- `/` product welcome.
-- `/auth` Google and email/password entry.
+- `/` product welcome (signed-in visitors redirect to `/home`).
+- `/auth` Google and email/password entry (redirects to `/home` on success).
+- `/home` Instagram-style home feed: published hunts from followed hunters
+  (plus your own), reverse-chronological, leaderboard link in the top bar.
+- `/discover` account search plus a 3-column explore grid of all public hunts.
 - `/portfolio` private profile header, derived statistics, chronological feed,
   list/grid switch, country/place/year grouping, and a standalone private armory
   with weapon-first reusable loadouts.
@@ -33,8 +36,12 @@ Raw GPX bytes live in Storage. `lib/gpx/parse-gpx.ts` derives points, distance,
 duration, and bounds without changing the source. The detail map downloads and
 reparses the source before rendering.
 
-The mobile-first iOS-style presentation uses the five-tab v2 navigation and
-the supplied Hunta dog mark. Armory equipment and loadouts are independent
+The mobile-first iOS-style presentation uses the five-tab v2 navigation
+(Home, Discover, log-kill FAB, Map, Profile) and the supplied Hunta dog mark.
+`components/providers/navigation-gestures.tsx` adds back navigation: a
+left-edge swipe pops history on touch devices, and the Android hardware back
+button (via `@capacitor/app`) goes back or minimizes the app at the history
+root. Armory equipment and loadouts are independent
 owner-scoped records. Hunt creation can select a loadout to prefill factual
 equipment snapshots. Location entry is pin-first: a satellite MapLibre picker
 (`components/map/location-picker-map.tsx`) sets exact lat/lng by tap, Esri

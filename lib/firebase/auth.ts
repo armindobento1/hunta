@@ -1,13 +1,17 @@
 import {
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
   GoogleAuthProvider,
   OAuthProvider,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
   sendPasswordResetEmail,
   signInWithCredential,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
   updateProfile,
+  type User,
   type UserCredential,
 } from "firebase/auth";
 
@@ -24,8 +28,12 @@ const messages: Record<string, string> = {
   "auth/missing-credential":
     "Sign-in was cancelled before it finished. Please try again.",
   "auth/popup-closed-by-user": "Google sign-in was closed before it finished.",
+  "auth/requires-recent-login":
+    "For security, confirm your identity again before deleting your account.",
   "auth/too-many-requests":
     "Too many attempts. Wait a moment before trying again.",
+  "auth/user-mismatch":
+    "That sign-in does not match this account. Use the account you are deleting.",
   "auth/weak-password": "Use a password with at least six characters.",
 };
 
@@ -118,4 +126,72 @@ export function resetPassword(email: string): Promise<void> {
 
 export function signOutCurrentUser(): Promise<void> {
   return signOut(getFirebaseServices().auth);
+}
+
+export function deletionProviderId(user: User): string {
+  return user.providerData[0]?.providerId ?? "";
+}
+
+/**
+ * Firebase rejects `deleteUser` without a recent sign-in, so the user must
+ * confirm their identity with their own provider first. A credential for a
+ * different account fails with `auth/user-mismatch`.
+ */
+export async function reauthenticateForDeletion(password?: string): Promise<void> {
+  const { auth } = getFirebaseServices();
+  const user = auth.currentUser;
+  if (!user) throw { code: "auth/missing-credential" };
+
+  const providerId = deletionProviderId(user);
+
+  if (providerId === "password") {
+    if (!user.email || !password) throw { code: "auth/missing-credential" };
+    await reauthenticateWithCredential(
+      user,
+      EmailAuthProvider.credential(user.email, password),
+    );
+    return;
+  }
+
+  if (providerId === "google.com") {
+    if (isNativePlatform()) {
+      const { FirebaseAuthentication } = await import(
+        "@capacitor-firebase/authentication"
+      );
+      const result = await FirebaseAuthentication.signInWithGoogle();
+      const idToken = result.credential?.idToken;
+      if (!idToken) throw { code: "auth/missing-credential" };
+      await reauthenticateWithCredential(
+        user,
+        GoogleAuthProvider.credential(idToken, result.credential?.accessToken),
+      );
+      return;
+    }
+    await reauthenticateWithPopup(user, new GoogleAuthProvider());
+    return;
+  }
+
+  if (providerId === "apple.com") {
+    const provider = new OAuthProvider("apple.com");
+    if (isNativePlatform()) {
+      const { FirebaseAuthentication } = await import(
+        "@capacitor-firebase/authentication"
+      );
+      const result = await FirebaseAuthentication.signInWithApple();
+      const idToken = result.credential?.idToken;
+      if (!idToken) throw { code: "auth/missing-credential" };
+      await reauthenticateWithCredential(
+        user,
+        provider.credential({
+          idToken,
+          rawNonce: result.credential?.nonce,
+        }),
+      );
+      return;
+    }
+    await reauthenticateWithPopup(user, provider);
+    return;
+  }
+
+  throw { code: "auth/missing-credential" };
 }

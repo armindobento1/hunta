@@ -3,6 +3,10 @@ import { screen } from "@testing-library/react";
 import { HomePage } from "@/src/pages/home-page";
 import { renderWithRouter } from "@/tests/helpers/render-router";
 
+vi.mock("@/lib/hooks/use-auth", () => ({
+  useAuth: () => ({ user: null, loading: false, error: null }),
+}));
+
 describe("HomePage", () => {
   it("introduces the private hunting portfolio", () => {
     renderWithRouter(<HomePage />);

@@ -52,7 +52,7 @@ describe("authentication navigation", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByText("/portfolio")).toBeInTheDocument(),
+      expect(screen.getByText("/home")).toBeInTheDocument(),
     );
   });
 });

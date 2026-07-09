@@ -246,7 +246,9 @@ service cloud.firestore {
         validProfile(request.resource.data, userId) &&
         request.resource.data.id == resource.data.id &&
         request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if false;
+      // Owner-only delete exists solely for account deletion. In-app removal
+      // of records goes through the trash status, not document deletion.
+      allow delete: if owns(userId);
 
       match /kills/{killId} {
         allow read: if owns(userId);
@@ -257,7 +259,8 @@ service cloud.firestore {
           request.resource.data.id == resource.data.id &&
           request.resource.data.ownerId == resource.data.ownerId &&
           request.resource.data.createdAt == resource.data.createdAt;
-        allow delete: if false;
+        // Owner-only delete exists solely for account deletion (see above).
+        allow delete: if owns(userId);
       }
 
       match /armoryItems/{itemId} {
@@ -309,8 +312,12 @@ service cloud.firestore {
 
     match /publicFollowers/{followedId}/followers/{followerId} {
       allow read: if true;
-      allow create, update, delete: if signedIn() && request.auth.uid == followerId &&
-        (request.method == 'delete' || validFollow(request.resource.data, followerId, followedId));
+      allow create, update: if signedIn() && request.auth.uid == followerId &&
+        validFollow(request.resource.data, followerId, followedId);
+      // The follower removes their own edge; the followed account may also
+      // clear its own followers list (account deletion).
+      allow delete: if signedIn() &&
+        (request.auth.uid == followerId || request.auth.uid == followedId);
     }
   }
 }
