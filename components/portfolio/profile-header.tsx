@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+import { FollowStats } from "@/components/portfolio/follow-stats";
 import type { Profile } from "@/lib/domain/profile";
 import type { PortfolioStats } from "@/lib/domain/selectors";
 
@@ -70,6 +71,7 @@ export function ProfileHeader({
           <dt className="ios-stat-label">Walked</dt>
         </div>
       </dl>
+      <FollowStats uid={profile.id} />
       <div className="ios-seg" aria-label="Portfolio view">
         {(["feed", "location", "armory"] as const).map((tab) => (
           <button

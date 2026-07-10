@@ -59,7 +59,7 @@ export async function deleteAccountData(uid: string): Promise<void> {
   ]);
   await deleteDoc(doc(db, "publicProfiles", uid));
 
-  for (const name of ["kills", "armoryItems", "loadouts"]) {
+  for (const name of ["kills", "armoryItems", "loadouts", "notifications"]) {
     const snapshot = await getDocs(collection(db, "users", uid, name));
     await deleteReferences(snapshot.docs.map((entry) => entry.ref));
   }
