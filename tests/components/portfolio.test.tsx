@@ -81,8 +81,8 @@ describe("PortfolioDashboard", () => {
 
     await user.click(screen.getByRole("button", { name: "Armory" }));
 
-    expect(screen.getByRole("heading", { name: /your armory/i })).toBeInTheDocument();
-    expect(screen.getByText(/no equipment saved yet/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /your armory is empty/i })).toBeInTheDocument();
+    expect(screen.getByText(/add a weapon first/i)).toBeInTheDocument();
     expect(screen.queryByText(/sako s20/i)).not.toBeInTheDocument();
   });
 

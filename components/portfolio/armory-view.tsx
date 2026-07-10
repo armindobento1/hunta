@@ -1,85 +1,175 @@
-import { Crosshair, Plus, Shield, Trash2 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
+import { AddGearSheet } from "@/components/armory/add-gear-sheet";
+import { armoryItemSpec } from "@/components/armory/item-spec";
 import { resolveLoadout, type ArmoryItem, type Loadout } from "@/lib/domain/armory";
-import { deleteArmoryItem, deleteLoadout, saveArmoryItem, saveLoadout, setDefaultLoadout } from "@/lib/firebase/armory-repository";
+import { deleteArmoryItem, deleteLoadout, setDefaultLoadout } from "@/lib/firebase/armory-repository";
 import { useArmory } from "@/lib/hooks/use-armory";
 import { useAuth } from "@/lib/hooks/use-auth";
 
-const id = (prefix: string) => globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}`;
-const SLOT_KINDS = ["optic", "suppressor", "bipod", "sling", "ammunition"] as const;
+const FILTERS: { id: "all" | ArmoryItem["kind"]; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "weapon", label: "Weapons" },
+  { id: "optic", label: "Optics" },
+  { id: "suppressor", label: "Suppressors" },
+  { id: "ammunition", label: "Ammo" },
+  { id: "arrow", label: "Arrows" },
+  { id: "broadhead", label: "Broadheads" },
+  { id: "bipod", label: "Bipods" },
+  { id: "sling", label: "Slings" },
+];
 
 export function ArmoryView() {
   const { user } = useAuth();
   const { items, loadouts, loading, error } = useArmory();
-  const [itemForm, setItemForm] = useState(false);
-  const [loadoutForm, setLoadoutForm] = useState(false);
+  const navigate = useNavigate();
+  const [filter, setFilter] = useState<"all" | ArmoryItem["kind"]>("all");
+  const [gearSheet, setGearSheet] = useState<{ kind?: ArmoryItem["kind"] } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  if (loading) return <section className="armory-view"><p>Loading your armory…</p></section>;
+  if (loading) return <section className="arm-view"><p>Loading your armory…</p></section>;
+  const visible = filter === "all" ? items : items.filter((item) => item.kind === filter);
+  const hasWeapon = items.some((item) => item.kind === "weapon");
 
   return (
-    <section className="armory-view" aria-labelledby="armory-heading">
-      <div className="section-title-row">
-        <div><p className="mono-label">PRIVATE EQUIPMENT LIBRARY</p><h2 id="armory-heading">Your armory</h2></div>
-        <span className="gear-count">{items.length} items</span>
+    <section className="arm-view" aria-labelledby="armory-heading">
+      <div className="arm-head">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p className="arm-eyebrow">PRIVATE EQUIPMENT LIBRARY</p>
+          <h2 className="arm-title" id="armory-heading">Armory</h2>
+        </div>
+        {items.length > 0 ? (
+          <button type="button" className="arm-pill" onClick={() => setGearSheet({})}>
+            <span className="arm-plus" aria-hidden="true" /> Add gear
+          </button>
+        ) : null}
       </div>
-      <div className="armory-actions">
-        <button type="button" onClick={() => setItemForm((value) => !value)}><Plus /> Add equipment</button>
-        <button type="button" disabled={!items.some((item) => item.kind === "weapon")} onClick={() => setLoadoutForm((value) => !value)}><Crosshair /> New loadout</button>
-      </div>
-      {itemForm && user ? <ItemForm uid={user.uid} onDone={() => setItemForm(false)} /> : null}
-      {loadoutForm && user ? <LoadoutForm uid={user.uid} items={items} onDone={() => setLoadoutForm(false)} /> : null}
       {error ? <p className="field-error" role="alert">{error}</p> : null}
       {message ? <p role="status">{message}</p> : null}
 
       {items.length === 0 ? (
-        <div className="armory-empty"><span className="armory-empty-icon"><Shield /></span><h3>No equipment saved yet</h3><p>Add a weapon first, then add attachments and build reusable loadouts.</p></div>
+        <>
+          <div className="arm-empty">
+            <span className="arm-empty-reticle" aria-hidden="true"><span /><span /><span /><span /></span>
+            <h2>Your armory is empty</h2>
+            <p>Add a weapon first — optics, suppressors, ammunition and other attachments build on it.</p>
+            <button type="button" className="arm-pill" style={{ marginTop: 12 }} onClick={() => setGearSheet({ kind: "weapon" })}>Add a weapon</button>
+            <span className="arm-empty-kinds">RIFLE · BOW</span>
+          </div>
+          <div className="arm-steps">
+            <div className="arm-step arm-step-live"><span className="arm-step-n">1</span>Add your weapons</div>
+            <div className="arm-step"><span className="arm-step-n">2</span>Add attachments &amp; ammunition</div>
+            <div className="arm-step"><span className="arm-step-n">3</span>Build loadouts &amp; attach them to hunts</div>
+          </div>
+        </>
       ) : (
-        <div className="gear-grid">
-          {items.map((item) => <article className="gear-card" key={item.id}>
-            <span className="gear-card-img"><Crosshair /></span>
-            <span className="gear-card-body"><strong className="gear-card-name">{item.name}</strong><span className="gear-card-spec">{item.kind}{item.kind === "weapon" ? ` · ${item.weapon.type === "rifle" ? item.weapon.caliber : item.weapon.bowType}` : item.detail ? ` · ${item.detail}` : ""}</span></span>
-            <button className="gear-delete" aria-label={`Delete ${item.name}`} onClick={async () => { if (!user || !confirm(`Delete ${item.name}?`)) return; try { await deleteArmoryItem(user.uid, item.id); } catch (cause) { setMessage(cause instanceof Error ? cause.message : "Could not delete equipment."); } }}><Trash2 /></button>
-          </article>)}
-        </div>
-      )}
+        <>
+          <div className="arm-chips" aria-label="Filter equipment">
+            {FILTERS.map((entry) => (
+              <button key={entry.id} type="button" className={`arm-chip${filter === entry.id ? " arm-chip-active" : ""}`} aria-pressed={filter === entry.id} onClick={() => setFilter(entry.id)}>
+                {entry.label}
+              </button>
+            ))}
+          </div>
+          <div className="arm-meta-row">
+            <span className="arm-meta">{items.length} items · {loadouts.length} loadouts</span>
+          </div>
+          <div className="arm-grid">
+            {visible.map((item) => (
+              <article className="arm-card" key={item.id}>
+                <span className={`arm-tag${item.kind === "weapon" ? " arm-tag-weapon" : ""}`}>{item.kind === "weapon" ? item.weapon.type : item.kind}</span>
+                <div>
+                  <div className="arm-card-name">{item.name}</div>
+                  {armoryItemSpec(item) ? <div className="arm-card-spec">{armoryItemSpec(item)}</div> : null}
+                </div>
+                <button
+                  className="arm-card-x"
+                  aria-label={`Delete ${item.name}`}
+                  onClick={async () => {
+                    if (!user || !confirm(`Delete ${item.name}?`)) return;
+                    try {
+                      await deleteArmoryItem(user.uid, item.id);
+                    } catch (cause) {
+                      setMessage(cause instanceof Error ? cause.message : "Could not delete equipment.");
+                    }
+                  }}
+                >
+                  ✕
+                </button>
+              </article>
+            ))}
+            <button type="button" className="arm-add-tile" onClick={() => setGearSheet({})}>
+              <span className="arm-plus" aria-hidden="true" />Add gear
+            </button>
+          </div>
 
-      <div className="loadouts-section"><p className="mono-label">LOADOUTS</p>
-        {loadouts.length === 0 ? <div className="loadout-empty"><span>No loadouts yet.</span><strong>Select a weapon, then fill attachment slots.</strong></div> :
-          <div className="loadouts-list">{loadouts.map((loadout) => <LoadoutCard key={loadout.id} loadout={loadout} items={items} onDefault={() => user && setDefaultLoadout(user.uid, loadout.id)} onDelete={() => user && confirm(`Delete ${loadout.name}?`) && deleteLoadout(user.uid, loadout.id)} />)}</div>}
-      </div>
+          <div className="arm-meta-row" style={{ marginTop: 26 }}>
+            <span className="arm-meta">Loadouts</span>
+            <button type="button" className="arm-pill" disabled={!hasWeapon} onClick={() => navigate("/portfolio/loadouts/new")}>
+              <span className="arm-plus" aria-hidden="true" /> New
+            </button>
+          </div>
+          {loadouts.length === 0 ? (
+            <p className="sheet-sub">No loadouts yet — pick a weapon, then fill its attachment slots on the schematic.</p>
+          ) : (
+            <div className="arm-lo-list">
+              {loadouts.map((loadout) => (
+                <LoadoutCard
+                  key={loadout.id}
+                  loadout={loadout}
+                  items={items}
+                  onEdit={() => navigate(`/portfolio/loadouts/${loadout.id}`)}
+                  onDefault={() => { if (user) void setDefaultLoadout(user.uid, loadout.id); }}
+                  onDelete={() => { if (user && confirm(`Delete ${loadout.name}?`)) void deleteLoadout(user.uid, loadout.id); }}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+      {gearSheet && user ? (
+        <AddGearSheet uid={user.uid} initialKind={gearSheet.kind} onClose={() => setGearSheet(null)} onSaved={() => setGearSheet(null)} />
+      ) : null}
     </section>
   );
 }
 
-function ItemForm({ uid, onDone }: { uid: string; onDone(): void }) {
-  const [kind, setKind] = useState<ArmoryItem["kind"]>("weapon");
-  const [name, setName] = useState(""); const [detail, setDetail] = useState("");
-  const [weaponType, setWeaponType] = useState<"rifle" | "bow">("rifle"); const [spec, setSpec] = useState("");
-  async function submit(event: FormEvent) {
-    event.preventDefault(); const now = new Date().toISOString(); const common = { id: id("item"), ownerId: uid, name: name.trim(), createdAt: now, updatedAt: now };
-    const item: ArmoryItem = kind === "weapon" ? { ...common, kind, weapon: weaponType === "rifle" ? { type: "rifle", model: name.trim(), caliber: spec.trim() } : { type: "bow", model: name.trim(), bowType: spec.trim() } } : kind === "ammunition" ? { ...common, kind, grain: Number(spec), ...(detail.trim() ? { detail: detail.trim() } : {}) } : { ...common, kind, ...(detail.trim() ? { detail: detail.trim() } : {}) };
-    await saveArmoryItem(item); onDone();
+function LoadoutCard({ loadout, items, onEdit, onDefault, onDelete }: {
+  loadout: Loadout;
+  items: ArmoryItem[];
+  onEdit(): void;
+  onDefault(): void;
+  onDelete(): void;
+}) {
+  let chips: string[] = [];
+  let weaponLine = "Incomplete";
+  try {
+    const resolved = resolveLoadout(loadout, items);
+    weaponLine = `${resolved.weapon.model} · ${resolved.weapon.type === "rifle" ? resolved.weapon.caliber : resolved.weapon.bowType}`;
+    chips = [
+      ...Object.values(resolved.attachments).map((attachment) => attachment.name),
+      ...(resolved.ammunition ? [`${resolved.ammunition.brand ?? "Ammo"} · ${resolved.ammunition.grain}gr`] : []),
+    ];
+  } catch {
+    // Missing referenced items: show the card without resolved facts.
   }
-  return <form className="armory-form" onSubmit={submit}>
-    <label>Equipment type<select value={kind} onChange={(event) => setKind(event.target.value as ArmoryItem["kind"])}>{["weapon", ...SLOT_KINDS].map((value) => <option key={value}>{value}</option>)}</select></label>
-    {kind === "weapon" ? <label>Weapon type<select value={weaponType} onChange={(event) => setWeaponType(event.target.value as "rifle" | "bow")}><option value="rifle">Rifle</option><option value="bow">Bow</option></select></label> : null}
-    <label>Name / model<input required value={name} onChange={(event) => setName(event.target.value)} /></label>
-    {(kind === "weapon" || kind === "ammunition") ? <label>{kind === "weapon" ? (weaponType === "rifle" ? "Caliber" : "Bow type") : "Grain"}<input required type={kind === "ammunition" ? "number" : "text"} value={spec} onChange={(event) => setSpec(event.target.value)} /></label> : null}
-    {kind !== "weapon" ? <label>Detail<input value={detail} onChange={(event) => setDetail(event.target.value)} /></label> : null}
-    <button type="submit">Save equipment</button>
-  </form>;
-}
-
-function LoadoutForm({ uid, items, onDone }: { uid: string; items: ArmoryItem[]; onDone(): void }) {
-  const [name, setName] = useState(""); const [weaponId, setWeaponId] = useState(items.find((item) => item.kind === "weapon")?.id ?? "");
-  const [slots, setSlots] = useState<Loadout["slots"]>({});
-  async function submit(event: FormEvent) { event.preventDefault(); const now = new Date().toISOString(); await saveLoadout({ id: id("loadout"), ownerId: uid, name: name.trim(), weaponId, slots, isDefault: false, createdAt: now, updatedAt: now }); onDone(); }
-  return <form className="loadout-builder" onSubmit={submit}><p className="mono-label">WEAPON-FIRST SLOT BUILDER</p><label>Loadout name<input required value={name} onChange={(event) => setName(event.target.value)} /></label><label>Weapon<select required value={weaponId} onChange={(event) => setWeaponId(event.target.value)}>{items.filter((item) => item.kind === "weapon").map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><div className="loadout-slot-grid">{SLOT_KINDS.map((kind) => <label key={kind}>{kind}<select value={slots[`${kind}Id`] ?? ""} onChange={(event) => setSlots((current) => ({ ...current, [`${kind}Id`]: event.target.value || undefined }))}><option value="">+ Select</option>{items.filter((item) => item.kind === kind).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>)}</div><button type="submit">Save loadout</button></form>;
-}
-
-function LoadoutCard({ loadout, items, onDefault, onDelete }: { loadout: Loadout; items: ArmoryItem[]; onDefault(): void; onDelete(): void }) {
-  let resolved; try { resolved = resolveLoadout(loadout, items); } catch { return <article className="loadout-card"><div className="loadout-head"><strong>{loadout.name}</strong><span>Incomplete</span></div></article>; }
-  return <article className="loadout-card"><div className="loadout-head"><div><strong className="loadout-name">{loadout.name}</strong><span className="loadout-use">{resolved.weapon.model}</span></div>{loadout.isDefault ? <span className="default-badge">DEFAULT</span> : null}</div><div className="loadout-rows">{Object.entries(resolved.attachments).map(([kind, value]) => <div className="loadout-row" key={kind}><span>{kind}</span><strong>{value.name}</strong></div>)}{resolved.ammunition ? <div className="loadout-row"><span>ammo</span><strong>{resolved.ammunition.brand} · {resolved.ammunition.grain}gr</strong></div> : null}</div><div className="loadout-actions"><button onClick={onDefault}>{loadout.isDefault ? "Default" : "Set default"}</button><button onClick={onDelete}>Delete</button></div></article>;
+  return (
+    <article className={`arm-lo-card${loadout.isDefault ? " arm-lo-card-default" : ""}`}>
+      <div className="arm-lo-head">
+        <span className="arm-lo-initial">{loadout.name.charAt(0).toUpperCase() || "L"}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="arm-lo-name">{loadout.name}</div>
+          <div className="arm-lo-weapon">{weaponLine}</div>
+        </div>
+        {loadout.isDefault ? <span className="arm-default-badge">DEFAULT</span> : null}
+      </div>
+      {chips.length > 0 ? <div className="arm-lo-chips">{chips.map((chip) => <span className="arm-lo-chip" key={chip}>{chip}</span>)}</div> : null}
+      <div className="arm-lo-actions">
+        <button type="button" className="arm-lo-edit" onClick={onEdit}>Edit</button>
+        <button type="button" className="arm-lo-default" disabled={loadout.isDefault} onClick={onDefault}>{loadout.isDefault ? "Default ✓" : "Set default"}</button>
+        <button type="button" className="arm-lo-delete" aria-label={`Delete ${loadout.name}`} onClick={onDelete}>✕</button>
+      </div>
+    </article>
+  );
 }
