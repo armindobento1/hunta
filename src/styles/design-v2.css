@@ -484,3 +484,30 @@
 .loadout-name { font-family: var(--font-display); font-size: 1.05rem; }
 .lb-rank { font-family: var(--font-numeral); font-size: 1.05rem; }
 .public-profile-header h1, .public-hunt h1 { font-family: var(--font-display); }
+
+/* Instagram-style public profile */
+.ig-profile { max-width: 640px; margin: 0 auto; }
+.ig-head { display: flex; align-items: center; gap: 1.25rem; }
+.ig-stats { display: flex; flex: 1; justify-content: space-around; text-align: center; }
+.ig-stats > div, .ig-stats > button { background: none; border: 0; padding: 0; color: inherit; font: inherit; display: grid; gap: 0.15rem; cursor: pointer; }
+.ig-stats strong { font-family: var(--font-numeral); font-size: 1.2rem; line-height: 1; }
+.ig-stats span { font-size: 0.72rem; letter-spacing: 0.04em; opacity: 0.7; }
+.ig-identity { margin-top: 0.9rem; }
+.ig-identity h1 { font-family: var(--font-display); font-size: 1.15rem; margin: 0; }
+.ig-identity p { margin: 0.3rem 0 0; font-size: 0.9rem; opacity: 0.85; }
+.ig-follow-btn { margin-top: 0.85rem; width: 100%; padding: 0.55rem; border-radius: 10px; border: 0; background: var(--accent); color: #14100b; font-weight: 600; font-size: 0.95rem; }
+.ig-follow-btn.ig-following { background: var(--accent-tint-bg); color: inherit; border: 1px solid rgba(255, 255, 255, 0.14); }
+.ig-grid { margin-top: 1.15rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; border-radius: 12px; overflow: hidden; }
+.ig-tile { position: relative; aspect-ratio: 1; display: block; background: var(--accent-tint-bg); background-size: cover; background-position: center; }
+.ig-tile-label { position: absolute; left: 0.45rem; bottom: 0.4rem; font-size: 0.65rem; letter-spacing: 0.03em; color: #f0eae0; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85); }
+.ig-empty { grid-column: 1 / -1; opacity: 0.7; padding: 1.5rem 0; text-align: center; }
+.follow-people { list-style: none; margin: 0.85rem 0 0; padding: 0.65rem 0.85rem; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 12px; display: grid; gap: 0.45rem; }
+.follow-people a { color: inherit; text-decoration: none; }
+.follow-stats-row { display: flex; gap: 1rem; margin-top: 0.6rem; }
+.follow-stats-row button { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; opacity: 0.9; }
+.follow-stats-row strong { font-family: var(--font-numeral); margin-right: 0.25rem; }
+
+/* Top-bar notification bell */
+.top-bar-actions { display: flex; align-items: center; gap: 0.35rem; }
+.top-bar-bell { position: relative; }
+.notif-badge { position: absolute; top: 0.1rem; right: 0.1rem; min-width: 14px; height: 14px; padding: 0 3px; border-radius: 7px; background: var(--accent); color: #14110c; font-size: 9px; font-weight: 700; line-height: 14px; text-align: center; }

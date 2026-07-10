@@ -8,8 +8,10 @@ import { HomeFeedPage } from "@/src/pages/home-feed-page";
 import { HomePage } from "@/src/pages/home-page";
 import { KillDetailPage } from "@/src/pages/kill-detail-page";
 import { LeaderboardPage } from "@/src/pages/leaderboard-page";
+import { LoadoutBuilderPage } from "@/src/pages/loadout-builder-page";
 import { NewKillPage } from "@/src/pages/new-kill-page";
 import { NotFoundPage } from "@/src/pages/not-found-page";
+import { NotificationsPage } from "@/src/pages/notifications-page";
 import { PortfolioPage } from "@/src/pages/portfolio-page";
 import { PortfolioMapPage } from "@/src/pages/portfolio-map-page";
 import { ProfilePage } from "@/src/pages/profile-page";
@@ -42,6 +44,7 @@ export const APP_ROUTES: RouteObject[] = [
     children: [
       { id: "home-feed", path: "/home", element: <HomeFeedPage /> },
       { id: "discover", path: "/discover", element: <DiscoverPage /> },
+      { id: "notifications", path: "/notifications", element: <NotificationsPage /> },
       { id: "portfolio", path: "/portfolio", element: <PortfolioPage /> },
       {
         id: "leaderboard",
@@ -52,6 +55,16 @@ export const APP_ROUTES: RouteObject[] = [
         id: "portfolio-map",
         path: "/portfolio/map",
         element: <PortfolioMapPage />,
+      },
+      {
+        id: "loadout-new",
+        path: "/portfolio/loadouts/new",
+        element: <LoadoutBuilderPage />,
+      },
+      {
+        id: "loadout-edit",
+        path: "/portfolio/loadouts/:loadoutId",
+        element: <LoadoutBuilderPage />,
       },
       {
         id: "kill-new",

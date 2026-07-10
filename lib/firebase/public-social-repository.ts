@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, endAt, getDoc, getDocs, limit, onSnapshot, orderBy, query, setDoc, startAt, Timestamp, where, type Unsubscribe } from "firebase/firestore";
+import { collection, deleteDoc, doc, endAt, getDoc, getDocs, limit, onSnapshot, orderBy, query, setDoc, startAt, Timestamp, where, writeBatch, type Unsubscribe } from "firebase/firestore";
 
 import { publicHuntSchema, publicProfileSchema, type PublicHunt, type PublicProfile } from "@/lib/domain/public-social";
 import { getFirebaseServices } from "./config";
@@ -21,7 +21,17 @@ export async function publishHunt(hunt: PublicHunt) {
 }
 
 export async function unpublishHunt(ownerId: string, killId: string) {
-  await deleteDoc(doc(hunts(), `${ownerId}_${killId}`));
+  const huntId = `${ownerId}_${killId}`;
+  // Clear likes and comments while the hunt still exists (the owner-moderation
+  // rules need the parent document) so nothing resurfaces on a re-publish.
+  const [likeDocs, commentDocs] = await Promise.all([
+    getDocs(collection(db(), "publicHunts", huntId, "likes")),
+    getDocs(collection(db(), "publicHunts", huntId, "comments")),
+  ]);
+  const batch = writeBatch(db());
+  for (const entry of [...likeDocs.docs, ...commentDocs.docs]) batch.delete(entry.ref);
+  await batch.commit();
+  await deleteDoc(doc(hunts(), huntId));
 }
 
 export async function searchPublicProfiles(searchName: string): Promise<PublicProfile[]> {

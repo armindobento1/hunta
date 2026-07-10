@@ -7,12 +7,14 @@ const base = {
   createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
 };
 const detail = z.string().trim().max(160).optional();
-const simpleItem = (kind: "optic" | "suppressor" | "bipod" | "sling") => z.object({ ...base, kind: z.literal(kind), detail }).strict();
+const grain = z.number().positive().max(2000);
+const simpleItem = (kind: "optic" | "suppressor" | "bipod" | "sling" | "arrow") => z.object({ ...base, kind: z.literal(kind), detail }).strict();
+const grainItem = (kind: "ammunition" | "broadhead") => z.object({ ...base, kind: z.literal(kind), grain, detail }).strict();
 
 export const armoryItemSchema = z.discriminatedUnion("kind", [
   z.object({ ...base, kind: z.literal("weapon"), weapon: weaponSchema }).strict(),
-  simpleItem("optic"), simpleItem("suppressor"), simpleItem("bipod"), simpleItem("sling"),
-  z.object({ ...base, kind: z.literal("ammunition"), grain: z.number().positive().max(2000), detail }).strict(),
+  simpleItem("optic"), simpleItem("suppressor"), simpleItem("bipod"), simpleItem("sling"), simpleItem("arrow"),
+  grainItem("ammunition"), grainItem("broadhead"),
 ]);
 export const loadoutSchema = z.object({
   ...base,
@@ -20,19 +22,47 @@ export const loadoutSchema = z.object({
   slots: z.object({
     opticId: z.string().min(1).optional(), suppressorId: z.string().min(1).optional(),
     bipodId: z.string().min(1).optional(), slingId: z.string().min(1).optional(),
-    ammunitionId: z.string().min(1).optional(),
+    ammunitionId: z.string().min(1).optional(), arrowId: z.string().min(1).optional(),
+    broadheadId: z.string().min(1).optional(),
   }).strict(),
   isDefault: z.boolean(),
 }).strict();
 
 export type ArmoryItem = z.infer<typeof armoryItemSchema>;
 export type Loadout = z.infer<typeof loadoutSchema>;
-export type AttachmentSnapshot = { name: string; detail?: string };
+export type LoadoutSlotKey = keyof Loadout["slots"];
+export type AttachmentKind = "optic" | "suppressor" | "bipod" | "sling" | "arrow" | "broadhead";
+export type AttachmentSnapshot = { name: string; grain?: number; detail?: string };
 export type ResolvedLoadout = {
   weapon: Weapon;
   ammunition?: Ammunition;
-  attachments: Partial<Record<"optic" | "suppressor" | "bipod" | "sling", AttachmentSnapshot>>;
+  attachments: Partial<Record<AttachmentKind, AttachmentSnapshot>>;
 };
+
+// Schematic slots drive the loadout builder: each slot carries the only armory
+// item kind it accepts plus a plus-button anchor (percentage coordinates on
+// the weapon illustration). Slots absent from a weapon's schematic are invalid
+// for that weapon type.
+export type SchematicSlot = {
+  slot: LoadoutSlotKey; kind: AttachmentKind | "ammunition"; label: string;
+  anchor: { x: number; y: number };
+};
+export const rifleSchematic: readonly SchematicSlot[] = [
+  { slot: "opticId", kind: "optic", label: "Optic", anchor: { x: 44, y: 18 } },
+  { slot: "suppressorId", kind: "suppressor", label: "Muzzle", anchor: { x: 93, y: 42 } },
+  { slot: "ammunitionId", kind: "ammunition", label: "Ammunition", anchor: { x: 36, y: 58 } },
+  { slot: "bipodId", kind: "bipod", label: "Bipod", anchor: { x: 70, y: 82 } },
+  { slot: "slingId", kind: "sling", label: "Sling", anchor: { x: 16, y: 72 } },
+];
+export const bowSchematic: readonly SchematicSlot[] = [
+  { slot: "opticId", kind: "optic", label: "Sight", anchor: { x: 42, y: 38 } },
+  { slot: "arrowId", kind: "arrow", label: "Arrow", anchor: { x: 62, y: 50 } },
+  { slot: "broadheadId", kind: "broadhead", label: "Broadhead", anchor: { x: 88, y: 50 } },
+  { slot: "slingId", kind: "sling", label: "Sling", anchor: { x: 30, y: 80 } },
+];
+export function getLoadoutSchematic(weaponType: Weapon["type"]): readonly SchematicSlot[] {
+  return weaponType === "rifle" ? rifleSchematic : bowSchematic;
+}
 
 export function resolveLoadout(input: Loadout, inputItems: ArmoryItem[]): ResolvedLoadout {
   const loadout = loadoutSchema.parse(input);
@@ -42,22 +72,31 @@ export function resolveLoadout(input: Loadout, inputItems: ArmoryItem[]): Resolv
     if (!item || item.kind !== kind) throw new Error(`Loadout ${kind} slot is incomplete.`);
     return item;
   };
-  const weapon = get(loadout.weaponId, "weapon");
-  if (weapon.kind !== "weapon") throw new Error("Loadout weapon is incomplete.");
-  const attachments: ResolvedLoadout["attachments"] = {};
-  for (const kind of ["optic", "suppressor", "bipod", "sling"] as const) {
-    const id = loadout.slots[`${kind}Id`];
-    if (id) {
-      const item = get(id, kind);
-      if (item.kind !== kind) throw new Error(`Loadout ${kind} slot is incomplete.`);
-      attachments[kind] = { name: item.name, ...(item.detail ? { detail: item.detail } : {}) };
+  const weaponItem = get(loadout.weaponId, "weapon");
+  if (weaponItem.kind !== "weapon") throw new Error("Loadout weapon is incomplete.");
+  const schematic = getLoadoutSchematic(weaponItem.weapon.type);
+  const allowedSlots = new Set(schematic.map((entry) => entry.slot));
+  for (const key of Object.keys(loadout.slots) as LoadoutSlotKey[]) {
+    if (loadout.slots[key] && !allowedSlots.has(key)) {
+      throw new Error(`A ${weaponItem.weapon.type} loadout cannot fill the ${key.replace(/Id$/, "")} slot.`);
     }
   }
-  const ammoId = loadout.slots.ammunitionId;
-  const ammo = ammoId ? get(ammoId, "ammunition") : undefined;
-  return {
-    weapon: weapon.weapon,
-    ...(ammo?.kind === "ammunition" ? { ammunition: { grain: ammo.grain, brand: ammo.name, ...(ammo.detail ? { detail: ammo.detail } : {}) } } : {}),
-    attachments,
-  };
+  let ammunition: Ammunition | undefined;
+  const attachments: ResolvedLoadout["attachments"] = {};
+  for (const entry of schematic) {
+    const id = loadout.slots[entry.slot];
+    if (!id) continue;
+    const item = get(id, entry.kind);
+    if (item.kind === "weapon") throw new Error(`Loadout ${entry.kind} slot is incomplete.`);
+    if (item.kind === "ammunition") {
+      ammunition = { grain: item.grain, brand: item.name, ...(item.detail ? { detail: item.detail } : {}) };
+      continue;
+    }
+    attachments[item.kind] = {
+      name: item.name,
+      ...(item.kind === "broadhead" ? { grain: item.grain } : {}),
+      ...(item.detail ? { detail: item.detail } : {}),
+    };
+  }
+  return { weapon: weaponItem.weapon, ...(ammunition ? { ammunition } : {}), attachments };
 }

@@ -2,6 +2,7 @@
 
 import { Grid2X2, List } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import type { Kill } from "@/lib/domain/kill";
 import type { Profile } from "@/lib/domain/profile";
@@ -24,7 +25,10 @@ export function PortfolioDashboard({
   profile: Profile;
   kills: Kill[];
 }) {
-  const [tab, setTab] = useState<PortfolioTab>("feed");
+  const location = useLocation();
+  const [tab, setTab] = useState<PortfolioTab>(
+    (location.state as { tab?: PortfolioTab } | null)?.tab ?? "feed",
+  );
   const [display, setDisplay] = useState<"list" | "grid">("list");
   const activeKills = sortActiveKills(kills);
 

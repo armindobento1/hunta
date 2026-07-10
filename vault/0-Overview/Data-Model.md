@@ -71,9 +71,25 @@ Views over the same Kill set:
 
 ### ArmoryItem and Loadout
 
-- Equipment is stored independently at `users/{uid}/armoryItems/{itemId}` as a weapon, optic, suppressor, bipod, sling, or ammunition item.
+- Equipment is stored independently at `users/{uid}/armoryItems/{itemId}` as a weapon, optic, suppressor, bipod, sling, arrow, broadhead, or ammunition item. Ammunition and broadheads carry a required `grain` fact.
 - Reusable setups live at `users/{uid}/loadouts/{loadoutId}` and reference one weapon plus optional typed attachment slots.
+- Slots are weapon-type-aware via the schematic definitions in `lib/domain/armory.ts` (`getLoadoutSchematic`): rifle → optic, suppressor, ammunition, bipod, sling; bow → sight (optic), arrow, broadhead, sling. Each schematic slot carries a percentage anchor for the loadout-builder illustration; `resolveLoadout` rejects slots outside the weapon's schematic.
 - Selecting a loadout pre-fills a Kill, but the Kill persists factual snapshots; later armory edits never rewrite historical hunt facts.
+
+### Engagement (likes, comments, notifications)
+
+- Likes at `publicHunts/{huntId}/likes/{likerUid}` (doc id = liker → one like per user), comments at `publicHunts/{huntId}/comments/{commentId}`. Both publicly readable like the hunt itself; created only as yourself; comments moderated (deletable) by the hunt owner. Unpublishing clears both subcollections first.
+- Notifications at `users/{recipientUid}/notifications/{id}`, written by the *actor* in the same batch as the follow/like/comment. Rules verify the backing action exists via `existsAfter()` so activity cannot be fabricated. Deterministic ids (`follow_{actor}`, `like_{actor}_{hunt}`, `comment_{commentId}`) let unlike/unfollow retract exactly one notification. Recipient can only mark `readAt`; actor may retract their own.
+- Follower/following counts use aggregation queries (`getCountFromServer`); lists resolve display names from `publicProfiles`. Account deletion also clears the `notifications` subcollection.
+- "Following" is public: derived via a collection-group query over `publicFollowers/*/followers` where `followerId == uid` (rules expose read-only collection-group access to `followers`; `firestore.indexes.json` carries the COLLECTION_GROUP field override). The private `users/{uid}/following` copy remains owner-only.
+- Domain in `lib/domain/engagement.ts`, persistence in `lib/firebase/engagement-repository.ts` + `follow-repository.ts`, hooks in `lib/hooks/use-{engagement,notifications,follow-stats}.ts`.
+
+### Forum (community Q&A)
+
+- `forumQuestions/{questionId}` with answers at `forumQuestions/{questionId}/answers/{answerId}` — the first shared writable collection (not a projection of private records).
+- Readable by any signed-in user; every document is writable only by its author (`authorId` pinned to the caller in rules). Accepting an answer is a question update (`acceptedAnswerId`), so only the question author can do it.
+- `authorName` is a denormalized snapshot taken at post time. `createdAt` is bounded to ≲ request time on create to prevent feed pinning; answers require an existing parent question.
+- Domain logic in `lib/domain/forum.ts`, persistence in `lib/firebase/forum-repository.ts`, subscriptions in `lib/hooks/use-forum.ts`.
 
 ### Public social projections
 
