@@ -72,6 +72,7 @@ export const measurementSchema = z
 
 const attachmentSnapshotSchema = z.object({
   name: trimmed(120),
+  grain: z.number().finite().positive().max(2_000).optional(),
   detail: z.string().trim().max(160).optional(),
 }).strict();
 
@@ -80,6 +81,8 @@ export const equipmentAttachmentsSchema = z.object({
   suppressor: attachmentSnapshotSchema.optional(),
   bipod: attachmentSnapshotSchema.optional(),
   sling: attachmentSnapshotSchema.optional(),
+  arrow: attachmentSnapshotSchema.optional(),
+  broadhead: attachmentSnapshotSchema.optional(),
 }).strict();
 
 export const routeBoundsSchema = z
