@@ -90,16 +90,20 @@ service cloud.firestore {
 
     function validAttachment(value) {
       return value is map && value.keys().hasAll(['name']) &&
-        value.keys().hasOnly(['name', 'detail']) && shortString(value.name, 120) &&
-        optionalString(value, 'detail', 160);
+        value.keys().hasOnly(['name', 'detail', 'grain']) && shortString(value.name, 120) &&
+        optionalString(value, 'detail', 160) &&
+        (!('grain' in value) ||
+          (value.grain is number && value.grain > 0 && value.grain <= 2000));
     }
 
     function validAttachments(value) {
-      return value is map && value.keys().hasOnly(['optic', 'suppressor', 'bipod', 'sling']) &&
+      return value is map && value.keys().hasOnly(['optic', 'suppressor', 'bipod', 'sling', 'arrow', 'broadhead']) &&
         (!('optic' in value) || validAttachment(value.optic)) &&
         (!('suppressor' in value) || validAttachment(value.suppressor)) &&
         (!('bipod' in value) || validAttachment(value.bipod)) &&
-        (!('sling' in value) || validAttachment(value.sling));
+        (!('sling' in value) || validAttachment(value.sling)) &&
+        (!('arrow' in value) || validAttachment(value.arrow)) &&
+        (!('broadhead' in value) || validAttachment(value.broadhead));
     }
 
     function validBounds(bounds) {
@@ -178,11 +182,11 @@ service cloud.firestore {
       return data.keys().hasAll(['id', 'ownerId', 'name', 'kind', 'createdAt', 'updatedAt']) &&
         data.keys().hasOnly(['id', 'ownerId', 'name', 'kind', 'weapon', 'grain', 'detail', 'createdAt', 'updatedAt']) &&
         data.id == itemId && data.ownerId == userId && shortString(data.name, 120) &&
-        data.kind in ['weapon', 'optic', 'suppressor', 'bipod', 'sling', 'ammunition'] &&
+        data.kind in ['weapon', 'optic', 'suppressor', 'bipod', 'sling', 'ammunition', 'arrow', 'broadhead'] &&
         optionalString(data, 'detail', 160) &&
         ((data.kind == 'weapon' && 'weapon' in data && validWeapon(data.weapon)) ||
-          (data.kind == 'ammunition' && 'grain' in data && data.grain is number && data.grain > 0 && data.grain <= 2000) ||
-          data.kind in ['optic', 'suppressor', 'bipod', 'sling']) &&
+          (data.kind in ['ammunition', 'broadhead'] && 'grain' in data && data.grain is number && data.grain > 0 && data.grain <= 2000) ||
+          data.kind in ['optic', 'suppressor', 'bipod', 'sling', 'arrow']) &&
         data.createdAt is timestamp && data.updatedAt is timestamp;
     }
 
@@ -191,10 +195,11 @@ service cloud.firestore {
         data.keys().hasOnly(['id', 'ownerId', 'name', 'weaponId', 'slots', 'isDefault', 'createdAt', 'updatedAt']) &&
         data.id == loadoutId && data.ownerId == userId && shortString(data.name, 120) &&
         shortString(data.weaponId, 128) && data.slots is map &&
-        data.slots.keys().hasOnly(['opticId', 'suppressorId', 'bipodId', 'slingId', 'ammunitionId']) &&
+        data.slots.keys().hasOnly(['opticId', 'suppressorId', 'bipodId', 'slingId', 'ammunitionId', 'arrowId', 'broadheadId']) &&
         optionalString(data.slots, 'opticId', 128) && optionalString(data.slots, 'suppressorId', 128) &&
         optionalString(data.slots, 'bipodId', 128) && optionalString(data.slots, 'slingId', 128) &&
-        optionalString(data.slots, 'ammunitionId', 128) && data.isDefault is bool &&
+        optionalString(data.slots, 'ammunitionId', 128) && optionalString(data.slots, 'arrowId', 128) &&
+        optionalString(data.slots, 'broadheadId', 128) && data.isDefault is bool &&
         data.createdAt is timestamp && data.updatedAt is timestamp;
     }
 
@@ -229,6 +234,63 @@ service cloud.firestore {
         data.latitude is number && data.latitude >= -90 && data.latitude <= 90 &&
         data.longitude is number && data.longitude >= -180 && data.longitude <= 180 &&
         shortString(data.country, 100) && shortString(data.placeName, 160) &&
+        data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validHuntLike(data, publicHuntId, likerId) {
+      return data.keys().hasAll(['huntId', 'likerId', 'likerName', 'createdAt']) &&
+        data.keys().hasOnly(['huntId', 'likerId', 'likerName', 'createdAt']) &&
+        data.huntId == publicHuntId && data.likerId == likerId &&
+        data.likerId == request.auth.uid && shortString(data.likerName, 80) &&
+        data.createdAt is timestamp;
+    }
+
+    function validHuntComment(data, publicHuntId, commentId) {
+      return data.keys().hasAll(['id', 'huntId', 'authorId', 'authorName', 'body', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'huntId', 'authorId', 'authorName', 'body', 'createdAt', 'updatedAt']) &&
+        data.id == commentId && data.huntId == publicHuntId &&
+        data.authorId == request.auth.uid && shortString(data.authorName, 80) &&
+        shortString(data.body, 1000) &&
+        data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    // Notifications are written by the actor into the recipient's inbox, in
+    // the same batch as the triggering action. existsAfter() proves the
+    // backing follow/like/comment really exists, so an actor cannot fabricate
+    // activity that never happened.
+    function validNotification(data, userId, notificationId) {
+      return data.keys().hasAll(['id', 'recipientId', 'actorId', 'actorName', 'type', 'createdAt', 'readAt']) &&
+        data.keys().hasOnly(['id', 'recipientId', 'actorId', 'actorName', 'type', 'huntId', 'huntSpecies', 'commentId', 'preview', 'createdAt', 'readAt']) &&
+        data.id == notificationId && data.recipientId == userId &&
+        data.actorId == request.auth.uid && shortString(data.actorName, 80) &&
+        optionalString(data, 'huntId', 128) && optionalString(data, 'huntSpecies', 120) &&
+        optionalString(data, 'commentId', 128) && optionalString(data, 'preview', 140) &&
+        data.createdAt is timestamp && data.readAt == null &&
+        ((data.type == 'follow' &&
+            existsAfter(/databases/$(database)/documents/publicFollowers/$(userId)/followers/$(request.auth.uid))) ||
+          (data.type == 'like' && 'huntId' in data &&
+            existsAfter(/databases/$(database)/documents/publicHunts/$(data.huntId)/likes/$(request.auth.uid))) ||
+          (data.type == 'comment' && 'huntId' in data && 'commentId' in data &&
+            existsAfter(/databases/$(database)/documents/publicHunts/$(data.huntId)/comments/$(data.commentId))));
+    }
+
+    function validForumQuestion(data, questionId) {
+      return data.keys().hasAll(['id', 'authorId', 'authorName', 'title', 'body', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'authorId', 'authorName', 'title', 'body', 'tags', 'acceptedAnswerId', 'createdAt', 'updatedAt']) &&
+        data.id == questionId && data.authorId == request.auth.uid &&
+        shortString(data.authorName, 80) && shortString(data.title, 160) &&
+        shortString(data.body, 5000) &&
+        (!('tags' in data) || (data.tags is list && data.tags.size() <= 5)) &&
+        optionalString(data, 'acceptedAnswerId', 128) &&
+        data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function validForumAnswer(data, questionId, answerId) {
+      return data.keys().hasAll(['id', 'questionId', 'authorId', 'authorName', 'body', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'questionId', 'authorId', 'authorName', 'body', 'createdAt', 'updatedAt']) &&
+        data.id == answerId && data.questionId == questionId &&
+        data.authorId == request.auth.uid &&
+        shortString(data.authorName, 80) && shortString(data.body, 5000) &&
         data.createdAt is timestamp && data.updatedAt is timestamp;
     }
 
@@ -286,6 +348,22 @@ service cloud.firestore {
         allow create, update, delete: if owns(userId) &&
           (request.method == 'delete' || validFollow(request.resource.data, userId, followedId));
       }
+
+      match /notifications/{notificationId} {
+        allow read: if owns(userId);
+        allow create: if signedIn() && request.auth.uid != userId &&
+          validNotification(request.resource.data, userId, notificationId) &&
+          request.resource.data.createdAt < request.time + duration.value(10, 'm');
+        // The recipient may only mark a notification read.
+        allow update: if owns(userId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt']) &&
+          request.resource.data.readAt is timestamp;
+        // The recipient clears their inbox; the actor retracts the
+        // notification on unlike/unfollow. Deleting a nonexistent document is
+        // a harmless no-op and must not fail those batched retractions.
+        allow delete: if owns(userId) ||
+          (signedIn() && (resource == null || resource.data.actorId == request.auth.uid));
+      }
     }
 
     match /publicProfiles/{userId} {
@@ -298,6 +376,31 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if signedIn() && validPublicHunt(request.resource.data, publicHuntId);
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+
+      match /likes/{likerId} {
+        allow read: if true;
+        allow create: if signedIn() && validHuntLike(request.resource.data, publicHuntId, likerId) &&
+          request.resource.data.createdAt < request.time + duration.value(10, 'm') &&
+          exists(/databases/$(database)/documents/publicHunts/$(publicHuntId));
+        // The liker removes their own like; the hunt owner clears likes when
+        // unpublishing (while the hunt document still exists).
+        allow delete: if signedIn() && (request.auth.uid == likerId ||
+          get(/databases/$(database)/documents/publicHunts/$(publicHuntId)).data.ownerId == request.auth.uid);
+      }
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if signedIn() && validHuntComment(request.resource.data, publicHuntId, commentId) &&
+          request.resource.data.createdAt < request.time + duration.value(10, 'm') &&
+          exists(/databases/$(database)/documents/publicHunts/$(publicHuntId));
+        allow update: if signedIn() && resource.data.authorId == request.auth.uid &&
+          validHuntComment(request.resource.data, publicHuntId, commentId) &&
+          request.resource.data.createdAt == resource.data.createdAt;
+        // The comment author removes their own comment; the hunt owner
+        // moderates comments on their own hunt and clears them on unpublish.
+        allow delete: if signedIn() && (resource.data.authorId == request.auth.uid ||
+          get(/databases/$(database)/documents/publicHunts/$(publicHuntId)).data.ownerId == request.auth.uid);
+      }
     }
 
     match /farms/{farmId} {
@@ -308,6 +411,45 @@ service cloud.firestore {
       allow read: if true;
       allow create: if signedIn() && validFarm(request.resource.data, farmId);
       allow update, delete: if false;
+    }
+
+    // Community Q&A forum. Readable by any signed-in hunter; every document
+    // is writable only by its author (validForum* pins authorId to the
+    // caller). Accepting an answer is a question update, so only the question
+    // author can set acceptedAnswerId.
+    match /forumQuestions/{questionId} {
+      allow read: if signedIn();
+      // The createdAt bound blocks pinning a post to the top of the
+      // newest-first feed with a spoofed future timestamp.
+      allow create: if signedIn() && validForumQuestion(request.resource.data, questionId) &&
+        request.resource.data.createdAt < request.time + duration.value(10, 'm');
+      allow update: if signedIn() && resource.data.authorId == request.auth.uid &&
+        validForumQuestion(request.resource.data, questionId) &&
+        request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if signedIn() && resource.data.authorId == request.auth.uid;
+
+      match /answers/{answerId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && validForumAnswer(request.resource.data, questionId, answerId) &&
+          request.resource.data.createdAt < request.time + duration.value(10, 'm') &&
+          exists(/databases/$(database)/documents/forumQuestions/$(questionId));
+        allow update: if signedIn() && resource.data.authorId == request.auth.uid &&
+          validForumAnswer(request.resource.data, questionId, answerId) &&
+          request.resource.data.createdAt == resource.data.createdAt;
+        // The answer author removes their own answer; the question author may
+        // also clear answers under their question (question deletion cleanup).
+        allow delete: if signedIn() && (resource.data.authorId == request.auth.uid ||
+          get(/databases/$(database)/documents/forumQuestions/$(questionId)).data.authorId == request.auth.uid);
+      }
+    }
+
+    // Collection-group read for follow edges so a profile can list who a
+    // hunter follows (publicFollowers/*/followers where followerId == uid).
+    // Only publicFollowers has a subcollection named `followers`, and its
+    // edges are public by design. Grants read only — writes are governed by
+    // the specific match below.
+    match /{path=**}/followers/{followerId} {
+      allow read: if true;
     }
 
     match /publicFollowers/{followedId}/followers/{followerId} {
