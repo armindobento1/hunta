@@ -9,7 +9,7 @@ export function HomePage() {
       <AuthRedirect />
       <div className="welcome-glow" aria-hidden="true" />
       <section className="welcome-copy">
-        <p className="eyebrow">Hunting portfolio community</p>
+        <p className="eyebrow">By hunters, for hunters</p>
         <h1>Your hunts, remembered.</h1>
         <p>
           Keep every photograph, exact detail, and route together. Publish the
