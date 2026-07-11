@@ -17,6 +17,10 @@ export const huntCommentSchema = z.object({
   authorId: z.string().min(1),
   authorName: trimmed(80),
   body: trimmed(1_000),
+  // Single-level threading: replies reference their root comment.
+  parentId: z.string().min(1).max(128).optional(),
+  // Comment likes: uids, each user may only add/remove their own (rules-enforced).
+  likedBy: z.array(z.string().min(1)).max(5_000).optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 }).strict();

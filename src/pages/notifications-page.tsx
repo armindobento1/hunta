@@ -1,47 +1,68 @@
 import { Bell } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-import { BottomNav } from "@/components/portfolio/bottom-nav";
 import { notificationText, type SocialNotification } from "@/lib/domain/engagement";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useNotifications } from "@/lib/hooks/use-notifications";
+import { initials } from "@/lib/ui/initials";
+import { relativeTime } from "@/lib/ui/relative-time";
 
 function target(entry: SocialNotification, viewerUid: string): string {
   return entry.type === "follow" ? `/people/${entry.actorId}` : `/people/${viewerUid}/hunts/${entry.huntId}`;
 }
 
+function sectionOf(entry: SocialNotification): "New" | "Today" | "Earlier" {
+  if (!entry.readAt) return "New";
+  return Date.now() - new Date(entry.createdAt).getTime() < 86_400_000 ? "Today" : "Earlier";
+}
+
+const SECTIONS = ["New", "Today", "Earlier"] as const;
+
 export function NotificationsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const { notifications, unreadCount, error, markRead } = useNotifications();
+  const { notifications, error, markRead } = useNotifications();
 
   return (
-    <main className="notifications-page">
-      <header className="section-title-row">
-        <div>
-          <p className="mono-label">ACTIVITY</p>
-          <h1>Notifications</h1>
-        </div>
-        {unreadCount ? <span className="unread-count">{unreadCount} new</span> : null}
-      </header>
-      {error ? <p role="alert">{error}</p> : null}
+    <main className="act-shell">
+      <div className="cmt-head">
+        <button type="button" className="cmt-back" aria-label="Back to home" onClick={() => navigate("/home")} />
+        <span className="cmt-title">Activity</span>
+      </div>
+      {error ? <p role="alert" style={{ padding: "0 16px" }}>{error}</p> : null}
       {notifications.length === 0 ? (
-        <div className="centered-state">
-          <Bell aria-hidden="true" />
-          <p>No activity yet. Follows, likes, and comments show up here.</p>
+        <div className="act-empty">
+          <span className="soc-empty-icon"><Bell aria-hidden="true" /></span>
+          <strong>Nothing yet</strong>
+          <p>Likes, comments and new followers will show up here.</p>
         </div>
       ) : (
-        <ul className="notification-list">
-          {notifications.map((entry) => (
-            <li key={entry.id} className={entry.readAt ? "notification-read" : "notification-unread"}>
-              <Link to={target(entry, user?.uid ?? "")} onClick={() => { if (!entry.readAt) markRead(entry.id); }}>
-                <strong>{entry.actorName}</strong> {notificationText(entry)}
-                {entry.preview ? <span className="notification-preview">“{entry.preview}”</span> : null}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        SECTIONS.map((section) => {
+          const entries = notifications.filter((entry) => sectionOf(entry) === section);
+          if (entries.length === 0) return null;
+          return (
+            <div key={section}>
+              <div className="act-section">{section.toUpperCase()}</div>
+              {entries.map((entry) => (
+                <Link
+                  key={entry.id}
+                  className={`act-row${entry.readAt ? "" : " act-unread"}`}
+                  to={target(entry, user?.uid ?? "")}
+                  onClick={() => { if (!entry.readAt) markRead(entry.id); }}
+                >
+                  <span className="act-avatar" aria-hidden="true">{initials(entry.actorName)}</span>
+                  <span className="act-text">
+                    <b>{entry.actorName}</b> {notificationText(entry)}.
+                    {entry.preview ? <span className="act-preview"> “{entry.preview}”</span> : null}
+                    {" "}
+                    <span className="act-time">{relativeTime(entry.createdAt)}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          );
+        })
       )}
-      <BottomNav />
     </main>
   );
 }

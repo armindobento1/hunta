@@ -1,4 +1,4 @@
-import { Bell, Trophy } from "lucide-react";
+import { Bell, Compass, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { BrandLogo } from "@/components/brand";
@@ -50,9 +50,10 @@ export function HomeFeedPage() {
             <Spinner label="Loading your feed" />
           </div>
         ) : feed.length === 0 ? (
-          <div className="social-empty">
+          <div className="soc-empty">
+            <span className="soc-empty-icon"><Compass aria-hidden="true" /></span>
             <strong>Your feed is empty.</strong>
-            <span>Follow hunters to see their hunts here as they post.</span>
+            <p>Follow hunters to see their hunts.</p>
             <Link className="primary-link" to="/discover">
               Find hunters
             </Link>

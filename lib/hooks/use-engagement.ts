@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { HuntComment, HuntLike } from "@/lib/domain/engagement";
 import type { PublicHunt } from "@/lib/domain/public-social";
-import { addHuntComment, deleteHuntComment, likeHunt, subscribeToHuntComments, subscribeToHuntLikes, unlikeHunt } from "@/lib/firebase/engagement-repository";
+import { addHuntComment, deleteHuntComment, likeHunt, setCommentLiked, subscribeToHuntComments, subscribeToHuntLikes, unlikeHunt } from "@/lib/firebase/engagement-repository";
 import { getPublicProfile } from "@/lib/firebase/public-social-repository";
 import { useAuth } from "@/lib/hooks/use-auth";
 
@@ -10,6 +10,8 @@ async function actorFor(uid: string) {
   const profile = await getPublicProfile(uid);
   return { id: uid, name: profile?.displayName ?? "A hunter" };
 }
+
+export type HuntEngagementState = ReturnType<typeof useHuntEngagement>;
 
 export function useHuntEngagement(hunt: PublicHunt) {
   const { user } = useAuth();
@@ -34,14 +36,22 @@ export function useHuntEngagement(hunt: PublicHunt) {
         setError(cause instanceof Error ? cause.message : "Could not update like.");
       }
     },
-    async addComment(body: string): Promise<boolean> {
+    async addComment(body: string, parentId?: string): Promise<boolean> {
       if (!viewerId) return false;
       try {
-        await addHuntComment(hunt, await actorFor(viewerId), body);
+        await addHuntComment(hunt, await actorFor(viewerId), body, parentId);
         return true;
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "Could not post comment.");
         return false;
+      }
+    },
+    async toggleCommentLike(comment: HuntComment) {
+      if (!viewerId) return;
+      try {
+        await setCommentLiked(hunt.id, comment.id, viewerId, Boolean(comment.likedBy?.includes(viewerId)));
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Could not update the comment like.");
       }
     },
     async removeComment(comment: HuntComment) {

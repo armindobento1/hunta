@@ -6,7 +6,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, Timestamp, updateDoc, where, writeBatch } from "firebase/firestore";
+import { arrayRemove, arrayUnion, collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, Timestamp, updateDoc, where, writeBatch } from "firebase/firestore";
 
 const projectId = "hunta-firestore-rules";
 
@@ -344,10 +344,24 @@ describe("Firestore ownership rules", () => {
     await assertSucceeds(deleteDoc(doc(other, "publicHunts/owner_kill-1/likes/other")));
 
     // Comments: author-only writes; the hunt owner moderates.
-    const comment = { id: "c1", huntId: "owner_kill-1", authorId: "other", authorName: "Other", body: "Great kudu.", createdAt: now, updatedAt: now };
+    const comment = { id: "c1", huntId: "owner_kill-1", authorId: "other", authorName: "Other", body: "Great kudu.", likedBy: [], createdAt: now, updatedAt: now };
     await assertFails(setDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c1"), comment));
     await assertSucceeds(setDoc(doc(other, "publicHunts/owner_kill-1/comments/c1"), comment));
     await assertSucceeds(getDoc(doc(guest, "publicHunts/owner_kill-1/comments/c1")));
+
+    // Comment likes: anyone signed in toggles exactly their own uid.
+    await assertSucceeds(updateDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c1"), { likedBy: arrayUnion("stranger") }));
+    await assertFails(updateDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c1"), { likedBy: arrayUnion("victim") }));
+    await assertFails(updateDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c1"), { likedBy: arrayRemove("stranger"), body: "hijack" }));
+    await assertSucceeds(updateDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c1"), { likedBy: arrayRemove("stranger") }));
+    // The author edits the body but cannot touch likes while doing so.
+    await assertSucceeds(updateDoc(doc(other, "publicHunts/owner_kill-1/comments/c1"), { body: "Great kudu bull.", updatedAt: now }));
+    await assertFails(updateDoc(doc(other, "publicHunts/owner_kill-1/comments/c1"), { body: "Popular!", updatedAt: now, likedBy: ["a", "b", "c"] }));
+
+    // Replies reference a parent; comment creation cannot pre-seed likes.
+    await assertSucceeds(setDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c2"), { ...comment, id: "c2", authorId: "stranger", authorName: "Stranger", parentId: "c1", body: "Agreed." }));
+    await assertFails(setDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c3"), { ...comment, id: "c3", authorId: "stranger", authorName: "Stranger", likedBy: ["x", "y"] }));
+
     await assertFails(deleteDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c1")));
     await assertSucceeds(deleteDoc(doc(owner, "publicHunts/owner_kill-1/comments/c1")));
   });
