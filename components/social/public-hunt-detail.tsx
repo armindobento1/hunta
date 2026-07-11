@@ -6,6 +6,7 @@ import { CommentSection } from "@/components/social/hunt-engagement";
 import type { PublicHunt } from "@/lib/domain/public-social";
 import { useHuntEngagement } from "@/lib/hooks/use-engagement";
 import { useViewerFollowing } from "@/lib/hooks/use-viewer-following";
+import { formatScore } from "@/lib/ui/format-score";
 import { initials } from "@/lib/ui/initials";
 
 function formatSeconds(total: number): string {
@@ -61,7 +62,7 @@ export function PublicHuntDetail({ hunt }: { hunt: PublicHunt }) {
   const canFollow = Boolean(viewer.viewerId && viewer.viewerId !== hunt.ownerId && viewer.followingIds);
   const isFollowing = Boolean(viewer.followingIds?.includes(hunt.ownerId));
   const score = hunt.measurement?.score
-    ? `${hunt.measurement.scoringSystem ?? ""} ${hunt.measurement.score}${hunt.measurement.scoreUnit ? ` ${hunt.measurement.scoreUnit}` : ""}`.trim()
+    ? `${hunt.measurement.scoringSystem ?? ""} ${formatScore(hunt.measurement.score, hunt.measurement.scoreUnit)}`.trim()
     : null;
   const media = hunt.media;
   const others = likes.filter((like) => like.likerId !== viewerId);

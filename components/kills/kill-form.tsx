@@ -47,6 +47,8 @@ export interface EditorFields {
   locationSourceFeatureId: string;
   locationSourceLabel: string;
   measureScore: number;
+  measureScoreInches: number;
+  measureScoreEighths: number;
   measureScoreUnit: string;
   measureScoringSystem: string;
   measureWeightDressed: number;
@@ -56,7 +58,12 @@ export interface EditorFields {
   isPublic: boolean;
 }
 
+const INCH_OPTIONS = Array.from({ length: 200 }, (_, i) => i);
+const EIGHTH_OPTIONS = Array.from({ length: 8 }, (_, i) => i);
+
 function defaults(initial?: Kill): EditorFields {
+  const score = initial?.measurement?.score;
+  const totalEighths = score != null ? Math.round(score * 8) : null;
   return {
     species: initial?.species ?? "",
     country: initial?.country ?? "",
@@ -83,6 +90,9 @@ function defaults(initial?: Kill): EditorFields {
     locationSourceFeatureId: initial?.location.source?.featureId ?? "",
     locationSourceLabel: initial?.location.source?.label ?? "",
     measureScore: initial?.measurement?.score ?? Number.NaN,
+    measureScoreInches:
+      totalEighths != null ? Math.floor(totalEighths / 8) : Number.NaN,
+    measureScoreEighths: totalEighths != null ? totalEighths % 8 : 0,
     measureScoreUnit: initial?.measurement?.scoreUnit ?? "in",
     measureScoringSystem: initial?.measurement?.scoringSystem ?? "SCI",
     measureWeightDressed:
@@ -131,6 +141,7 @@ export function KillForm({
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [gpxFile, setGpxFile] = useState<File | null>(null);
   const weaponType = useWatch({ control, name: "weaponType" });
+  const scoreUnit = useWatch({ control, name: "measureScoreUnit" });
   const weightUnit = useWatch({ control, name: "measureWeightUnit" });
   const country = useWatch({ control, name: "country" });
   const isPublic = useWatch({ control, name: "isPublic" });
@@ -173,8 +184,15 @@ export function KillForm({
     if (!validateCover()) return;
     const confirmedCover = coverMediaId;
     if (!confirmedCover) return;
+    const measureScore =
+      values.measureScoreUnit === "in"
+        ? Number.isFinite(values.measureScoreInches)
+          ? values.measureScoreInches + values.measureScoreEighths / 8
+          : Number.NaN
+        : values.measureScore;
     await onSave({
       ...values,
+      measureScore,
       existingMedia,
       newMedia,
       coverMediaId: confirmedCover,
@@ -276,13 +294,46 @@ export function KillForm({
         <div className="editor-grid measurement-grid">
           <FormField label="Score / size" htmlFor="measure-score">
             <div className="input-with-unit">
-              <Input
-                id="measure-score"
-                type="number"
-                step="any"
-                placeholder="e.g. 56.875"
-                {...register("measureScore", { valueAsNumber: true })}
-              />
+              {scoreUnit === "in" ? (
+                <>
+                  <select
+                    id="measure-score"
+                    className="text-input"
+                    {...register("measureScoreInches", {
+                      setValueAs: (value) =>
+                        value === "" ? Number.NaN : Number(value),
+                    })}
+                  >
+                    <option value="">—</option>
+                    {INCH_OPTIONS.map((inches) => (
+                      <option key={inches} value={inches}>
+                        {inches}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="text-input score-eighths-select"
+                    aria-label="Eighths of an inch"
+                    {...register("measureScoreEighths", {
+                      setValueAs: (value) => Number(value),
+                    })}
+                  >
+                    {EIGHTH_OPTIONS.map((eighths) => (
+                      <option key={eighths} value={eighths}>
+                        {eighths}/8
+                      </option>
+                    ))}
+                  </select>
+                </>
+              ) : (
+                <Input
+                  id="measure-score"
+                  type="number"
+                  step="any"
+                  placeholder="e.g. 144.5"
+                  {...register("measureScore", { valueAsNumber: true })}
+                />
+              )}
               <select
                 className="unit-select"
                 aria-label="Score unit"

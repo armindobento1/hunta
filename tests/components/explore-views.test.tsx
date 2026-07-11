@@ -20,7 +20,7 @@ describe("private exploration views", () => {
     renderWithRouter(<LeaderboardView kills={[unmeasured, measured]} />);
 
     expect(screen.getByRole("heading", { name: /personal bests/i })).toBeInTheDocument();
-    expect(screen.getByText("56.875 in")).toBeInTheDocument();
+    expect(screen.getByText("56 7/8 in")).toBeInTheDocument();
     expect(screen.queryByText(/@willem|@hendrik/i)).not.toBeInTheDocument();
   });
 
