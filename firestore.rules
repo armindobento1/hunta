@@ -211,30 +211,27 @@ service cloud.firestore {
         data.bio is string && data.bio.size() <= 280 && data.createdAt is timestamp && data.updatedAt is timestamp;
     }
 
+    // The public location is farm name + area as text only. hasOnly() is the
+    // poaching boundary: latitude, longitude, farmId, and geocoder source are
+    // rejected even from a modified client.
+    function validPublicLocation(location) {
+      return location is map &&
+        location.keys().hasAll(['placeName']) &&
+        location.keys().hasOnly(['placeName', 'farmName']) &&
+        shortString(location.placeName, 160) &&
+        optionalString(location, 'farmName', 200);
+    }
+
     function validPublicHunt(data, publicHuntId) {
       return data.keys().hasAll(['id', 'ownerId', 'sourceKillId', 'hunter', 'species', 'coverMediaId', 'media', 'country', 'date', 'killTime', 'location', 'weapon', 'ammunition', 'routeSummary', 'description', 'publishedAt', 'updatedAt']) &&
         data.keys().hasOnly(['id', 'ownerId', 'sourceKillId', 'hunter', 'species', 'coverMediaId', 'media', 'country', 'date', 'killTime', 'location', 'weapon', 'ammunition', 'equipmentAttachments', 'measurement', 'routeSummary', 'description', 'publishedAt', 'updatedAt']) &&
         data.id == publicHuntId && data.ownerId == request.auth.uid && shortString(data.sourceKillId, 128) &&
         data.hunter is map && data.hunter.id == data.ownerId && shortString(data.hunter.displayName, 80) &&
         shortString(data.species, 120) && data.media is list && data.media.size() <= 30 && shortString(data.country, 100) &&
-        validLocation(data.location) && validWeapon(data.weapon) && validAmmunition(data.ammunition) &&
-        (!('farmId' in data.location) ||
-          exists(/databases/$(database)/documents/farms/$(data.location.farmId))) &&
+        validPublicLocation(data.location) && validWeapon(data.weapon) && validAmmunition(data.ammunition) &&
         (!('measurement' in data) || validMeasurement(data.measurement)) &&
         (!('equipmentAttachments' in data) || validAttachments(data.equipmentAttachments)) &&
         data.description is string && data.description.size() <= 5000 && data.publishedAt is timestamp && data.updatedAt is timestamp;
-    }
-
-    function validFarm(data, farmId) {
-      return data.keys().hasAll(['id', 'name', 'searchName', 'latitude', 'longitude', 'country', 'placeName', 'createdBy', 'createdAt', 'updatedAt']) &&
-        data.keys().hasOnly(['id', 'name', 'searchName', 'latitude', 'longitude', 'country', 'placeName', 'createdBy', 'createdAt', 'updatedAt']) &&
-        data.id == farmId && data.createdBy == request.auth.uid &&
-        shortString(data.name, 200) && shortString(data.searchName, 200) &&
-        data.searchName == data.searchName.lower() &&
-        data.latitude is number && data.latitude >= -90 && data.latitude <= 90 &&
-        data.longitude is number && data.longitude >= -180 && data.longitude <= 180 &&
-        shortString(data.country, 100) && shortString(data.placeName, 160) &&
-        data.createdAt is timestamp && data.updatedAt is timestamp;
     }
 
     function validHuntLike(data, publicHuntId, likerId) {
@@ -260,11 +257,18 @@ service cloud.firestore {
     // removing exactly the caller's own uid — nobody can like as someone else
     // or inflate counts.
     function commentLikeToggle() {
-      let before = resource.data.get('likedBy', []).toSet();
-      let after = request.resource.data.get('likedBy', []).toSet();
+      let beforeList = resource.data.get('likedBy', []);
+      let afterList = request.resource.data.get('likedBy', []);
+      let before = beforeList.toSet();
+      let after = afterList.toSet();
       let me = [request.auth.uid].toSet();
-      return (after.difference(before) == me && before.difference(after).size() == 0) ||
-        (before.difference(after) == me && after.difference(before).size() == 0);
+      // The raw list must change by exactly one entry: comments are created
+      // with likedBy == [], so by induction the list stays duplicate-free and
+      // a client cannot inflate the count with repeated copies of its own uid.
+      return (afterList.size() == beforeList.size() + 1 &&
+          after.difference(before) == me && before.difference(after).size() == 0) ||
+        (beforeList.size() == afterList.size() + 1 &&
+          before.difference(after) == me && after.difference(before).size() == 0);
     }
 
     // Notifications are written by the actor into the recipient's inbox, in
@@ -387,7 +391,18 @@ service cloud.firestore {
 
     match /publicHunts/{publicHuntId} {
       allow read: if true;
-      allow create, update: if signedIn() && validPublicHunt(request.resource.data, publicHuntId);
+      // The document ID is canonically `<ownerUid>_<sourceKillId>`, so no one
+      // can create a projection at a path that encodes another hunter's uid.
+      allow create: if signedIn() && validPublicHunt(request.resource.data, publicHuntId) &&
+        publicHuntId == request.auth.uid + '_' + request.resource.data.sourceKillId;
+      // Only the current owner may rewrite the projection, and identity and
+      // provenance fields are immutable — a full replacement write cannot
+      // take the document over or re-date its publication.
+      allow update: if signedIn() && resource.data.ownerId == request.auth.uid &&
+        validPublicHunt(request.resource.data, publicHuntId) &&
+        request.resource.data.ownerId == resource.data.ownerId &&
+        request.resource.data.sourceKillId == resource.data.sourceKillId &&
+        request.resource.data.publishedAt == resource.data.publishedAt;
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
 
       match /likes/{likerId} {
@@ -427,13 +442,11 @@ service cloud.firestore {
     }
 
     match /farms/{farmId} {
-      // Community farm directory. Entries are created only at publish time by
-      // the publishing client; they are immutable from clients afterwards so
-      // no user can move or rename another hunter's farm pin. Owner claims and
-      // corrections arrive later through moderated/admin paths.
-      allow read: if true;
-      allow create: if signedIn() && validFarm(request.resource.data, farmId);
-      allow update, delete: if false;
+      // The public farm directory is retired: farm documents carry exact
+      // coordinates, which must never be world-readable (audit v1.1 F-01).
+      // Public hunts reference farms by name only. Existing documents stay
+      // locked until an admin migration removes them.
+      allow read, write: if false;
     }
 
     // Community Q&A forum. Readable by any signed-in hunter; every document

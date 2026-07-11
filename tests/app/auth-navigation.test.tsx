@@ -51,8 +51,10 @@ describe("authentication navigation", () => {
       </MemoryRouter>,
     );
 
+    // The private-only build (VITE_SOCIAL_ENABLED off) has no /home feed;
+    // signed-in users land on their portfolio.
     await waitFor(() =>
-      expect(screen.getByText("/home")).toBeInTheDocument(),
+      expect(screen.getByText("/portfolio")).toBeInTheDocument(),
     );
   });
 });

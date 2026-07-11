@@ -9,10 +9,9 @@ import { uploadGpx, uploadMedia } from "@/lib/firebase/storage-repository";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useArmory } from "@/lib/hooks/use-armory";
 import { useProfile } from "@/lib/hooks/use-profile";
+import { SOCIAL_ENABLED } from "@/lib/features";
 import { buildPublicHunt, buildPublicProfile } from "@/lib/domain/public-social";
-import { buildFarm } from "@/lib/domain/farm";
-import { ensureFarm, findFarmsNear } from "@/lib/firebase/farm-repository";
-import { publishHunt, savePublicProfile, unpublishHunt } from "@/lib/firebase/public-social-repository";
+import { getPublishedAt, publishHunt, savePublicProfile, unpublishHunt } from "@/lib/firebase/public-social-repository";
 
 import { KillForm } from "./kill-form";
 import type { KillFormSubmission, UploadProgressItem } from "./types";
@@ -77,20 +76,11 @@ export function KillEditor({ killId }: { killId?: string }) {
     try {
       let media: MediaAsset[] = [...submission.existingMedia];
       let route: RouteMetadata | null = initialKill?.route ?? null;
-      // Farms are a public projection: an entry is created only when this
-      // hunt is being published. Linking to an existing farm (farmId chosen
-      // in the form) is allowed for private hunts — the farm is already public.
-      let farmId = submission.farmId.trim() || undefined;
-      if (submission.isPublic && !farmId && submission.farmName.trim()) {
-        const farm = await ensureFarm(buildFarm({
-          name: submission.farmName,
-          latitude: submission.latitude,
-          longitude: submission.longitude,
-          country: submission.country.trim(),
-          placeName: submission.placeName.trim(),
-        }, user.uid, now));
-        farmId = farm.id;
-      }
+      // The public farm directory is retired (exact farm coordinates must
+      // never be public — audit v1.1 F-01). A farmId already stored on an
+      // older private record is kept as a private fact, but no farm is ever
+      // created and the ID never enters the public projection.
+      const farmId = submission.farmId.trim() || undefined;
       const factualEdit = {
         species: submission.species.trim(),
         country: submission.country.trim(),
@@ -220,10 +210,16 @@ export function KillEditor({ killId }: { killId?: string }) {
             status: "active",
           });
       await saveKill(complete);
-      if (profile) {
+      if (SOCIAL_ENABLED && profile) {
         await savePublicProfile(buildPublicProfile(profile));
-        if (submission.isPublic) await publishHunt(buildPublicHunt(complete, profile, initialKill?.isPublic ? initialKill.updatedAt : now));
-        else if (initialKill?.isPublic) await unpublishHunt(user.uid, id);
+        if (submission.isPublic) {
+          // Rules pin publishedAt as immutable: an edit of an existing
+          // projection must republish with the original publication time.
+          const publishedAt = initialKill?.isPublic ? await getPublishedAt(user.uid, id) : null;
+          await publishHunt(buildPublicHunt(complete, profile, publishedAt ?? now));
+        } else if (initialKill?.isPublic) {
+          await unpublishHunt(user.uid, id);
+        }
       }
       navigate(`/portfolio/kills/${id}`);
     } catch (saveError) {
@@ -262,7 +258,6 @@ export function KillEditor({ killId }: { killId?: string }) {
       saveError={error}
       armoryItems={armoryItems}
       loadouts={loadouts}
-      findNearbyFarms={findFarmsNear}
     />
   );
 }

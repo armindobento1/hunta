@@ -14,16 +14,22 @@ verified (not just "should work"). Status notes go inline.
 These block everything else. Findings are from the 2026-07-06 security sweep
 (details + line numbers in memory `security-sweep-findings.md`).
 
-- [ ] **1.1 CRITICAL — exact kill location is world-readable.** `publicHunts`
-      and `farms` are `allow read: if true` and carry full-precision lat/lng +
-      farm name. Fix: coarsen/drop coordinates in `buildPublicHunt`
-      (`lib/domain/public-social.ts`) AND add a `validPublicLocation` check in
-      `firestore.rules` rejecting full-precision coords. Add a `tests/rules/`
-      case for each.
-- [ ] **1.2 HIGH — public hunt takeover.** `publicHunts` update rule checks the
-      new doc's `ownerId` but not the existing doc's. Fix: add
-      `resource.data.ownerId == request.auth.uid` (mirror the delete rule).
-      Add a rules test.
+- [x] **1.1 CRITICAL — exact kill location is world-readable.** Fixed in code
+      2026-07-11 (decision: public location = farm name + area as text, so
+      hunters find the farm themselves): strict `publicLocationSchema` in
+      `buildPublicHunt`, `validPublicLocation` in `firestore.rules` rejecting
+      lat/lng/farmId/geocoder source, `farms` collection retired and locked
+      (`read, write: if false`), public map view removed. Domain + rules tests
+      added. Social stays behind `VITE_SOCIAL_ENABLED` (off in prod) until
+      moderation (2.7) lands. **Still open before enabling the flag in prod:**
+      deploy rules (4.1) + admin migration of pre-redaction `publicHunts`
+      docs, which still carry exact coords and stay world-readable. Details in
+      `audit/claude-code/audit-v1.2.md`.
+- [x] **1.2 HIGH — public hunt takeover.** Fixed 2026-07-11: create/update
+      split; update requires the existing owner and pins
+      `ownerId`/`sourceKillId`/`publishedAt`; create binds the doc ID to
+      `<uid>_<sourceKillId>`. Malicious-client rules test added; `test:rules`
+      green. **Rules not yet deployed to prod** (see 4.1).
 - [ ] **1.3 LOW — user enumeration via `publicProfiles` search.** Decide:
       accept for v1 or rate-limit. Record the decision.
 - [ ] **1.4** `npm run test:rules` green after 1.1–1.2 + a security re-review

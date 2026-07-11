@@ -31,4 +31,4 @@ _Update every pass._
 
 | Topic | Version | Last author | Status |
 |-------|---------|-------------|--------|
-| _(none yet)_ | — | — | — |
+| Full Hunta codebase | v1.2 | claude-code (implementer) | Open — flag containment, F-02, F-15, and F-01 location redaction (text-only public location, farms retired) done; awaiting Codex re-review. Parity inverted for this topic: v1.1 was the auditor. |

@@ -49,16 +49,19 @@ geocoder search only jumps the map near a town/region, farm name is free text
 that search never overwrites, and manual coordinate refinement stays optional.
 Pin-set coordinates clear stale geocoder source metadata.
 
-Farms are a community directory (`farms` collection): a farm document is
-created only when a hunt there is published publicly (`lib/domain/farm.ts`,
-`ensureFarm` in `lib/firebase/farm-repository.ts`), with a deterministic id
-(normalized name + ~1 km coordinate bucket) so republishing never duplicates.
-Farm entries are immutable from clients (rules deny update/delete); public
-hunts may only reference farms that exist. The kill form suggests nearby
-community farms after a pin drop; `/farms/:farmId` shows the farm pin and its
-published hunts.
+The public farm directory is retired (2026-07-11, audit v1.1 F-01): farm
+documents carried exact coordinates and were world-readable. The `farms`
+collection is locked in rules (`read, write: if false`); `farm-page`,
+`farm-view`, `public-hunts-map`, and `farm-repository` live in
+`archive/social-farms/`; farm name is free text on the kill form (no nearby
+suggestions). A public hunt's location is **farm name + area text only**
+(`publicLocationSchema`) — hunters find the farm themselves.
 
-The feed offers My Hunts plus a public Community view with Discover and Following modes. Account search uses normalized public profile prefixes. Publishing is opt-in per hunt and warns that farm names and exact GPS coordinates become public.
+The feed offers My Hunts plus a public Community view with Discover and
+Following modes. Account search uses normalized public profile prefixes.
+Publishing is opt-in per hunt; the entire social surface is gated by
+`VITE_SOCIAL_ENABLED` (`lib/features.ts`), off by default and in prod until
+the remaining audit v1.1 findings land.
 
 ## Invariant guards
 

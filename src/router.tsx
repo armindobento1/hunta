@@ -19,43 +19,55 @@ import { ProfilePage } from "@/src/pages/profile-page";
 import { TrashPage } from "@/src/pages/trash-page";
 import { PortfolioDataProvider } from "@/src/providers/portfolio-data-provider";
 import { PublicProfilePage } from "@/src/pages/public-profile-page";
-import { FarmPage } from "@/src/pages/farm-page";
 import { FollowListPage } from "@/src/pages/follow-list-page";
 import { PublicHuntPage } from "@/src/pages/public-hunt-page";
 import { SocialDataProvider } from "@/src/providers/social-data-provider";
+import { SOCIAL_ENABLED } from "@/lib/features";
 
 function PrivateRoutes() {
   return (
     <AuthGuard>
       <PortfolioDataProvider>
-        <SocialDataProvider><Outlet /></SocialDataProvider>
+        {SOCIAL_ENABLED ? <SocialDataProvider><Outlet /></SocialDataProvider> : <Outlet />}
       </PortfolioDataProvider>
     </AuthGuard>
   );
 }
 
-export const APP_ROUTES: RouteObject[] = [
-  { id: "home", path: "/", element: <HomePage /> },
-  { id: "auth", path: "/auth", element: <AuthPage /> },
+// World-facing social routes; excluded from the private-only build.
+const PUBLIC_SOCIAL_ROUTES: RouteObject[] = [
   { id: "public-profile", path: "/people/:uid", element: <PublicProfilePage /> },
   { id: "public-followers", path: "/people/:uid/followers", element: <FollowListPage kind="followers" /> },
   { id: "public-following", path: "/people/:uid/following", element: <FollowListPage kind="following" /> },
   { id: "public-hunt", path: "/people/:uid/hunts/:publicHuntId", element: <PublicHuntPage /> },
   { id: "public-hunt-comments", path: "/people/:uid/hunts/:publicHuntId/comments", element: <HuntCommentsPage /> },
-  { id: "farm", path: "/farms/:farmId", element: <FarmPage /> },
+  // No /farms route: the public farm directory is retired (audit v1.1 F-01) —
+  // public hunts carry farm name + area as text only.
+];
+
+// Signed-in routes that consume SocialDataProvider; the leaderboard page
+// renders the public community leaderboard, so it is social too.
+const PRIVATE_SOCIAL_ROUTES: RouteObject[] = [
+  { id: "home-feed", path: "/home", element: <HomeFeedPage /> },
+  { id: "discover", path: "/discover", element: <DiscoverPage /> },
+  { id: "notifications", path: "/notifications", element: <NotificationsPage /> },
+  {
+    id: "leaderboard",
+    path: "/portfolio/leaderboard",
+    element: <LeaderboardPage />,
+  },
+];
+
+export const APP_ROUTES: RouteObject[] = [
+  { id: "home", path: "/", element: <HomePage /> },
+  { id: "auth", path: "/auth", element: <AuthPage /> },
+  ...(SOCIAL_ENABLED ? PUBLIC_SOCIAL_ROUTES : []),
   {
     id: "private",
     element: <PrivateRoutes />,
     children: [
-      { id: "home-feed", path: "/home", element: <HomeFeedPage /> },
-      { id: "discover", path: "/discover", element: <DiscoverPage /> },
-      { id: "notifications", path: "/notifications", element: <NotificationsPage /> },
+      ...(SOCIAL_ENABLED ? PRIVATE_SOCIAL_ROUTES : []),
       { id: "portfolio", path: "/portfolio", element: <PortfolioPage /> },
-      {
-        id: "leaderboard",
-        path: "/portfolio/leaderboard",
-        element: <LeaderboardPage />,
-      },
       {
         id: "portfolio-map",
         path: "/portfolio/map",
