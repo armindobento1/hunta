@@ -64,7 +64,7 @@ Views over the same Kill set:
 ### measurement
 | Field | Notes |
 |-------|-------|
-| `score` | optional positive number; never inferred |
+| `score` | optional positive number; never inferred. `in` scores stay decimal in storage (needed for leaderboard ranking); the form captures them with inches + eighths pickers and every view renders hunter notation ("26 5/8 in") via `lib/ui/format-score.ts` |
 | `scoreUnit` / `scoringSystem` | optional factual context such as inches and SCI |
 | `weightDressed` / `weightUndressed` | optional positive numbers |
 | `weightUnit` | `kg` or `lb` |

@@ -51,7 +51,8 @@ describe("KillForm", () => {
     renderWithRouter(<KillForm initialKill={makeKill()} onSave={onSave} />);
 
     await user.type(screen.getByLabelText(/farm name/i), "Baviaans Lodge");
-    await user.type(screen.getByLabelText(/^score \/ size$/i), "56.875");
+    await user.selectOptions(screen.getByLabelText(/^score \/ size$/i), "56");
+    await user.selectOptions(screen.getByLabelText(/eighths of an inch/i), "7");
     await user.type(screen.getByLabelText(/^dressed weight$/i), "241");
     await user.click(
       screen.getAllByRole("button", { name: /save hunt record/i }).at(-1)!,

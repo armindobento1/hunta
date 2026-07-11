@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import type { Kill } from "@/lib/domain/kill";
 import { sortActiveKills } from "@/lib/domain/selectors";
+import { formatScore } from "@/lib/ui/format-score";
 
 function rankedKills(kills: readonly Kill[]): Kill[] {
   return sortActiveKills(kills)
@@ -17,7 +18,7 @@ function scoreLabel(kill: Kill): string {
   const score = kill.measurement?.score;
   return score === undefined
     ? "—"
-    : `${score} ${kill.measurement?.scoreUnit || "pts"}`;
+    : formatScore(score, kill.measurement?.scoreUnit);
 }
 
 export function LeaderboardView({ kills }: { kills: readonly Kill[] }) {

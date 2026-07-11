@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import type { PublicHunt } from "@/lib/domain/public-social";
 import { useHuntEngagement } from "@/lib/hooks/use-engagement";
+import { formatScore } from "@/lib/ui/format-score";
 import { initials } from "@/lib/ui/initials";
 import { relativeTime } from "@/lib/ui/relative-time";
 
@@ -32,7 +33,7 @@ export function HuntPostCard({ hunt }: { hunt: PublicHunt }) {
   const truncated = hunt.description.length > 140;
   const caption = truncated ? `${hunt.description.slice(0, 140).trimEnd()}…` : hunt.description;
   const score = hunt.measurement?.score
-    ? `${hunt.measurement.scoringSystem ?? ""} ${hunt.measurement.score}${hunt.measurement.scoreUnit ? ` ${hunt.measurement.scoreUnit}` : ""}`.trim()
+    ? `${hunt.measurement.scoringSystem ?? ""} ${formatScore(hunt.measurement.score, hunt.measurement.scoreUnit)}`.trim()
     : null;
   const stamp = `${new Date(`${hunt.date}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} · ${hunt.killTime}`;
 
