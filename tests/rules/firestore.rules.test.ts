@@ -239,41 +239,42 @@ describe("Firestore ownership rules", () => {
     await assertFails(setDoc(doc(other, "publicProfiles/owner"), publicProfile));
   });
 
-  it("lets any signed-in user create an immutable community farm entry", async () => {
+  it("denies all client access to the retired farms directory", async () => {
+    // Farm documents carry exact coordinates and must never be world-readable
+    // (audit v1.1 F-01). Legacy documents stay locked until admin cleanup.
     const owner = environment.authenticatedContext("owner").firestore();
-    const other = environment.authenticatedContext("other").firestore();
     const guest = environment.unauthenticatedContext().firestore();
     const now = Timestamp.now();
     const farmId = "baviaans-lodge_-33.02_27.90";
-    const farm = {
-      id: farmId,
-      name: "Baviaans Lodge",
-      searchName: "baviaans lodge",
-      latitude: -33.0183,
-      longitude: 27.9035,
-      country: "South Africa",
-      placeName: "Eastern Cape",
-      createdBy: "owner",
-      createdAt: now,
-      updatedAt: now,
-    };
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), `farms/${farmId}`), {
+        id: farmId,
+        name: "Baviaans Lodge",
+        searchName: "baviaans lodge",
+        latitude: -33.0183,
+        longitude: 27.9035,
+        country: "South Africa",
+        placeName: "Eastern Cape",
+        createdBy: "owner",
+        createdAt: now,
+        updatedAt: now,
+      });
+    });
 
-    await assertFails(setDoc(doc(guest, `farms/${farmId}`), farm));
-    await assertFails(setDoc(doc(other, `farms/${farmId}`), farm)); // createdBy must match author
-    await assertFails(setDoc(doc(owner, `farms/${farmId}`), { ...farm, latitude: 123 }));
-    await assertFails(setDoc(doc(owner, `farms/${farmId}`), { ...farm, extra: "field" }));
-    await assertSucceeds(setDoc(doc(owner, `farms/${farmId}`), farm));
-    await assertSucceeds(getDoc(doc(guest, `farms/${farmId}`)));
-    // No client may move, rename, or delete a farm once created — not even its creator.
+    await assertFails(getDoc(doc(guest, `farms/${farmId}`)));
+    await assertFails(getDoc(doc(owner, `farms/${farmId}`)));
+    await assertFails(setDoc(doc(owner, "farms/new-farm_0.00_0.00"), {
+      id: "new-farm_0.00_0.00", name: "New Farm", searchName: "new farm",
+      latitude: 0, longitude: 0, country: "South Africa", placeName: "Karoo",
+      createdBy: "owner", createdAt: now, updatedAt: now,
+    }));
     await assertFails(updateDoc(doc(owner, `farms/${farmId}`), { name: "Renamed" }));
-    await assertFails(setDoc(doc(other, `farms/${farmId}`), { ...farm, createdBy: "other" }));
     await assertFails(deleteDoc(doc(owner, `farms/${farmId}`)));
   });
 
-  it("rejects a published hunt that references a nonexistent farm", async () => {
+  it("rejects public hunts carrying coordinates, farm IDs, or geocoder provenance", async () => {
     const owner = environment.authenticatedContext("owner").firestore();
     const now = Timestamp.now();
-    const farmId = "baviaans-lodge_-33.02_27.90";
     const publicHunt = {
       id: "owner_kill-1",
       ownerId: "owner",
@@ -285,7 +286,7 @@ describe("Firestore ownership rules", () => {
       country: "South Africa",
       date: "2025-06-12",
       killTime: "06:42",
-      location: { latitude: -33.0183, longitude: 27.9035, placeName: "Eastern Cape", farmName: "Baviaans Lodge", farmId },
+      location: { placeName: "Eastern Cape", farmName: "Baviaans Lodge" },
       weapon: { type: "rifle", model: "Sako S20", caliber: ".300 Win Mag" },
       ammunition: { grain: 180 },
       routeSummary: null,
@@ -294,21 +295,97 @@ describe("Firestore ownership rules", () => {
       updatedAt: now,
     };
 
-    await assertFails(setDoc(doc(owner, "publicHunts/owner_kill-1"), publicHunt));
-
-    await assertSucceeds(setDoc(doc(owner, `farms/${farmId}`), {
-      id: farmId,
-      name: "Baviaans Lodge",
-      searchName: "baviaans lodge",
-      latitude: -33.0183,
-      longitude: 27.9035,
-      country: "South Africa",
-      placeName: "Eastern Cape",
-      createdBy: "owner",
-      createdAt: now,
-      updatedAt: now,
+    // Even a modified client cannot publish precise/private location detail.
+    await assertFails(setDoc(doc(owner, "publicHunts/owner_kill-1"), {
+      ...publicHunt,
+      location: { ...publicHunt.location, latitude: -33.0183, longitude: 27.9035 },
     }));
+    await assertFails(setDoc(doc(owner, "publicHunts/owner_kill-1"), {
+      ...publicHunt,
+      location: { ...publicHunt.location, farmId: "baviaans-lodge_-33.02_27.90" },
+    }));
+    await assertFails(setDoc(doc(owner, "publicHunts/owner_kill-1"), {
+      ...publicHunt,
+      location: { ...publicHunt.location, source: { provider: "esri", featureId: "f-9", label: "Baviaans" } },
+    }));
+    await assertFails(setDoc(doc(owner, "publicHunts/owner_kill-1"), {
+      ...publicHunt,
+      location: { farmName: "Baviaans Lodge" }, // area is required
+    }));
+    // Farm name + area as text is the approved public shape.
     await assertSucceeds(setDoc(doc(owner, "publicHunts/owner_kill-1"), publicHunt));
+  });
+
+  it("denies takeover, mutation, or deletion of another hunter's public hunt", async () => {
+    const owner = environment.authenticatedContext("owner").firestore();
+    const attacker = environment.authenticatedContext("attacker").firestore();
+    const guest = environment.unauthenticatedContext().firestore();
+    const now = Timestamp.now();
+    const publicHunt = {
+      id: "owner_kill-1",
+      ownerId: "owner",
+      sourceKillId: "kill-1",
+      hunter: { id: "owner", displayName: "Owner", avatarUrl: null },
+      species: "Greater Kudu",
+      coverMediaId: null,
+      media: [],
+      country: "South Africa",
+      date: "2025-06-12",
+      killTime: "06:42",
+      location: { placeName: "Eastern Cape", farmName: "Baviaans Lodge" },
+      weapon: { type: "rifle", model: "Sako S20", caliber: ".300 Win Mag" },
+      ammunition: { grain: 180 },
+      routeSummary: null,
+      description: "A cold morning stalk.",
+      publishedAt: now,
+      updatedAt: now,
+    };
+
+    await assertSucceeds(setDoc(doc(owner, "publicHunts/owner_kill-1"), publicHunt));
+    await assertSucceeds(getDoc(doc(guest, "publicHunts/owner_kill-1")));
+
+    // A full replacement write that swaps the owner fields is the takeover.
+    await assertFails(setDoc(doc(attacker, "publicHunts/owner_kill-1"), {
+      ...publicHunt,
+      ownerId: "attacker",
+      hunter: { id: "attacker", displayName: "Attacker", avatarUrl: null },
+    }));
+    await assertFails(updateDoc(doc(attacker, "publicHunts/owner_kill-1"), { description: "mine now" }));
+    await assertFails(deleteDoc(doc(attacker, "publicHunts/owner_kill-1")));
+    // Nobody can create a projection at a path encoding someone else's uid.
+    await assertFails(setDoc(doc(attacker, "publicHunts/owner_kill-2"), {
+      ...publicHunt,
+      id: "owner_kill-2",
+      sourceKillId: "kill-2",
+      ownerId: "attacker",
+      hunter: { id: "attacker", displayName: "Attacker", avatarUrl: null },
+    }));
+
+    // The owner edits projection fields but never identity or provenance.
+    await assertSucceeds(updateDoc(doc(owner, "publicHunts/owner_kill-1"), { description: "Updated story.", updatedAt: Timestamp.now() }));
+    await assertFails(updateDoc(doc(owner, "publicHunts/owner_kill-1"), { sourceKillId: "kill-9" }));
+    await assertFails(updateDoc(doc(owner, "publicHunts/owner_kill-1"), { publishedAt: Timestamp.fromDate(new Date("2020-01-01T00:00:00.000Z")) }));
+    await assertSucceeds(deleteDoc(doc(owner, "publicHunts/owner_kill-1")));
+  });
+
+  it("rejects duplicate uids written directly into comment likes", async () => {
+    const other = environment.authenticatedContext("other").firestore();
+    const stranger = environment.authenticatedContext("stranger").firestore();
+    const third = environment.authenticatedContext("third").firestore();
+    const now = Timestamp.now();
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), "publicHunts/owner_kill-1"), { id: "owner_kill-1", ownerId: "owner" });
+    });
+    const comment = { id: "c1", huntId: "owner_kill-1", authorId: "other", authorName: "Other", body: "Great kudu.", likedBy: [], createdAt: now, updatedAt: now };
+    await assertSucceeds(setDoc(doc(other, "publicHunts/owner_kill-1/comments/c1"), comment));
+
+    // Writing the list directly (bypassing arrayUnion) cannot inflate counts.
+    await assertFails(updateDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c1"), { likedBy: ["stranger", "stranger"] }));
+    await assertSucceeds(updateDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c1"), { likedBy: ["stranger"] }));
+    await assertFails(updateDoc(doc(stranger, "publicHunts/owner_kill-1/comments/c1"), { likedBy: ["stranger", "stranger", "stranger"] }));
+    // Nobody can swap out another hunter's like for their own.
+    await assertFails(updateDoc(doc(third, "publicHunts/owner_kill-1/comments/c1"), { likedBy: ["third"] }));
+    await assertSucceeds(updateDoc(doc(third, "publicHunts/owner_kill-1/comments/c1"), { likedBy: ["stranger", "third"] }));
   });
 
   it("guards likes, comments, and notifications with strict authorship", async () => {

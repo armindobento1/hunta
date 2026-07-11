@@ -9,6 +9,21 @@ const hunts = () => collection(db(), "publicHunts");
 const date = (value: unknown) => typeof value === "string" ? value : (value as { toDate(): Date }).toDate().toISOString();
 const parseProfile = (value: Record<string, unknown>) => publicProfileSchema.parse({ ...value, createdAt: date(value.createdAt), updatedAt: date(value.updatedAt) });
 const parseHunt = (value: Record<string, unknown>) => publicHuntSchema.parse({ ...value, publishedAt: date(value.publishedAt), updatedAt: date(value.updatedAt) });
+// Feed/list reads skip documents that fail the schema instead of throwing:
+// hunts published before the location redaction (they still carry exact
+// coordinates) must never render, and one bad community doc must not take
+// down everyone's feed. They stay hidden until the owner republishes or an
+// admin migration sanitizes them.
+function parseHuntOrSkip(id: string, value: Record<string, unknown>): PublicHunt | null {
+  try {
+    return parseHunt(value);
+  } catch {
+    console.warn(`Skipping public hunt ${id}: pre-redaction or invalid shape.`);
+    return null;
+  }
+}
+const parseHunts = (docs: Array<{ id: string; data(): Record<string, unknown> }>) =>
+  docs.flatMap((entry) => parseHuntOrSkip(entry.id, entry.data()) ?? []);
 
 export async function savePublicProfile(profile: PublicProfile) {
   const value = publicProfileSchema.parse(profile);
@@ -40,13 +55,27 @@ export async function searchPublicProfiles(searchName: string): Promise<PublicPr
 }
 
 export async function getPublicProfile(uid: string): Promise<PublicProfile | null> { const snapshot = await getDoc(doc(profiles(), uid)); return snapshot.exists() ? parseProfile(snapshot.data()) : null; }
-export async function getPublicHunt(id: string): Promise<PublicHunt | null> { const snapshot = await getDoc(doc(hunts(), id)); return snapshot.exists() ? parseHunt(snapshot.data()) : null; }
-export async function getPublicHuntsByOwner(uid: string): Promise<PublicHunt[]> { const snapshot = await getDocs(query(hunts(), where("ownerId", "==", uid), orderBy("date", "desc"), limit(100))); return snapshot.docs.map((entry) => parseHunt(entry.data())); }
-export async function getPublicHuntsByFarm(farmId: string): Promise<PublicHunt[]> { const snapshot = await getDocs(query(hunts(), where("location.farmId", "==", farmId), orderBy("date", "desc"), limit(100))); return snapshot.docs.map((entry) => parseHunt(entry.data())); }
+export async function getPublicHunt(id: string): Promise<PublicHunt | null> { const snapshot = await getDoc(doc(hunts(), id)); return snapshot.exists() ? parseHuntOrSkip(snapshot.id, snapshot.data()) : null; }
+export async function getPublicHuntsByOwner(uid: string): Promise<PublicHunt[]> { const snapshot = await getDocs(query(hunts(), where("ownerId", "==", uid), orderBy("date", "desc"), limit(100))); return parseHunts(snapshot.docs); }
+
+/**
+ * Original publication timestamp of an existing projection, read without the
+ * full schema so a pre-redaction document still yields it. Rules pin
+ * `publishedAt` as immutable, so republishing an edit must reuse this value.
+ */
+export async function getPublishedAt(ownerId: string, killId: string): Promise<string | null> {
+  const snapshot = await getDoc(doc(hunts(), `${ownerId}_${killId}`));
+  if (!snapshot.exists()) return null;
+  try {
+    return date(snapshot.data().publishedAt);
+  } catch {
+    return null;
+  }
+}
 
 export function subscribeToPublicHunts(onValue: (hunts: PublicHunt[]) => void, onError: (error: Error) => void, ownerId?: string): Unsubscribe {
   const constraints = ownerId ? [where("ownerId", "==", ownerId), orderBy("date", "desc"), limit(100)] : [orderBy("date", "desc"), limit(100)];
-  return onSnapshot(query(hunts(), ...constraints), (snapshot) => onValue(snapshot.docs.map((entry) => parseHunt(entry.data()))), onError);
+  return onSnapshot(query(hunts(), ...constraints), (snapshot) => onValue(parseHunts(snapshot.docs)), onError);
 }
 
 export function subscribeToPublicProfile(uid: string, onValue: (profile: PublicProfile | null) => void, onError: (error: Error) => void): Unsubscribe {

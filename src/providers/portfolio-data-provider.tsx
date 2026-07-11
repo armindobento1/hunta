@@ -17,6 +17,7 @@ import {
   saveProfile,
   subscribeToProfile,
 } from "@/lib/firebase/profile-repository";
+import { SOCIAL_ENABLED } from "@/lib/features";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { buildPublicProfile } from "@/lib/domain/public-social";
 import { savePublicProfile } from "@/lib/firebase/public-social-repository";
@@ -80,7 +81,7 @@ function PortfolioDataSession({
       (profile) => {
         if (profile) {
           setProfileState({ profile, loading: false, error: null });
-          void savePublicProfile(buildPublicProfile(profile));
+          if (SOCIAL_ENABLED) void savePublicProfile(buildPublicProfile(profile));
           return;
         }
 

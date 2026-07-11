@@ -1,8 +1,7 @@
-import { Copy, Grid2X2, MapPin, MoreHorizontal, Play, Share2 } from "lucide-react";
+import { Copy, MoreHorizontal, Play, Share2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { PublicHuntsMap } from "@/components/social/public-hunts-map";
 import type { PublicHunt, PublicProfile } from "@/lib/domain/public-social";
 import { useFollowStats } from "@/lib/hooks/use-follow-stats";
 import { useViewerFollowing } from "@/lib/hooks/use-viewer-following";
@@ -20,7 +19,6 @@ export function PublicProfileView({ profile, hunts }: { profile: PublicProfile; 
   const { counts } = useFollowStats(profile.id);
   const viewer = useViewerFollowing();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [tab, setTab] = useState<"grid" | "map">("grid");
   const [speciesFilter, setSpeciesFilter] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -135,17 +133,8 @@ export function PublicProfileView({ profile, hunts }: { profile: PublicProfile; 
           ))}
         </div>
       ) : null}
-      <div className="ppf-tabs" role="tablist" aria-label="Portfolio view">
-        <button type="button" role="tab" aria-selected={tab === "grid"} className={`ppf-tab${tab === "grid" ? " ppf-tab-active" : ""}`} onClick={() => setTab("grid")}>
-          <Grid2X2 aria-hidden="true" />
-        </button>
-        <button type="button" role="tab" aria-selected={tab === "map"} className={`ppf-tab${tab === "map" ? " ppf-tab-active" : ""}`} onClick={() => setTab("map")}>
-          <MapPin aria-hidden="true" />
-        </button>
-      </div>
-      {tab === "map" ? (
-        <PublicHuntsMap hunts={visibleHunts} />
-      ) : (
+      {/* No public map view: public hunts carry no coordinates by design. */}
+      {(
         <section className="ig-grid" style={{ marginTop: 2, borderRadius: 0 }} aria-label="Published hunts">
           {visibleHunts.length === 0 ? (
             <p className="ig-empty">No published hunts yet.</p>

@@ -1,6 +1,8 @@
 import { Compass, Home, MapPin, Plus, UserRound } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
+import { SOCIAL_ENABLED } from "@/lib/features";
+
 function isActive(pathname: string, path: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
@@ -14,17 +16,21 @@ export function BottomNav() {
 
   return (
     <nav className="bottom-nav" aria-label="Primary navigation">
-      <Link className={`tab-item${isActive(pathname, "/home") ? " tab-active" : ""}`} to="/home">
-        <Home aria-hidden="true" />
-        <span>Home</span>
-      </Link>
-      <Link
-        className={`tab-item${isActive(pathname, "/discover") ? " tab-active" : ""}`}
-        to="/discover"
-      >
-        <Compass aria-hidden="true" />
-        <span>Discover</span>
-      </Link>
+      {SOCIAL_ENABLED ? (
+        <>
+          <Link className={`tab-item${isActive(pathname, "/home") ? " tab-active" : ""}`} to="/home">
+            <Home aria-hidden="true" />
+            <span>Home</span>
+          </Link>
+          <Link
+            className={`tab-item${isActive(pathname, "/discover") ? " tab-active" : ""}`}
+            to="/discover"
+          >
+            <Compass aria-hidden="true" />
+            <span>Discover</span>
+          </Link>
+        </>
+      ) : null}
       <Link className="tab-fab" to="/portfolio/kills/new" aria-label="Log a kill">
         <Plus aria-hidden="true" />
       </Link>

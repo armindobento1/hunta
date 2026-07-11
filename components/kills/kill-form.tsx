@@ -8,6 +8,7 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import type { FarmSuggestion } from "@/lib/domain/farm";
 import type { Kill, MediaAsset } from "@/lib/domain/kill";
+import { SOCIAL_ENABLED } from "@/lib/features";
 import { resolveLoadout, type ArmoryItem, type Loadout } from "@/lib/domain/armory";
 
 import { GpxPicker } from "./gpx-picker";
@@ -428,11 +429,13 @@ export function KillForm({
         </FormField>
       </section>
 
-      <section className="editor-section publish-section" aria-labelledby="publish-heading">
-        <div className="section-heading"><div><p>09</p><h2 id="publish-heading">Public activity</h2></div><span>Optional</span></div>
-        <label className="publish-toggle"><input type="checkbox" {...register("isPublic")} /><span><strong>Publish publicly</strong><small>Show this hunt in Discover, followers’ feeds, and public leaderboards.</small></span></label>
-        {isPublic ? <p className="publish-warning" role="note">Your farm name and exact GPS coordinates will be visible to everyone.</p> : null}
-      </section>
+      {SOCIAL_ENABLED ? (
+        <section className="editor-section publish-section" aria-labelledby="publish-heading">
+          <div className="section-heading"><div><p>09</p><h2 id="publish-heading">Public activity</h2></div><span>Optional</span></div>
+          <label className="publish-toggle"><input type="checkbox" {...register("isPublic")} /><span><strong>Publish publicly</strong><small>Show this hunt in Discover, followers’ feeds, and public leaderboards.</small></span></label>
+          {isPublic ? <p className="publish-warning" role="note">Your farm name and exact GPS coordinates will be visible to everyone.</p> : null}
+        </section>
+      ) : null}
 
       <UploadList items={uploads} />
       {saveError ? (

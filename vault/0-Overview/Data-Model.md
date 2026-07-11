@@ -95,7 +95,7 @@ Views over the same Kill set:
 ### Public social projections
 
 - `publicProfiles/{uid}` is a searchable read-only projection of public account identity.
-- `publicHunts/{uid}_{killId}` is created only when the owner selects Publish publicly. It includes the approved hunt facts, public media URLs, farm, and coordinates but excludes private storage paths and persistence metadata.
+- `publicHunts/{uid}_{killId}` is created only when the owner selects Publish publicly. It includes the approved hunt facts and public media URLs but excludes private storage paths and persistence metadata. Its location is farm name + area **text only** (`publicLocationSchema`, mirrored by `validPublicLocation` in rules): exact coordinates, farm IDs, and geocoder provenance never enter a public shape. `publishedAt` is immutable after first publish (rules-enforced); edits republish with the original value.
 - `users/{followerUid}/following/{followedUid}` and its public follower mirror record owner-controlled follows.
 - Unpublishing deletes only the public projection. The private Kill and all source media remain intact.
 

@@ -28,6 +28,15 @@ Capacitor iOS/Android shells with native Google/Apple sign-in. A static landing
 page lives in `docs/` (GitHub Pages). Statements elsewhere in older docs that
 "the app doesn't exist yet" are obsolete — trust the code.
 
+The public/social surface (routes, publish toggle, all client public writes)
+is feature-flagged via `VITE_SOCIAL_ENABLED` (`lib/features.ts`) — **off by
+default and in prod** until the remaining audit findings land; the plan is
+fix-then-launch social, not private-only. Hard domain rule: **a public hunt's
+location is farm name + area text only** (`publicLocationSchema`) — exact
+coordinates, farm IDs, and geocoder provenance never enter a public shape
+(enforced in `firestore.rules` too; the `farms` collection is retired and
+locked). Check the `audit/README.md` status tracker before touching social.
+
 ## How to decide what to read (core principle)
 Cheapest sufficient source of truth, in order: **Memory → Docs → Code**.
 Code is the final authority — docs can be stale; when a doc claim matters to

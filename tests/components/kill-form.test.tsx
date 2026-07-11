@@ -100,11 +100,12 @@ describe("KillForm", () => {
     expect(screen.getByLabelText(/grain/i)).toHaveValue(180);
   });
 
-  it("warns before publishing a farm and exact coordinates", async () => {
-    const user = userEvent.setup();
+  it("offers no public publishing in the private-only build", () => {
+    // VITE_SOCIAL_ENABLED is off, so the publish toggle must not render —
+    // audit v1.1 F-01/F-05 containment.
     renderWithRouter(<KillForm onSave={vi.fn()} />);
-    await user.click(screen.getByRole("checkbox", { name: /publish publicly/i }));
-    expect(screen.getByText(/farm name and exact gps coordinates will be visible to everyone/i)).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /publish publicly/i })).toBeNull();
+    expect(screen.queryByText(/publish publicly/i)).toBeNull();
   });
 
   it("accepts supported media and chooses the first photo as cover", async () => {

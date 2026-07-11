@@ -8,10 +8,31 @@ describe("public social projections", () => {
     const projection = buildPublicHunt(makeKill({ location: { latitude: -33, longitude: 28, placeName: "Eastern Cape", farmName: "Baviaans Lodge" } }), profile, "2025-06-12T09:00:00.000Z");
 
     expect(projection.id).toBe("owner-1_kill-1");
-    expect(projection.location).toMatchObject({ farmName: "Baviaans Lodge", latitude: -33, longitude: 28 });
+    expect(projection.location).toEqual({ placeName: "Eastern Cape", farmName: "Baviaans Lodge" });
     expect(projection.media[0]).toEqual({ id: "media-1", kind: "photo", downloadUrl: "https://example.com/kudu.jpg" });
     expect(JSON.stringify(projection)).not.toContain("storagePath");
     expect(JSON.stringify(projection)).not.toContain("trashedAt");
+  });
+
+  it("never leaks coordinates, farm IDs, or geocoder provenance into the projection", () => {
+    // Poaching boundary (audit v1.1 F-01): the public location is farm name +
+    // area text only — hunters find the farm themselves.
+    const projection = buildPublicHunt(makeKill({
+      location: {
+        latitude: -33.0183,
+        longitude: 27.9035,
+        placeName: "Eastern Cape",
+        farmName: "Baviaans Lodge",
+        farmId: "baviaans-lodge_-33.02_27.90",
+        source: { provider: "esri", featureId: "feature-9", label: "Baviaans" },
+      },
+    }), profile);
+
+    expect(projection.location).toEqual({ placeName: "Eastern Cape", farmName: "Baviaans Lodge" });
+    const serialized = JSON.stringify(projection);
+    for (const secret of ["latitude", "longitude", "-33.0183", "27.9035", "farmId", "featureId", "esri"]) {
+      expect(serialized).not.toContain(secret);
+    }
   });
 
   it("normalizes account names for prefix search", () => {

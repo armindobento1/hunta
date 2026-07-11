@@ -12,6 +12,9 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     globals: true,
+    // Tests always run against the release default (social off), even when a
+    // developer's .env.local enables the social surface for local dev.
+    env: { VITE_SOCIAL_ENABLED: "false" },
     setupFiles: ["./tests/setup.ts"],
     exclude: [
       "tests/rules/**",
