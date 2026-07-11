@@ -247,11 +247,24 @@ service cloud.firestore {
 
     function validHuntComment(data, publicHuntId, commentId) {
       return data.keys().hasAll(['id', 'huntId', 'authorId', 'authorName', 'body', 'createdAt', 'updatedAt']) &&
-        data.keys().hasOnly(['id', 'huntId', 'authorId', 'authorName', 'body', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'huntId', 'authorId', 'authorName', 'body', 'parentId', 'likedBy', 'createdAt', 'updatedAt']) &&
         data.id == commentId && data.huntId == publicHuntId &&
         data.authorId == request.auth.uid && shortString(data.authorName, 80) &&
         shortString(data.body, 1000) &&
+        optionalString(data, 'parentId', 128) &&
+        (!('likedBy' in data) || (data.likedBy is list && data.likedBy.size() <= 5000)) &&
         data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    // A comment-like update may change likedBy only, and only by adding or
+    // removing exactly the caller's own uid — nobody can like as someone else
+    // or inflate counts.
+    function commentLikeToggle() {
+      let before = resource.data.get('likedBy', []).toSet();
+      let after = request.resource.data.get('likedBy', []).toSet();
+      let me = [request.auth.uid].toSet();
+      return (after.difference(before) == me && before.difference(after).size() == 0) ||
+        (before.difference(after) == me && after.difference(before).size() == 0);
     }
 
     // Notifications are written by the actor into the recipient's inbox, in
@@ -391,11 +404,21 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if true;
         allow create: if signedIn() && validHuntComment(request.resource.data, publicHuntId, commentId) &&
+          request.resource.data.get('likedBy', []).size() == 0 &&
           request.resource.data.createdAt < request.time + duration.value(10, 'm') &&
           exists(/databases/$(database)/documents/publicHunts/$(publicHuntId));
-        allow update: if signedIn() && resource.data.authorId == request.auth.uid &&
-          validHuntComment(request.resource.data, publicHuntId, commentId) &&
-          request.resource.data.createdAt == resource.data.createdAt;
+        // Authors edit their comment (but never its likes); anyone signed in
+        // may toggle exactly their own uid in likedBy.
+        allow update: if signedIn() && (
+          (resource.data.authorId == request.auth.uid &&
+            validHuntComment(request.resource.data, publicHuntId, commentId) &&
+            request.resource.data.createdAt == resource.data.createdAt &&
+            request.resource.data.get('likedBy', []) == resource.data.get('likedBy', [])) ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy']) &&
+            request.resource.data.likedBy is list &&
+            request.resource.data.likedBy.size() <= 5000 &&
+            commentLikeToggle())
+        );
         // The comment author removes their own comment; the hunt owner
         // moderates comments on their own hunt and clears them on unpublish.
         allow delete: if signedIn() && (resource.data.authorId == request.auth.uid ||

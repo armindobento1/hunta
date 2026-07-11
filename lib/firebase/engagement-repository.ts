@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, limit, onSnapshot, orderBy, query, Timestamp, updateDoc, writeBatch, type Unsubscribe } from "firebase/firestore";
+import { arrayRemove, arrayUnion, collection, deleteDoc, doc, limit, onSnapshot, orderBy, query, Timestamp, updateDoc, writeBatch, type Unsubscribe } from "firebase/firestore";
 
 import {
   buildCommentNotification, buildLikeNotification, commentNotificationId, huntCommentSchema, huntLikeSchema,
@@ -37,9 +37,9 @@ export async function unlikeHunt(hunt: PublicHunt, actorId: string) {
   await batch.commit();
 }
 
-export async function addHuntComment(hunt: PublicHunt, actor: Actor, body: string): Promise<HuntComment> {
+export async function addHuntComment(hunt: PublicHunt, actor: Actor, body: string, parentId?: string): Promise<HuntComment> {
   const now = new Date().toISOString();
-  const comment = huntCommentSchema.parse({ id: commentId(), huntId: hunt.id, authorId: actor.id, authorName: actor.name, body, createdAt: now, updatedAt: now });
+  const comment = huntCommentSchema.parse({ id: commentId(), huntId: hunt.id, authorId: actor.id, authorName: actor.name, body, ...(parentId ? { parentId } : {}), likedBy: [], createdAt: now, updatedAt: now });
   const batch = writeBatch(db());
   batch.set(doc(comments(hunt.id), comment.id), { ...comment, createdAt: ts(comment.createdAt), updatedAt: ts(comment.updatedAt) });
   if (hunt.ownerId !== actor.id) {
@@ -55,6 +55,10 @@ export async function deleteHuntComment(hunt: PublicHunt, comment: HuntComment) 
   batch.delete(doc(comments(hunt.id), comment.id));
   if (hunt.ownerId !== comment.authorId) batch.delete(doc(notifications(hunt.ownerId), commentNotificationId(comment.id)));
   await batch.commit();
+}
+
+export async function setCommentLiked(huntId: string, targetCommentId: string, uid: string, liked: boolean) {
+  await updateDoc(doc(comments(huntId), targetCommentId), { likedBy: liked ? arrayUnion(uid) : arrayRemove(uid) });
 }
 
 export function subscribeToHuntLikes(huntId: string, onValue: (value: HuntLike[]) => void, onError: (error: Error) => void): Unsubscribe {
