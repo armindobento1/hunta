@@ -56,8 +56,13 @@ git merge --no-ff <branch> -m "Merge <branch>: <one-line summary>"
 git push origin main <branch>
 ```
 
-- Pushing `main` triggers the Vercel production deploy of the app
-  (project `onfoothunta` — linked in `.vercel/project.json`).
+- Pushing `main` does **not** auto-deploy: the Vercel project `onfoothunta`
+  (linked in `.vercel/project.json`) has no git integration — deploys are
+  CLI-driven. After the push, deploy explicitly from a clean main checkout:
+
+  ```
+  vercel deploy --prod
+  ```
 - The GitHub Pages landing page does **not** deploy from main (it deploys from
   `codex/firebase-hunting-portfolio-v1` `/docs`) — only mention it if `docs/`
   changed, and flag that those changes need porting to that branch.
@@ -66,9 +71,10 @@ git push origin main <branch>
 
 ## 5. Confirm the deploy
 
-- Best effort: `vercel ls onfoothunta` (or `npx vercel ls`) to confirm a new
-  deployment started; report its state. If the CLI isn't authenticated, say the
-  push landed and the deploy triggers from git — don't block on it.
+- `vercel ls onfoothunta` and confirm the new deployment is ● Ready; report its
+  URL and state. If the CLI isn't authenticated, report the push landed but the
+  deploy is still pending and needs `vercel deploy --prod` — that IS a blocker
+  for calling the chain complete.
 
 ## 6. Make the session clearable
 
