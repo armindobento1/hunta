@@ -1,107 +1,178 @@
-import { UserRound } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Copy, Grid2X2, MapPin, MoreHorizontal, Play, Share2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
+import { PublicHuntsMap } from "@/components/social/public-hunts-map";
 import type { PublicHunt, PublicProfile } from "@/lib/domain/public-social";
-import { followAccount, subscribeToFollowing, unfollowAccount } from "@/lib/firebase/follow-repository";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { useFollowStats } from "@/lib/hooks/use-follow-stats";
+import { useViewerFollowing } from "@/lib/hooks/use-viewer-following";
+import { initials } from "@/lib/ui/initials";
 
-function FollowButton({ profileId }: { profileId: string }) {
-  const { user } = useAuth();
-  const [followingIds, setFollowingIds] = useState<string[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    if (!user || user.uid === profileId) return;
-    return subscribeToFollowing(user.uid, setFollowingIds, () => setFollowingIds(null));
-  }, [user, profileId]);
-  if (!user || user.uid === profileId || !followingIds) return null;
-  const isFollowing = followingIds.includes(profileId);
+function huntCover(hunt: PublicHunt) {
   return (
-    <>
-      <button
-        type="button"
-        className={`ig-follow-btn${isFollowing ? " ig-following" : ""}`}
-        onClick={async () => {
-          try {
-            if (isFollowing) await unfollowAccount(user.uid, profileId);
-            else await followAccount(user.uid, profileId);
-            setError(null);
-          } catch (cause) {
-            setError(cause instanceof Error ? cause.message : "Could not update follow.");
-          }
-        }}
-      >
-        {isFollowing ? "Following" : "Follow"}
-      </button>
-      {error ? <p role="alert">{error}</p> : null}
-    </>
+    hunt.media.find((item) => item.id === hunt.coverMediaId && item.kind === "photo") ??
+    hunt.media.find((item) => item.kind === "photo")
   );
 }
 
 export function PublicProfileView({ profile, hunts }: { profile: PublicProfile; hunts: PublicHunt[] }) {
-  const { counts, people, error, toggleList } = useFollowStats(profile.id);
+  const navigate = useNavigate();
+  const { counts } = useFollowStats(profile.id);
+  const viewer = useViewerFollowing();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [tab, setTab] = useState<"grid" | "map">("grid");
+  const [speciesFilter, setSpeciesFilter] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const canFollow = Boolean(viewer.viewerId && viewer.viewerId !== profile.id && viewer.followingIds);
+  const isFollowing = Boolean(viewer.followingIds?.includes(profile.id));
+  const highlights = useMemo(() => {
+    const bySpecies = new Map<string, { species: string; coverUrl: string | null; featured: boolean }>();
+    for (const hunt of hunts) {
+      const entry = bySpecies.get(hunt.species);
+      if (!entry) {
+        bySpecies.set(hunt.species, {
+          species: hunt.species,
+          coverUrl: huntCover(hunt)?.downloadUrl ?? null,
+          featured: Boolean(hunt.measurement?.score),
+        });
+      } else if (hunt.measurement?.score) {
+        entry.featured = true;
+      }
+    }
+    return [...bySpecies.values()];
+  }, [hunts]);
+  const visibleHunts = speciesFilter ? hunts.filter((hunt) => hunt.species === speciesFilter) : hunts;
+
+  async function copyProfileLink() {
+    setMenuOpen(false);
+    await navigator.clipboard.writeText(window.location.href);
+    setNotice("Profile link copied.");
+  }
+
+  async function shareProfile() {
+    const url = window.location.href;
+    // A cancelled native share throws AbortError — that is not an error state.
+    try {
+      if (navigator.share) await navigator.share({ title: `${profile.displayName} on Hunta`, url });
+      else {
+        await navigator.clipboard.writeText(url);
+        setNotice("Profile link copied.");
+      }
+    } catch {
+      return;
+    }
+  }
+
   return (
     <main className="public-page ig-profile">
-      <header className="ig-head">
+      <header className="ppf-head" style={{ position: "relative" }}>
+        <button type="button" className="cmt-back" aria-label="Back" onClick={() => navigate(-1)} />
+        <strong style={{ flex: 1 }}>{profile.displayName}</strong>
+        <button type="button" className="ppf-menu-btn" aria-label="More options" onClick={() => setMenuOpen((value) => !value)}>
+          <MoreHorizontal aria-hidden="true" />
+        </button>
+        {menuOpen ? (
+          <div className="ppf-menu" role="menu">
+            <button type="button" role="menuitem" onClick={() => void copyProfileLink()}>Copy profile link</button>
+          </div>
+        ) : null}
+      </header>
+      <div className="ig-head">
         <span className="public-avatar">
-          {profile.avatarUrl ? <img src={profile.avatarUrl} alt="" /> : <UserRound />}
+          {profile.avatarUrl ? <img src={profile.avatarUrl} alt="" /> : initials(profile.displayName)}
         </span>
         <div className="ig-stats">
           <div>
             <strong>{hunts.length}</strong>
             <span>Hunts</span>
           </div>
-          <button type="button" onClick={() => void toggleList("followers")}>
+          <button type="button" onClick={() => navigate(`/people/${profile.id}/followers`)}>
             <strong>{counts?.followers ?? "–"}</strong>
             <span>Followers</span>
           </button>
-          <button type="button" onClick={() => void toggleList("following")}>
+          <button type="button" onClick={() => navigate(`/people/${profile.id}/following`)}>
             <strong>{counts?.following ?? "–"}</strong>
             <span>Following</span>
           </button>
         </div>
-      </header>
+      </div>
       <div className="ig-identity">
         <h1>{profile.displayName}</h1>
         {profile.bio ? <p>{profile.bio}</p> : null}
       </div>
-      <FollowButton profileId={profile.id} />
-      {error ? <p role="alert">{error}</p> : null}
-      {people ? (
-        <ul className="follow-people" aria-label={people.kind}>
-          {people.list.length === 0 ? (
-            <li>No {people.kind} yet.</li>
-          ) : (
-            people.list.map((person) => (
-              <li key={person.id}>
-                <Link to={`/people/${person.id}`}>{person.displayName}</Link>
-              </li>
-            ))
-          )}
-        </ul>
+      <div className="ppf-actions">
+        {canFollow ? (
+          <button
+            type="button"
+            className={`ig-follow-btn${isFollowing ? " ig-following" : ""}`}
+            onClick={() => void viewer.toggle(profile.id)}
+          >
+            {isFollowing ? "Following" : "Follow"}
+          </button>
+        ) : null}
+        <button type="button" className="ppf-share" aria-label="Share profile" onClick={() => void shareProfile()}>
+          <Share2 aria-hidden="true" />
+        </button>
+      </div>
+      {viewer.error ? <p role="alert">{viewer.error}</p> : null}
+      {notice ? <p role="status">{notice}</p> : null}
+      {highlights.length > 0 ? (
+        <div className="hl-row" aria-label="Species highlights">
+          {highlights.map((highlight) => (
+            <button
+              key={highlight.species}
+              type="button"
+              className={`hl-item${highlight.featured ? " hl-featured" : ""}${speciesFilter === highlight.species ? " hl-active" : ""}`}
+              aria-pressed={speciesFilter === highlight.species}
+              onClick={() => setSpeciesFilter((current) => (current === highlight.species ? null : highlight.species))}
+            >
+              <span className="hl-thumb">
+                {highlight.coverUrl ? <img src={highlight.coverUrl} alt="" /> : <span aria-hidden="true" />}
+              </span>
+              <span className="hl-label">{highlight.species}</span>
+            </button>
+          ))}
+        </div>
       ) : null}
-      <section className="ig-grid" aria-label="Published hunts">
-        {hunts.length === 0 ? (
-          <p className="ig-empty">No published hunts yet.</p>
-        ) : (
-          hunts.map((hunt) => {
-            const cover =
-              hunt.media.find((item) => item.id === hunt.coverMediaId && item.kind === "photo") ??
-              hunt.media.find((item) => item.kind === "photo");
-            return (
-              <Link
-                key={hunt.id}
-                className="ig-tile"
-                to={`/people/${hunt.ownerId}/hunts/${hunt.id}`}
-                style={cover ? { backgroundImage: `url(${cover.downloadUrl})` } : undefined}
-              >
-                <span className="ig-tile-label">{hunt.species}</span>
-              </Link>
-            );
-          })
-        )}
-      </section>
+      <div className="ppf-tabs" role="tablist" aria-label="Portfolio view">
+        <button type="button" role="tab" aria-selected={tab === "grid"} className={`ppf-tab${tab === "grid" ? " ppf-tab-active" : ""}`} onClick={() => setTab("grid")}>
+          <Grid2X2 aria-hidden="true" />
+        </button>
+        <button type="button" role="tab" aria-selected={tab === "map"} className={`ppf-tab${tab === "map" ? " ppf-tab-active" : ""}`} onClick={() => setTab("map")}>
+          <MapPin aria-hidden="true" />
+        </button>
+      </div>
+      {tab === "map" ? (
+        <PublicHuntsMap hunts={visibleHunts} />
+      ) : (
+        <section className="ig-grid" style={{ marginTop: 2, borderRadius: 0 }} aria-label="Published hunts">
+          {visibleHunts.length === 0 ? (
+            <p className="ig-empty">No published hunts yet.</p>
+          ) : (
+            visibleHunts.map((hunt) => {
+              const cover = huntCover(hunt);
+              const hasVideo = hunt.media.some((item) => item.kind === "video");
+              const multi = hunt.media.length > 1;
+              return (
+                <Link
+                  key={hunt.id}
+                  className="ig-tile"
+                  to={`/people/${hunt.ownerId}/hunts/${hunt.id}`}
+                  style={cover ? { backgroundImage: `url(${cover.downloadUrl})` } : undefined}
+                >
+                  {hasVideo ? (
+                    <span className="ig-tile-badge"><Play aria-hidden="true" fill="currentColor" /></span>
+                  ) : multi ? (
+                    <span className="ig-tile-badge"><Copy aria-hidden="true" /></span>
+                  ) : null}
+                  <span className="ig-tile-label">{hunt.species}</span>
+                </Link>
+              );
+            })
+          )}
+        </section>
+      )}
     </main>
   );
 }

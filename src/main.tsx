@@ -6,6 +6,7 @@ import { App } from "@/src/app";
 import "@/src/styles/globals.css";
 import "@/src/styles/design-v2.css";
 import "@/src/styles/armory.css";
+import "@/src/styles/social.css";
 
 const root = document.getElementById("root");
 

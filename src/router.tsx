@@ -6,6 +6,7 @@ import { EditKillPage } from "@/src/pages/edit-kill-page";
 import { DiscoverPage } from "@/src/pages/discover-page";
 import { HomeFeedPage } from "@/src/pages/home-feed-page";
 import { HomePage } from "@/src/pages/home-page";
+import { HuntCommentsPage } from "@/src/pages/hunt-comments-page";
 import { KillDetailPage } from "@/src/pages/kill-detail-page";
 import { LeaderboardPage } from "@/src/pages/leaderboard-page";
 import { LoadoutBuilderPage } from "@/src/pages/loadout-builder-page";
@@ -19,6 +20,7 @@ import { TrashPage } from "@/src/pages/trash-page";
 import { PortfolioDataProvider } from "@/src/providers/portfolio-data-provider";
 import { PublicProfilePage } from "@/src/pages/public-profile-page";
 import { FarmPage } from "@/src/pages/farm-page";
+import { FollowListPage } from "@/src/pages/follow-list-page";
 import { PublicHuntPage } from "@/src/pages/public-hunt-page";
 import { SocialDataProvider } from "@/src/providers/social-data-provider";
 
@@ -36,7 +38,10 @@ export const APP_ROUTES: RouteObject[] = [
   { id: "home", path: "/", element: <HomePage /> },
   { id: "auth", path: "/auth", element: <AuthPage /> },
   { id: "public-profile", path: "/people/:uid", element: <PublicProfilePage /> },
+  { id: "public-followers", path: "/people/:uid/followers", element: <FollowListPage kind="followers" /> },
+  { id: "public-following", path: "/people/:uid/following", element: <FollowListPage kind="following" /> },
   { id: "public-hunt", path: "/people/:uid/hunts/:publicHuntId", element: <PublicHuntPage /> },
+  { id: "public-hunt-comments", path: "/people/:uid/hunts/:publicHuntId/comments", element: <HuntCommentsPage /> },
   { id: "farm", path: "/farms/:farmId", element: <FarmPage /> },
   {
     id: "private",
