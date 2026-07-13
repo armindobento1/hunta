@@ -12,6 +12,7 @@ import {
 import {
   connectFirestoreEmulator,
   getFirestore,
+  initializeFirestore,
   type Firestore,
 } from "firebase/firestore";
 import {
@@ -67,6 +68,21 @@ function createAuth(app: FirebaseApp): Auth {
   }
 }
 
+// Firestore's default WebChannel streaming transport fails inside the iOS
+// Capacitor WKWebView — the `Listen` RPC stream errors and onSnapshot never
+// delivers, so public feeds (which are all live listeners) never load. Force
+// long-polling on native; browsers keep the faster WebChannel path.
+function createFirestore(app: FirebaseApp): Firestore {
+  if (!isNativePlatform()) return getFirestore(app);
+  try {
+    return initializeFirestore(app, { experimentalForceLongPolling: true });
+  } catch {
+    // initializeFirestore throws if Firestore was already initialized for
+    // this app (e.g. HMR) — reuse the existing instance.
+    return getFirestore(app);
+  }
+}
+
 function environmentConfig() {
   return {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -90,7 +106,7 @@ export function getFirebaseServices(): FirebaseServices {
   const config = firebaseConfigSchema.parse(environmentConfig());
   const app = getApps().length > 0 ? getApp() : initializeApp(config);
   const auth = createAuth(app);
-  const db = getFirestore(app);
+  const db = createFirestore(app);
   const storage = getStorage(app);
 
   if (

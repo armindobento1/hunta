@@ -98,6 +98,7 @@ Views over the same Kill set:
 - `publicHunts/{uid}_{killId}` is created only when the owner selects Publish publicly. It includes the approved hunt facts and public media URLs but excludes private storage paths and persistence metadata. Its location is farm name + area **text only** (`publicLocationSchema`, mirrored by `validPublicLocation` in rules): exact coordinates, farm IDs, and geocoder provenance never enter a public shape. `publishedAt` is immutable after first publish (rules-enforced); edits republish with the original value.
 - `users/{followerUid}/following/{followedUid}` and its public follower mirror record owner-controlled follows.
 - Unpublishing deletes only the public projection. The private Kill and all source media remain intact.
+- **Engagement counts are denormalized** onto the hunt doc (`likeCount`/`commentCount`), maintained by atomic `increment()` batched with each like/comment write. The feed reads them off the hunt docs it already subscribes to — no per-card likes/comments listeners. Rules let a non-owner change exactly one counter by ±1, tied to actually creating/deleting their own like doc (comment counter bounded to ±1, cosmetic-only integrity); `engagementCountBump` in `firestore.rules`, tested in `tests/rules/`. "Did I like this" for the whole feed comes from one collection-group listener (`likes where likerId == me`). Full likes/comments listeners open only on an opened post (detail/comments screens).
 
 ### route (Garmin / Strava import)
 | Field | Notes |

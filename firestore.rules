@@ -224,14 +224,40 @@ service cloud.firestore {
 
     function validPublicHunt(data, publicHuntId) {
       return data.keys().hasAll(['id', 'ownerId', 'sourceKillId', 'hunter', 'species', 'coverMediaId', 'media', 'country', 'date', 'killTime', 'location', 'weapon', 'ammunition', 'routeSummary', 'description', 'publishedAt', 'updatedAt']) &&
-        data.keys().hasOnly(['id', 'ownerId', 'sourceKillId', 'hunter', 'species', 'coverMediaId', 'media', 'country', 'date', 'killTime', 'location', 'weapon', 'ammunition', 'equipmentAttachments', 'measurement', 'routeSummary', 'description', 'publishedAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'ownerId', 'sourceKillId', 'hunter', 'species', 'coverMediaId', 'media', 'country', 'date', 'killTime', 'location', 'weapon', 'ammunition', 'equipmentAttachments', 'measurement', 'routeSummary', 'description', 'publishedAt', 'updatedAt', 'likeCount', 'commentCount']) &&
         data.id == publicHuntId && data.ownerId == request.auth.uid && shortString(data.sourceKillId, 128) &&
         data.hunter is map && data.hunter.id == data.ownerId && shortString(data.hunter.displayName, 80) &&
         shortString(data.species, 120) && data.media is list && data.media.size() <= 30 && shortString(data.country, 100) &&
         validPublicLocation(data.location) && validWeapon(data.weapon) && validAmmunition(data.ammunition) &&
         (!('measurement' in data) || validMeasurement(data.measurement)) &&
         (!('equipmentAttachments' in data) || validAttachments(data.equipmentAttachments)) &&
+        (!('likeCount' in data) || (data.likeCount is int && data.likeCount >= 0)) &&
+        (!('commentCount' in data) || (data.commentCount is int && data.commentCount >= 0)) &&
         data.description is string && data.description.size() <= 5000 && data.publishedAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    // A signed-in user may move exactly one engagement counter by ±1 and change
+    // nothing else, so this path can never rewrite ownership or other fields
+    // (the F-02 takeover stays closed). The like counter is tied to the caller
+    // actually creating/deleting their own like doc in the same write — merely
+    // having a like present is not enough, so a liker can't keep re-incrementing.
+    // The comment counter is bounded to ±1 per write (random comment ids can't
+    // be proven in-rule — worst case is a cosmetic count skew, never data access).
+    function likePath(publicHuntId) {
+      return /databases/$(database)/documents/publicHunts/$(publicHuntId)/likes/$(request.auth.uid);
+    }
+    function engagementCountBump(publicHuntId) {
+      let after = request.resource.data;
+      let before = resource.data;
+      let changed = after.diff(before).affectedKeys();
+      return (changed.hasOnly(['likeCount']) && after.likeCount is int && after.likeCount >= 0 &&
+          ((after.likeCount == before.get('likeCount', 0) + 1 &&
+             !exists(likePath(publicHuntId)) && existsAfter(likePath(publicHuntId))) ||
+           (after.likeCount == before.get('likeCount', 0) - 1 &&
+             exists(likePath(publicHuntId)) && !existsAfter(likePath(publicHuntId))))) ||
+        (changed.hasOnly(['commentCount']) && after.commentCount is int && after.commentCount >= 0 &&
+          (after.commentCount == before.get('commentCount', 0) + 1 ||
+           after.commentCount == before.get('commentCount', 0) - 1));
     }
 
     function validHuntLike(data, publicHuntId, likerId) {
@@ -395,14 +421,19 @@ service cloud.firestore {
       // can create a projection at a path that encodes another hunter's uid.
       allow create: if signedIn() && validPublicHunt(request.resource.data, publicHuntId) &&
         publicHuntId == request.auth.uid + '_' + request.resource.data.sourceKillId;
-      // Only the current owner may rewrite the projection, and identity and
-      // provenance fields are immutable — a full replacement write cannot
-      // take the document over or re-date its publication.
-      allow update: if signedIn() && resource.data.ownerId == request.auth.uid &&
-        validPublicHunt(request.resource.data, publicHuntId) &&
-        request.resource.data.ownerId == resource.data.ownerId &&
-        request.resource.data.sourceKillId == resource.data.sourceKillId &&
-        request.resource.data.publishedAt == resource.data.publishedAt;
+      // Two ways to update: the owner rewrites the projection (identity,
+      // provenance, and engagement counts all immutable here — counts move only
+      // through the bump path), or anyone bumps a single engagement counter.
+      allow update: if signedIn() && (
+        (resource.data.ownerId == request.auth.uid &&
+          validPublicHunt(request.resource.data, publicHuntId) &&
+          request.resource.data.ownerId == resource.data.ownerId &&
+          request.resource.data.sourceKillId == resource.data.sourceKillId &&
+          request.resource.data.publishedAt == resource.data.publishedAt &&
+          request.resource.data.get('likeCount', 0) == resource.data.get('likeCount', 0) &&
+          request.resource.data.get('commentCount', 0) == resource.data.get('commentCount', 0)) ||
+        engagementCountBump(publicHuntId)
+      );
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
 
       match /likes/{likerId} {
@@ -485,6 +516,14 @@ service cloud.firestore {
     // edges are public by design. Grants read only — writes are governed by
     // the specific match below.
     match /{path=**}/followers/{followerId} {
+      allow read: if true;
+    }
+
+    // Collection-group read so the feed can load "which hunts have I liked" in
+    // one query (likes where likerId == me) instead of a listener per card.
+    // Only publicHunts/*/likes uses this subcollection name, and likes are
+    // public by design (they already allow read: if true individually).
+    match /{path=**}/likes/{likerId} {
       allow read: if true;
     }
 

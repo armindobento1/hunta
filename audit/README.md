@@ -32,3 +32,4 @@ _Update every pass._
 | Topic | Version | Last author | Status |
 |-------|---------|-------------|--------|
 | Full Hunta codebase | v1.2 | claude-code (implementer) | Open — flag containment, F-02, F-15, and F-01 location redaction (text-only public location, farms retired) done; awaiting Codex re-review. Parity inverted for this topic: v1.1 was the auditor. |
+| Buttons & interactions | v2 | codex (auditor) | Open — initial audit complete with 8 findings (F2-01–F2-08); awaiting Claude Code v2.1 implementation response. Production/local checks completed; authenticated two-account mutation proof remains required. |

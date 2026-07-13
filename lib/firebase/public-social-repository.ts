@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, endAt, getDoc, getDocs, limit, onSnapshot, orderBy, query, setDoc, startAt, Timestamp, where, writeBatch, type Unsubscribe } from "firebase/firestore";
+import { collection, collectionGroup, deleteDoc, doc, endAt, getDoc, getDocs, limit, onSnapshot, orderBy, query, runTransaction, setDoc, startAt, Timestamp, where, writeBatch, type Unsubscribe } from "firebase/firestore";
 
 import { publicHuntSchema, publicProfileSchema, type PublicHunt, type PublicProfile } from "@/lib/domain/public-social";
 import { getFirebaseServices } from "./config";
@@ -32,7 +32,29 @@ export async function savePublicProfile(profile: PublicProfile) {
 
 export async function publishHunt(hunt: PublicHunt) {
   const value = publicHuntSchema.parse(hunt);
-  await setDoc(doc(hunts(), value.id), { ...value, publishedAt: Timestamp.fromDate(new Date(value.publishedAt)), updatedAt: Timestamp.fromDate(new Date(value.updatedAt)) });
+  const ref = doc(hunts(), value.id);
+  const payload = { ...value, publishedAt: Timestamp.fromDate(new Date(value.publishedAt)), updatedAt: Timestamp.fromDate(new Date(value.updatedAt)) };
+  // Preserve accumulated like/comment counts across an owner edit — a full
+  // overwrite would otherwise reset them. The transaction avoids a race with a
+  // concurrent like/comment increment.
+  await runTransaction(db(), async (tx) => {
+    const snap = await tx.get(ref);
+    const counts = snap.exists()
+      ? { likeCount: snap.data().likeCount ?? 0, commentCount: snap.data().commentCount ?? 0 }
+      : {};
+    tx.set(ref, { ...payload, ...counts });
+  });
+}
+
+// One collection-group listener for every hunt the viewer has liked — the
+// feed reads "did I like this" from this set instead of opening a likes
+// listener per card.
+export function subscribeToLikedHuntIds(uid: string, onValue: (huntIds: string[]) => void, onError: (error: Error) => void): Unsubscribe {
+  return onSnapshot(
+    query(collectionGroup(db(), "likes"), where("likerId", "==", uid)),
+    (snapshot) => onValue(snapshot.docs.map((entry) => entry.data().huntId as string)),
+    onError,
+  );
 }
 
 export async function unpublishHunt(ownerId: string, killId: string) {

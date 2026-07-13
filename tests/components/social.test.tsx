@@ -14,9 +14,11 @@ const profile = { id: "other", displayName: "Other Hunter", avatarUrl: null, bio
 const socialState = vi.hoisted(() => ({
   hunts: [] as PublicHunt[],
   followingIds: [] as string[],
+  likedIds: [] as string[],
   loading: false,
   error: null as string | null,
   toggleFollow: vi.fn(),
+  toggleLike: vi.fn(),
 }));
 
 vi.mock("@/lib/hooks/use-social", () => ({ useSocial: () => socialState }));
@@ -28,6 +30,7 @@ describe("social discovery", () => {
   beforeEach(() => {
     socialState.hunts = [];
     socialState.followingIds = [];
+    socialState.likedIds = [];
     socialState.loading = false;
     socialState.error = null;
   });
