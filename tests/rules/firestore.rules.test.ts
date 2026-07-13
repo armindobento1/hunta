@@ -368,6 +368,43 @@ describe("Firestore ownership rules", () => {
     await assertSucceeds(deleteDoc(doc(owner, "publicHunts/owner_kill-1")));
   });
 
+  it("allows a ±1 engagement counter bump but blocks over-bumping and field smuggling", async () => {
+    const owner = environment.authenticatedContext("owner").firestore();
+    const other = environment.authenticatedContext("other").firestore();
+    const now = Timestamp.now();
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), "publicHunts/owner_kill-1"), {
+        id: "owner_kill-1", ownerId: "owner", likeCount: 0, commentCount: 0,
+      });
+    });
+    const like = { huntId: "owner_kill-1", likerId: "other", likerName: "Other", createdAt: now };
+
+    // +1 likeCount alongside the caller's own like (same batch) — the real flow.
+    const likeBatch = writeBatch(other);
+    likeBatch.set(doc(other, "publicHunts/owner_kill-1/likes/other"), like);
+    likeBatch.update(doc(other, "publicHunts/owner_kill-1"), { likeCount: 1 });
+    await assertSucceeds(likeBatch.commit());
+
+    // Over-bumping is denied: a second +1 without another like doc can't prove it.
+    await assertFails(updateDoc(doc(other, "publicHunts/owner_kill-1"), { likeCount: 2 }));
+    // Bumping the count with no backing like at all is denied.
+    await assertFails(updateDoc(doc(owner, "publicHunts/owner_kill-1"), { likeCount: 2 }));
+    // Smuggling another field through the counter path is denied (F-02 stays closed).
+    await assertFails(updateDoc(doc(other, "publicHunts/owner_kill-1"), { likeCount: 2, ownerId: "other" }));
+    // The owner cannot hand-edit the counts.
+    await assertFails(updateDoc(doc(owner, "publicHunts/owner_kill-1"), { likeCount: 99 }));
+
+    // commentCount moves by exactly ±1; larger jumps are denied.
+    await assertSucceeds(updateDoc(doc(other, "publicHunts/owner_kill-1"), { commentCount: 1 }));
+    await assertFails(updateDoc(doc(other, "publicHunts/owner_kill-1"), { commentCount: 5 }));
+
+    // Unlike: remove the like and decrement in one batch.
+    const unlikeBatch = writeBatch(other);
+    unlikeBatch.delete(doc(other, "publicHunts/owner_kill-1/likes/other"));
+    unlikeBatch.update(doc(other, "publicHunts/owner_kill-1"), { likeCount: 0 });
+    await assertSucceeds(unlikeBatch.commit());
+  });
+
   it("rejects duplicate uids written directly into comment likes", async () => {
     const other = environment.authenticatedContext("other").firestore();
     const stranger = environment.authenticatedContext("stranger").firestore();

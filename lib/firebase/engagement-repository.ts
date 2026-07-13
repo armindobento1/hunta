@@ -1,4 +1,4 @@
-import { arrayRemove, arrayUnion, collection, deleteDoc, doc, limit, onSnapshot, orderBy, query, Timestamp, updateDoc, writeBatch, type Unsubscribe } from "firebase/firestore";
+import { arrayRemove, arrayUnion, collection, deleteDoc, doc, increment, limit, onSnapshot, orderBy, query, Timestamp, updateDoc, writeBatch, type Unsubscribe } from "firebase/firestore";
 
 import {
   buildCommentNotification, buildLikeNotification, commentNotificationId, huntCommentSchema, huntLikeSchema,
@@ -8,6 +8,7 @@ import type { PublicHunt } from "@/lib/domain/public-social";
 import { getFirebaseServices } from "./config";
 
 const db = () => getFirebaseServices().db;
+const huntDoc = (huntId: string) => doc(db(), "publicHunts", huntId);
 const likes = (huntId: string) => collection(db(), "publicHunts", huntId, "likes");
 const comments = (huntId: string) => collection(db(), "publicHunts", huntId, "comments");
 const notifications = (uid: string) => collection(db(), "users", uid, "notifications");
@@ -23,6 +24,7 @@ export async function likeHunt(hunt: PublicHunt, actor: Actor) {
   const like = huntLikeSchema.parse({ huntId: hunt.id, likerId: actor.id, likerName: actor.name, createdAt: new Date().toISOString() });
   const batch = writeBatch(db());
   batch.set(doc(likes(hunt.id), actor.id), { ...like, createdAt: ts(like.createdAt) });
+  batch.update(huntDoc(hunt.id), { likeCount: increment(1) });
   if (hunt.ownerId !== actor.id) {
     const notification = buildLikeNotification(actor, hunt, like.createdAt);
     batch.set(doc(notifications(hunt.ownerId), notification.id), serializeNotification(notification));
@@ -33,6 +35,7 @@ export async function likeHunt(hunt: PublicHunt, actor: Actor) {
 export async function unlikeHunt(hunt: PublicHunt, actorId: string) {
   const batch = writeBatch(db());
   batch.delete(doc(likes(hunt.id), actorId));
+  batch.update(huntDoc(hunt.id), { likeCount: increment(-1) });
   if (hunt.ownerId !== actorId) batch.delete(doc(notifications(hunt.ownerId), likeNotificationId(actorId, hunt.id)));
   await batch.commit();
 }
@@ -42,6 +45,7 @@ export async function addHuntComment(hunt: PublicHunt, actor: Actor, body: strin
   const comment = huntCommentSchema.parse({ id: commentId(), huntId: hunt.id, authorId: actor.id, authorName: actor.name, body, ...(parentId ? { parentId } : {}), likedBy: [], createdAt: now, updatedAt: now });
   const batch = writeBatch(db());
   batch.set(doc(comments(hunt.id), comment.id), { ...comment, createdAt: ts(comment.createdAt), updatedAt: ts(comment.updatedAt) });
+  batch.update(huntDoc(hunt.id), { commentCount: increment(1) });
   if (hunt.ownerId !== actor.id) {
     const notification = buildCommentNotification(actor, hunt, comment, now);
     batch.set(doc(notifications(hunt.ownerId), notification.id), serializeNotification(notification));
@@ -53,6 +57,7 @@ export async function addHuntComment(hunt: PublicHunt, actor: Actor, body: strin
 export async function deleteHuntComment(hunt: PublicHunt, comment: HuntComment) {
   const batch = writeBatch(db());
   batch.delete(doc(comments(hunt.id), comment.id));
+  batch.update(huntDoc(hunt.id), { commentCount: increment(-1) });
   if (hunt.ownerId !== comment.authorId) batch.delete(doc(notifications(hunt.ownerId), commentNotificationId(comment.id)));
   await batch.commit();
 }

@@ -1298,59 +1298,64 @@ a {
   position: relative;
 }
 
-.hunt-facts {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0;
+/* Portfolio (light) card wrapper around the shared spec list. */
+.facts-card {
+  padding: 0.35rem 1.4rem;
   border: 1px solid rgb(34 28 20 / 10%);
   border-radius: 1.4rem;
-  overflow: hidden;
   background: rgb(255 253 248 / 94%);
   box-shadow: 0 20px 55px rgb(34 28 20 / 14%);
 }
 
-.hunt-facts > div {
-  position: relative;
-  min-width: 0;
-  padding: 1.5rem;
-  border-left: 1px solid rgb(34 28 20 / 10%);
+/*
+ * Shared gear/facts spec list (components/kills/gear-spec.tsx), used by both
+ * the light portfolio detail and the dark public detail. Values wrap instead
+ * of truncating, and labels use opacity so the list reads correctly on either
+ * background without theme-specific colours.
+ */
+.spec-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
 }
 
-.hunt-facts > div:first-child {
-  border-left: 0;
+.spec-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 0.7rem 0;
+  border-top: 0.5px solid rgb(128 128 128 / 16%);
 }
 
-.hunt-facts svg {
-  width: 1.1rem;
-  margin-bottom: 1rem;
-  color: var(--forest);
+.spec-row:first-child {
+  border-top: 0;
 }
 
-.hunt-facts dt {
-  color: var(--muted);
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+.spec-label {
+  flex: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
+  opacity: 0.5;
 }
 
-.hunt-facts dd {
-  overflow: hidden;
-  margin: 0.35rem 0 0;
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.spec-value {
+  min-width: 0;
+  text-align: right;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
-.hunt-facts span {
+.spec-value small {
   display: block;
-  overflow: hidden;
-  margin-top: 0.25rem;
-  color: var(--muted);
-  font-size: 0.7rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.6;
 }
 
 .story-panel {
@@ -1634,19 +1639,6 @@ a {
 @media (max-width: 760px) {
   .hunt-hero {
     min-height: 65svh;
-  }
-
-  .hunt-facts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .hunt-facts > div:nth-child(3) {
-    border-left: 0;
-    border-top: 1px solid rgb(34 28 20 / 10%);
-  }
-
-  .hunt-facts > div:nth-child(4) {
-    border-top: 1px solid rgb(34 28 20 / 10%);
   }
 
   .detail-media,

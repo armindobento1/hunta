@@ -3,6 +3,7 @@ import { useRef, useState, type UIEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { CommentSection } from "@/components/social/hunt-engagement";
+import { GearSpec } from "@/components/kills/gear-spec";
 import type { PublicHunt } from "@/lib/domain/public-social";
 import { useHuntEngagement } from "@/lib/hooks/use-engagement";
 import { useViewerFollowing } from "@/lib/hooks/use-viewer-following";
@@ -185,26 +186,22 @@ export function PublicHuntDetail({ hunt }: { hunt: PublicHunt }) {
         {hunt.description ? <div style={{ marginTop: 8 }}>{hunt.description}</div> : null}
       </div>
 
-      <div className="hd-data">
-        <div className="hd-cell">
-          <div className="hd-cell-label">Score</div>
-          <div className={`hd-cell-value${score ? " hd-cell-amber" : ""}`}>{score ?? "—"}</div>
-        </div>
-        <div className="hd-cell">
-          <div className="hd-cell-label">Distance</div>
-          <div className="hd-cell-value">{hunt.routeSummary ? `${hunt.routeSummary.distanceKm} km` : "—"}</div>
-        </div>
-        <div className="hd-cell">
-          <div className="hd-cell-label">Weapon</div>
-          <div className="hd-cell-value">{hunt.weapon.type === "rifle" ? hunt.weapon.caliber : hunt.weapon.bowType}</div>
-        </div>
-        <div className="hd-cell">
-          <div className="hd-cell-label">Date</div>
-          <div className="hd-cell-value">
-            {new Date(`${hunt.date}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" }).toUpperCase()}
-          </div>
-        </div>
-      </div>
+      <section className="hd-gear" aria-label="Gear and facts">
+        <GearSpec
+          weapon={hunt.weapon}
+          ammunition={hunt.ammunition}
+          attachments={hunt.equipmentAttachments}
+          extra={[
+            ...(score ? [{ label: "Score", value: score }] : []),
+            ...(hunt.routeSummary ? [{ label: "Distance", value: `${hunt.routeSummary.distanceKm} km` }] : []),
+            {
+              label: "Date",
+              value: new Date(`${hunt.date}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
+            },
+            { label: "Location", value: hunt.location.farmName || hunt.location.placeName, sub: hunt.country },
+          ]}
+        />
+      </section>
 
       <div ref={commentsRef} style={{ marginTop: 14, borderTop: "0.5px solid rgba(240, 234, 224, 0.08)" }}>
         <CommentSection hunt={hunt} engagement={engagement} />

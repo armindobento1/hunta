@@ -197,6 +197,7 @@ export type MediaAsset = z.infer<typeof mediaAssetSchema>;
 export type KillLocation = z.infer<typeof killLocationSchema>;
 export type Weapon = z.infer<typeof weaponSchema>;
 export type Ammunition = z.infer<typeof ammunitionSchema>;
+export type EquipmentAttachments = z.infer<typeof equipmentAttachmentsSchema>;
 export type Measurement = z.infer<typeof measurementSchema>;
 export type RouteBounds = z.infer<typeof routeBoundsSchema>;
 export type RouteMetadata = z.infer<typeof routeMetadataSchema>;

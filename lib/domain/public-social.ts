@@ -30,6 +30,12 @@ export const publicHuntSchema = z.object({
   weapon: weaponSchema, ammunition: ammunitionSchema, equipmentAttachments: equipmentAttachmentsSchema.optional(),
   measurement: measurementSchema.optional(), routeSummary: z.object({ distanceKm: z.number().nonnegative(), durationMin: z.number().nonnegative().nullable() }).strict().nullable(),
   description: z.string().max(5000), publishedAt: z.string().datetime(), updatedAt: z.string().datetime(),
+  // Denormalized engagement counts, maintained by atomic increments on
+  // like/comment writes so the feed reads them straight off the hunt doc it
+  // already subscribes to — no per-card likes/comments listeners (Instagram
+  // model). Absent on pre-migration docs, so optional and read as 0.
+  likeCount: z.number().int().nonnegative().optional(),
+  commentCount: z.number().int().nonnegative().optional(),
 }).strict();
 
 export type PublicProfile = z.infer<typeof publicProfileSchema>;
