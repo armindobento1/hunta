@@ -34,10 +34,24 @@ config-only files listed below; web code stays the single source of truth.
   ID) and keep Google provider enabled in Firebase Auth.
 - `lib/firebase/config.ts` — `initializeAuth` with explicit persistence order
   (indexedDB → local → in-memory) so sessions survive app restarts in the
-  WebView; `browserPopupRedirectResolver` kept for web popup flow.
+  WebView; `browserPopupRedirectResolver` kept for web popup flow. Firestore is
+  initialized with `experimentalForceLongPolling` on native only
+  (`createFirestore`): the default WebChannel streaming transport fails in the
+  iOS WKWebView (the `Listen` RPC errors and `onSnapshot` never delivers, so
+  public feeds never load). Browsers keep the faster WebChannel path.
 - `index.html` — `viewport-fit=cover` so the existing `env(safe-area-inset-*)`
   CSS actually takes effect on notched iPhones.
 - `eslint.config.mjs` ignores `ios/**` and `android/**` (contain built JS copies).
+
+## Gotchas
+- The iOS Xcode project **must stay named `App.xcodeproj`** — the Capacitor CLI
+  hardcodes `ios/App/App.xcodeproj/project.pbxproj` (not configurable), so
+  renaming it breaks `cap sync`. The app's display name comes from
+  `CFBundleDisplayName` in Info.plist, not the project/folder name. The target
+  and scheme are "Hunta"; `capacitor.config.ts` sets `ios.scheme: "Hunta"` so
+  `cap run/build ios` resolve it. If Xcode ever leaves a stale project window
+  open on the old path it can recreate a broken stub — quit Xcode, delete the
+  stub, clear `~/Library/Saved Application State/com.apple.dt.Xcode.savedState`.
 
 ## Build requirements
 - iOS: Xcode (verified compiling on Xcode 26.2, SPM).

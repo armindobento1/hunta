@@ -6,6 +6,10 @@ const config: CapacitorConfig = {
   webDir: "dist",
   ios: {
     contentInset: "never",
+    // The Xcode target/scheme is "Hunta"; the project folder must stay
+    // App.xcodeproj (Capacitor hardcodes that path). Point the CLI at the
+    // real scheme so `cap run ios` / `cap build ios` resolve it.
+    scheme: "Hunta",
   },
   android: {
     allowMixedContent: false,
