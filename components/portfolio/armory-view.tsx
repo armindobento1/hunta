@@ -120,8 +120,22 @@ export function ArmoryView() {
                   loadout={loadout}
                   items={items}
                   onEdit={() => navigate(`/portfolio/loadouts/${loadout.id}`)}
-                  onDefault={() => { if (user) void setDefaultLoadout(user.uid, loadout.id); }}
-                  onDelete={() => { if (user && confirm(`Delete ${loadout.name}?`)) void deleteLoadout(user.uid, loadout.id); }}
+                  onDefault={async () => {
+                    if (!user) return;
+                    try {
+                      await setDefaultLoadout(user.uid, loadout.id);
+                    } catch (cause) {
+                      setMessage(cause instanceof Error ? cause.message : "Could not set the default loadout.");
+                    }
+                  }}
+                  onDelete={async () => {
+                    if (!user || !confirm(`Delete ${loadout.name}?`)) return;
+                    try {
+                      await deleteLoadout(user.uid, loadout.id);
+                    } catch (cause) {
+                      setMessage(cause instanceof Error ? cause.message : "Could not delete the loadout.");
+                    }
+                  }}
                 />
               ))}
             </div>

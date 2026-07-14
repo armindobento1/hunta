@@ -127,17 +127,29 @@ function PortfolioDataSession({
         });
       },
     );
-    let itemReady = false;
-    let loadoutReady = false;
-    const ready = () => itemReady && loadoutReady;
+    let itemSettled = false;
+    let loadoutSettled = false;
+    let itemError: string | null = null;
+    let loadoutError: string | null = null;
+    const loadingArmory = () => !(itemSettled && loadoutSettled);
     const unsubscribeItems = subscribeToArmoryItems(user.uid, (items) => {
-      itemReady = true;
-      setArmoryState((current) => ({ ...current, items, loading: !ready(), error: null }));
-    }, () => setArmoryState((current) => ({ ...current, loading: false, error: "Your armory could not be loaded." })));
+      itemSettled = true;
+      itemError = null;
+      setArmoryState((current) => ({ ...current, items, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
+    }, () => {
+      itemSettled = true;
+      itemError = "Your armory could not be loaded.";
+      setArmoryState((current) => ({ ...current, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
+    });
     const unsubscribeLoadouts = subscribeToLoadouts(user.uid, (loadouts) => {
-      loadoutReady = true;
-      setArmoryState((current) => ({ ...current, loadouts, loading: !ready(), error: null }));
-    }, () => setArmoryState((current) => ({ ...current, loading: false, error: "Your loadouts could not be loaded." })));
+      loadoutSettled = true;
+      loadoutError = null;
+      setArmoryState((current) => ({ ...current, loadouts, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
+    }, () => {
+      loadoutSettled = true;
+      loadoutError = "Your loadouts could not be loaded.";
+      setArmoryState((current) => ({ ...current, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
+    });
 
     return () => {
       unsubscribeProfile();

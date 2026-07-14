@@ -22,10 +22,28 @@ export async function saveLoadout(loadout: Loadout) {
   await setDoc(doc(loadoutCollection(parsed.ownerId), parsed.id), serialize(parsed));
 }
 export function subscribeToArmoryItems(uid: string, onValue: (items: ArmoryItem[]) => void, onError: (error: Error) => void): Unsubscribe {
-  return onSnapshot(itemCollection(uid), (snapshot) => onValue(snapshot.docs.map((item) => deserialize(item.data(), (value) => armoryItemSchema.parse(value)))), onError);
+  return onSnapshot(itemCollection(uid), (snapshot) => {
+    let items: ArmoryItem[];
+    try {
+      items = snapshot.docs.map((item) => deserialize(item.data(), (value) => armoryItemSchema.parse(value)));
+    } catch (cause) {
+      onError(cause instanceof Error ? cause : new Error("Armory items could not be read."));
+      return;
+    }
+    onValue(items);
+  }, onError);
 }
 export function subscribeToLoadouts(uid: string, onValue: (loadouts: Loadout[]) => void, onError: (error: Error) => void): Unsubscribe {
-  return onSnapshot(loadoutCollection(uid), (snapshot) => onValue(snapshot.docs.map((item) => deserialize(item.data(), (value) => loadoutSchema.parse(value)))), onError);
+  return onSnapshot(loadoutCollection(uid), (snapshot) => {
+    let loadouts: Loadout[];
+    try {
+      loadouts = snapshot.docs.map((item) => deserialize(item.data(), (value) => loadoutSchema.parse(value)));
+    } catch (cause) {
+      onError(cause instanceof Error ? cause : new Error("Loadouts could not be read."));
+      return;
+    }
+    onValue(loadouts);
+  }, onError);
 }
 export async function setDefaultLoadout(uid: string, loadoutId: string) {
   const snapshot = await getDocs(loadoutCollection(uid));

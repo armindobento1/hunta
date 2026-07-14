@@ -13,11 +13,19 @@ export function TrashView({
   onRestore(id: string): Promise<void>;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function restore(id: string) {
     setPendingId(id);
+    setError(null);
     try {
       await onRestore(id);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "The hunt record could not be restored.",
+      );
     } finally {
       setPendingId(null);
     }
@@ -31,6 +39,7 @@ export function TrashView({
       <p className="eyebrow">Recoverable records</p>
       <h1>Trash</h1>
       <p>Nothing here is permanently deleted. Restore a hunt record at any time.</p>
+      {error ? <p role="alert">{error}</p> : null}
       {kills.length === 0 ? (
         <div className="empty-trash">Trash is empty.</div>
       ) : (

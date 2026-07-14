@@ -433,7 +433,7 @@ export function KillForm({
         <section className="editor-section publish-section" aria-labelledby="publish-heading">
           <div className="section-heading"><div><p>09</p><h2 id="publish-heading">Public activity</h2></div><span>Optional</span></div>
           <label className="publish-toggle"><input type="checkbox" {...register("isPublic")} /><span><strong>Publish publicly</strong><small>Show this hunt in Discover, followers’ feeds, and public leaderboards.</small></span></label>
-          {isPublic ? <p className="publish-warning" role="note">Your farm name and exact GPS coordinates will be visible to everyone.</p> : null}
+          {isPublic ? <p className="publish-warning" role="note">Your farm name and general area will be visible to everyone. Exact GPS coordinates stay private.</p> : null}
         </section>
       ) : null}
 

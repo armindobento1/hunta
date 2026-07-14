@@ -33,12 +33,22 @@ export function subscribeToProfile(
 ): Unsubscribe {
   return onSnapshot(
     doc(getFirebaseServices().db, "users", uid),
-    (snapshot) =>
-      onValue(
-        snapshot.exists()
+    (snapshot) => {
+      let profile: Profile | null;
+      try {
+        profile = snapshot.exists()
           ? deserializeProfile(snapshot.data() as Record<string, unknown>)
-          : null,
-      ),
+          : null;
+      } catch (cause) {
+        onError(
+          cause instanceof Error
+            ? cause
+            : new Error("Profile could not be read."),
+        );
+        return;
+      }
+      onValue(profile);
+    },
     onError,
   );
 }

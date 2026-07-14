@@ -54,12 +54,22 @@ export function subscribeToKills(
 ): Unsubscribe {
   return onSnapshot(
     collection(getFirebaseServices().db, "users", uid, "kills"),
-    (snapshot) =>
-      onValue(
-        snapshot.docs.map((item) =>
+    (snapshot) => {
+      let kills: Kill[];
+      try {
+        kills = snapshot.docs.map((item) =>
           deserializeKill(item.data() as Record<string, unknown>),
-        ),
-      ),
+        );
+      } catch (cause) {
+        onError(
+          cause instanceof Error
+            ? cause
+            : new Error("Kill records could not be read."),
+        );
+        return;
+      }
+      onValue(kills);
+    },
     onError,
   );
 }

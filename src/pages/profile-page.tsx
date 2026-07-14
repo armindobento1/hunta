@@ -43,6 +43,7 @@ function ProfileSettings({ profile, uid }: { profile: Profile; uid: string }) {
   const [avatar, setAvatar] = useState<File | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -66,6 +67,18 @@ function ProfileSettings({ profile, uid }: { profile: Profile; uid: string }) {
       setMessage("Profile could not be saved. Try again.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function signOut() {
+    setSigningOut(true);
+    setMessage(null);
+    try {
+      await signOutCurrentUser();
+    } catch (cause) {
+      setMessage(authErrorMessage(cause));
+    } finally {
+      setSigningOut(false);
     }
   }
 
@@ -117,8 +130,8 @@ function ProfileSettings({ profile, uid }: { profile: Profile; uid: string }) {
         <Link to="/portfolio/trash">
           <Trash2 aria-hidden="true" /> Open trash
         </Link>
-        <button type="button" onClick={signOutCurrentUser}>
-          <LogOut aria-hidden="true" /> Sign out
+        <button type="button" disabled={signingOut} onClick={signOut}>
+          <LogOut aria-hidden="true" /> {signingOut ? "Signing out…" : "Sign out"}
         </button>
       </div>
       <DeleteAccountSection />
