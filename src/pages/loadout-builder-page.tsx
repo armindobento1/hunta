@@ -8,7 +8,8 @@ export function LoadoutBuilderPage() {
   const { loadoutId } = useParams();
   const { user } = useAuth();
   const { items, loadouts, loading, error } = useArmory();
-  if (loading || !user) return <main className="centered-state">{error || "Loading armory…"}</main>;
+  if (loading || !user) return <main className="centered-state">Loading armory…</main>;
+  if (error) return <main className="centered-state"><p role="alert">{error}</p></main>;
   const existing = loadoutId ? loadouts.find((entry) => entry.id === loadoutId) : undefined;
   if (loadoutId && !existing) return <main className="centered-state">Loadout not found.</main>;
   return <LoadoutBuilder uid={user.uid} items={items} loadouts={loadouts} existing={existing} />;

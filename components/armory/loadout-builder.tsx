@@ -63,7 +63,7 @@ export function LoadoutBuilder({ uid, items, loadouts, existing }: {
       const now = new Date().toISOString();
       const loadout: Loadout = {
         id: existing?.id ?? newId(), ownerId: uid, name: name.trim(), weaponId: weapon.id, slots,
-        isDefault: existing?.isDefault ?? false, createdAt: existing?.createdAt ?? now, updatedAt: now,
+        isDefault, createdAt: existing?.createdAt ?? now, updatedAt: now,
       };
       await saveLoadout(loadout);
       if (isDefault) await setDefaultLoadout(uid, loadout.id);

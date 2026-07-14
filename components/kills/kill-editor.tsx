@@ -48,16 +48,22 @@ export function KillEditor({ killId }: { killId?: string }) {
 
   useEffect(() => {
     if (!killId || !user) return;
+    let cancelled = false;
     getKill(user.uid, killId)
       .then((kill) => {
+        if (cancelled) return;
         setInitialKill(kill);
         setLoading(false);
         if (!kill) setError("That hunt record could not be found.");
       })
       .catch(() => {
+        if (cancelled) return;
         setError("That hunt record could not be loaded.");
         setLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [killId, user]);
 
   function progress(id: string, name: string, percent: number, status: UploadProgressItem["status"] = "uploading") {

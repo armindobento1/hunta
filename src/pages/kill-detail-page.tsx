@@ -17,15 +17,25 @@ export function KillDetailPage() {
 
   useEffect(() => {
     if (!user || !killId) return;
+    let cancelled = false;
+    /* eslint-disable react-hooks/set-state-in-effect -- Reset request state before fetching the new route record. */
+    setLoading(true);
+    setError(null);
+    /* eslint-enable react-hooks/set-state-in-effect */
     getKill(user.uid, killId)
       .then((value) => {
+        if (cancelled) return;
         setKill(value);
         setLoading(false);
       })
       .catch(() => {
+        if (cancelled) return;
         setError("This hunt record could not be loaded.");
         setLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [killId, user]);
 
   if (loading) {
