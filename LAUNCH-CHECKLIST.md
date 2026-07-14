@@ -24,7 +24,7 @@ These block everything else. Findings are from the 2026-07-06 security sweep
       moderation (2.7) lands. **Still open before enabling the flag in prod:**
       deploy rules (4.1) + admin migration of pre-redaction `publicHunts`
       docs, which still carry exact coords and stay world-readable. Details in
-      `audit/claude-code/audit-v1.2.md`.
+      `archive/audit/claude-code/audit-v1.2.md`.
 - [x] **1.2 HIGH — public hunt takeover.** Fixed 2026-07-11: create/update
       split; update requires the existing owner and pins
       `ownerId`/`sourceKillId`/`publishedAt`; create binds the doc ID to

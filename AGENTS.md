@@ -6,9 +6,17 @@ workflow, verification gates, git discipline). Do not duplicate its content
 here; if instructions need to change, change them in `CLAUDE.md`.
 
 Codex-specific notes:
-- In the audit loop (`audit/README.md`), **Codex is the auditor**: even decimal
-  versions are yours; odd decimals belong to the implementer (Claude Code).
-  The implementer never marks an audit resolved — you do, after verifying.
+- **Codex is the implementer.** Fable (Claude) architects and hands you a
+  self-contained plan; you implement it with the smallest coherent change,
+  staying within the plan's stated scope. Don't redesign or touch files the
+  plan marks off-limits — flag concerns back instead. Fable reviews your diff
+  and owns the final "done".
+- **Respect the invariants and high-risk areas in `CLAUDE.md`.** Do not change
+  `firestore.rules`, `storage.rules`, `lib/domain/`, or persistence beyond what
+  the plan specifies; these guard multi-user isolation and kill-record
+  integrity.
 - The verification gates in `CLAUDE.md` apply to you identically: typecheck,
   lint, test, build (and `test:rules` when security rules or `lib/firebase/`
   change).
+- The old folder audit loop is retired (archived under `archive/audit/`); we
+  now collaborate live via the `codex` MCP tool.
