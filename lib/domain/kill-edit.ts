@@ -18,9 +18,9 @@ export type KillEdit = Partial<{
   location: KillLocation;
   weapon: Weapon;
   ammunition: Kill["ammunition"];
-  loadoutId: string;
-  equipmentAttachments: NonNullable<Kill["equipmentAttachments"]>;
-  measurement: Measurement;
+  loadoutId: string | null;
+  equipmentAttachments: NonNullable<Kill["equipmentAttachments"]> | null;
+  measurement: Measurement | null;
   route: RouteMetadata | null;
   description: string;
   status: Kill["status"];
@@ -61,9 +61,17 @@ export function applyKillEdit(
     }
   }
 
+  const merged = { ...existing, ...allowedChanges };
+  for (const key of [
+    "loadoutId",
+    "equipmentAttachments",
+    "measurement",
+  ] as const) {
+    if (edit[key] === null) delete merged[key];
+  }
+
   return killSchema.parse({
-    ...existing,
-    ...allowedChanges,
+    ...merged,
     id: existing.id,
     ownerId: existing.ownerId,
     createdAt: existing.createdAt,

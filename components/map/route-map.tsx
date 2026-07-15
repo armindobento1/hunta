@@ -52,8 +52,10 @@ export function RouteMap({ kill }: { kill: Kill }) {
               type: "Feature",
               properties: {},
               geometry: {
-                type: "LineString",
-                coordinates: parsed.points.map((point) => [point.longitude, point.latitude]),
+                type: "MultiLineString",
+                coordinates: parsed.segments.map((segment) =>
+                  segment.map((point) => [point.longitude, point.latitude]),
+                ),
               },
             },
           });

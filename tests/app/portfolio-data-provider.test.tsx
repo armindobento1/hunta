@@ -1,7 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 
+import type { Profile } from "@/lib/domain/profile";
 import { useKills } from "@/lib/hooks/use-kills";
 import { useProfile } from "@/lib/hooks/use-profile";
+import { ProfilePage } from "@/src/pages/profile-page";
 import { PortfolioDataProvider } from "@/src/providers/portfolio-data-provider";
 
 const mocks = vi.hoisted(() => ({
@@ -11,9 +14,14 @@ const mocks = vi.hoisted(() => ({
       email: "owner@example.com",
       displayName: "Owner One",
       photoURL: null,
+      providerData: [],
     },
   },
-  subscribeToProfile: vi.fn(() => vi.fn()),
+  profileCallback: null as ((profile: Profile | null) => void) | null,
+  savePublicProfile: vi.fn().mockResolvedValue(undefined),
+  subscribeToProfile: vi.fn<
+    (uid: string, onValue: (profile: Profile | null) => void) => () => void
+  >(() => vi.fn()),
   subscribeToKills: vi.fn(() => vi.fn()),
   subscribeToArmoryItems: vi.fn(() => vi.fn()),
   subscribeToLoadouts: vi.fn(() => vi.fn()),
@@ -22,6 +30,12 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/hooks/use-auth", () => ({
   useAuth: () => ({ user: mocks.auth.user, loading: false, error: null }),
+}));
+
+vi.mock("@/lib/features", () => ({ SOCIAL_ENABLED: true }));
+
+vi.mock("@/lib/firebase/public-social-repository", () => ({
+  savePublicProfile: mocks.savePublicProfile,
 }));
 
 vi.mock("@/lib/firebase/profile-repository", () => ({
@@ -51,11 +65,19 @@ describe("PortfolioDataProvider", () => {
       email: "owner@example.com",
       displayName: "Owner One",
       photoURL: null,
+      providerData: [],
     };
+    mocks.profileCallback = null;
+    mocks.savePublicProfile.mockReset();
+    mocks.savePublicProfile.mockResolvedValue(undefined);
     mocks.subscribeToProfile.mockClear();
     mocks.subscribeToKills.mockClear();
     mocks.subscribeToArmoryItems.mockClear();
     mocks.subscribeToLoadouts.mockClear();
+    mocks.subscribeToProfile.mockImplementation((_uid, onValue) => {
+      mocks.profileCallback = onValue;
+      return vi.fn();
+    });
   });
 
   it("keeps one profile and kill subscription across private navigation", () => {
@@ -93,6 +115,7 @@ describe("PortfolioDataProvider", () => {
       email: "second@example.com",
       displayName: "Owner Two",
       photoURL: null,
+      providerData: [],
     };
     rerender(
       <PortfolioDataProvider>
@@ -109,5 +132,71 @@ describe("PortfolioDataProvider", () => {
       expect.any(Function),
     );
     expect(mocks.subscribeToKills).toHaveBeenCalledTimes(2);
+  });
+
+  it("writes identical consecutive profile snapshots only once", async () => {
+    let resolveWrite!: () => void;
+    mocks.savePublicProfile.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        resolveWrite = resolve;
+      }),
+    );
+    render(
+      <PortfolioDataProvider>
+        <Probe route="profile" />
+      </PortfolioDataProvider>,
+    );
+    const profile = {
+      id: "owner-1",
+      displayName: "Owner One",
+      avatarUrl: null,
+      bio: "Private profile remains usable.",
+      createdAt: "2025-01-01T00:00:00.000Z",
+      updatedAt: "2025-01-02T00:00:00.000Z",
+    };
+
+    act(() => {
+      mocks.profileCallback?.(profile);
+      mocks.profileCallback?.(profile);
+    });
+
+    expect(mocks.savePublicProfile).toHaveBeenCalledOnce();
+    await act(async () => resolveWrite());
+    act(() => mocks.profileCallback?.(profile));
+    expect(mocks.savePublicProfile).toHaveBeenCalledOnce();
+  });
+
+  it("retries a failed public sync while keeping the profile page usable", async () => {
+    mocks.savePublicProfile
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce(undefined);
+    render(
+      <MemoryRouter>
+        <PortfolioDataProvider>
+          <ProfilePage />
+        </PortfolioDataProvider>
+      </MemoryRouter>,
+    );
+    const profile = {
+      id: "owner-1",
+      displayName: "Owner One",
+      avatarUrl: null,
+      bio: "Private profile remains usable.",
+      createdAt: "2025-01-01T00:00:00.000Z",
+      updatedAt: "2025-01-02T00:00:00.000Z",
+    };
+
+    act(() => mocks.profileCallback?.(profile));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Your public profile could not be updated. Your private profile is still available.",
+    );
+    expect(screen.getByRole("heading", { name: "Profile settings" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Display name")).toHaveValue("Owner One");
+
+    act(() => mocks.profileCallback?.(profile));
+
+    await waitFor(() => expect(mocks.savePublicProfile).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
   });
 });

@@ -66,6 +66,12 @@ export function buildPublicHunt(kill: Kill, profile: Profile, publishedAt = new 
   });
 }
 
+export function comparePublicHuntsByRecency(a: PublicHunt, b: PublicHunt): number {
+  return b.date.localeCompare(a.date)
+    || b.killTime.localeCompare(a.killTime)
+    || b.publishedAt.localeCompare(a.publishedAt);
+}
+
 export function rankPublicHunts(hunts: readonly PublicHunt[], species: string): PublicHunt[] {
   return hunts.filter((hunt) => hunt.species === species && typeof hunt.measurement?.score === "number").sort((a, b) => (b.measurement?.score ?? 0) - (a.measurement?.score ?? 0));
 }

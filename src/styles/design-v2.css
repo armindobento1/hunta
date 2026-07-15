@@ -505,8 +505,11 @@
 .follow-people { list-style: none; margin: 0.85rem 0 0; padding: 0.65rem 0.85rem; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 12px; display: grid; gap: 0.45rem; }
 .follow-people a { color: inherit; text-decoration: none; }
 .follow-stats-row { display: flex; gap: 1rem; margin-top: 0.6rem; }
-.follow-stats-row button { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; opacity: 0.9; }
+.follow-stats-row a { color: inherit; font: inherit; cursor: pointer; opacity: 0.9; }
 .follow-stats-row strong { font-family: var(--font-numeral); margin-right: 0.25rem; }
+
+.hd-video-toggle { position: absolute; inset: 0; padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; }
+.hd-video-toggle:focus-visible { outline: 2px solid var(--arm-amber-lt); outline-offset: -2px; }
 
 /* Top-bar notification bell */
 .top-bar-actions { display: flex; align-items: center; gap: 0.35rem; }

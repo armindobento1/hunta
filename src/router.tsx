@@ -7,6 +7,7 @@ import { DiscoverPage } from "@/src/pages/discover-page";
 import { HomeFeedPage } from "@/src/pages/home-feed-page";
 import { HomePage } from "@/src/pages/home-page";
 import { HuntCommentsPage } from "@/src/pages/hunt-comments-page";
+import { HuntLikersPage } from "@/src/pages/hunt-likers-page";
 import { KillDetailPage } from "@/src/pages/kill-detail-page";
 import { LeaderboardPage } from "@/src/pages/leaderboard-page";
 import { LoadoutBuilderPage } from "@/src/pages/loadout-builder-page";
@@ -40,6 +41,7 @@ const PUBLIC_SOCIAL_ROUTES: RouteObject[] = [
   { id: "public-followers", path: "/people/:uid/followers", element: <FollowListPage kind="followers" /> },
   { id: "public-following", path: "/people/:uid/following", element: <FollowListPage kind="following" /> },
   { id: "public-hunt", path: "/people/:uid/hunts/:publicHuntId", element: <PublicHuntPage /> },
+  { id: "public-hunt-likes", path: "/people/:uid/hunts/:publicHuntId/likes", element: <HuntLikersPage /> },
   { id: "public-hunt-comments", path: "/people/:uid/hunts/:publicHuntId/comments", element: <HuntCommentsPage /> },
   // No /farms route: the public farm directory is retired (audit v1.1 F-01) —
   // public hunts carry farm name + area as text only.

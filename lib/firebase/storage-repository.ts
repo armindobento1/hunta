@@ -1,4 +1,5 @@
 import {
+  deleteObject,
   getBytes,
   getDownloadURL,
   ref,
@@ -16,6 +17,10 @@ import { getFirebaseServices } from "./config";
 const IMAGE_LIMIT = 15 * 1024 * 1024;
 const VIDEO_LIMIT = 250 * 1024 * 1024;
 const GPX_LIMIT = 10 * 1024 * 1024;
+
+export async function deleteStorageObject(storagePath: string): Promise<void> {
+  await deleteObject(ref(getFirebaseServices().storage, storagePath));
+}
 
 export function sanitizeFileName(fileName: string): string {
   const normalized = fileName.trim().toLowerCase().normalize("NFKD");

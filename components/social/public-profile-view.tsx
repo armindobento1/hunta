@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import type { PublicHunt, PublicProfile } from "@/lib/domain/public-social";
+import { useBack } from "@/lib/hooks/use-back";
 import { useFollowStats } from "@/lib/hooks/use-follow-stats";
 import { useViewerFollowing } from "@/lib/hooks/use-viewer-following";
 import { initials } from "@/lib/ui/initials";
@@ -14,13 +15,19 @@ function huntCover(hunt: PublicHunt) {
   );
 }
 
+function isAbortError(cause: unknown): boolean {
+  return typeof cause === "object" && cause !== null && "name" in cause && cause.name === "AbortError";
+}
+
 export function PublicProfileView({ profile, hunts }: { profile: PublicProfile; hunts: PublicHunt[] }) {
   const navigate = useNavigate();
-  const { counts } = useFollowStats(profile.id);
+  const back = useBack("/");
+  const { counts, refresh: refreshFollowStats } = useFollowStats(profile.id);
   const viewer = useViewerFollowing();
   const [menuOpen, setMenuOpen] = useState(false);
   const [speciesFilter, setSpeciesFilter] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   const canFollow = Boolean(viewer.viewerId && viewer.viewerId !== profile.id && viewer.followingIds);
   const isFollowing = Boolean(viewer.followingIds?.includes(profile.id));
@@ -44,28 +51,51 @@ export function PublicProfileView({ profile, hunts }: { profile: PublicProfile; 
 
   async function copyProfileLink() {
     setMenuOpen(false);
-    await navigator.clipboard.writeText(window.location.href);
-    setNotice("Profile link copied.");
+    setNotice(null);
+    setShareError(null);
+    try {
+      if (!navigator.clipboard?.writeText) {
+        setShareError("Copying isn't available here.");
+        return;
+      }
+      await navigator.clipboard.writeText(window.location.href);
+      setNotice("Profile link copied.");
+    } catch {
+      setShareError("Could not copy the profile link.");
+    }
   }
 
   async function shareProfile() {
     const url = window.location.href;
+    setNotice(null);
+    setShareError(null);
     // A cancelled native share throws AbortError — that is not an error state.
     try {
-      if (navigator.share) await navigator.share({ title: `${profile.displayName} on Hunta`, url });
-      else {
+      if (navigator.share) {
+        await navigator.share({ title: `${profile.displayName} on Hunta`, url });
+        setNotice("Profile shared.");
+      } else {
+        if (!navigator.clipboard?.writeText) {
+          setShareError("Sharing isn't available here.");
+          return;
+        }
         await navigator.clipboard.writeText(url);
         setNotice("Profile link copied.");
       }
-    } catch {
-      return;
+    } catch (cause) {
+      if (isAbortError(cause)) return;
+      setShareError("Could not share the profile.");
     }
+  }
+
+  async function toggleFollow() {
+    if (await viewer.toggle(profile.id)) await refreshFollowStats();
   }
 
   return (
     <main className="public-page ig-profile">
       <header className="ppf-head" style={{ position: "relative" }}>
-        <button type="button" className="cmt-back" aria-label="Back" onClick={() => navigate(-1)} />
+        <button type="button" className="cmt-back" aria-label="Back" onClick={back} />
         <strong style={{ flex: 1 }}>{profile.displayName}</strong>
         <button type="button" className="ppf-menu-btn" aria-label="More options" onClick={() => setMenuOpen((value) => !value)}>
           <MoreHorizontal aria-hidden="true" />
@@ -104,7 +134,7 @@ export function PublicProfileView({ profile, hunts }: { profile: PublicProfile; 
           <button
             type="button"
             className={`ig-follow-btn${isFollowing ? " ig-following" : ""}`}
-            onClick={() => void viewer.toggle(profile.id)}
+            onClick={() => void toggleFollow()}
           >
             {isFollowing ? "Following" : "Follow"}
           </button>
@@ -114,6 +144,7 @@ export function PublicProfileView({ profile, hunts }: { profile: PublicProfile; 
         </button>
       </div>
       {viewer.error ? <p role="alert">{viewer.error}</p> : null}
+      {shareError ? <p role="alert">{shareError}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
       {highlights.length > 0 ? (
         <div className="hl-row" aria-label="Species highlights">

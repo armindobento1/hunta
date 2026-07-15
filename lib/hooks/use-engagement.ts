@@ -49,7 +49,7 @@ export function useHuntEngagement(hunt: PublicHunt) {
     async toggleCommentLike(comment: HuntComment) {
       if (!viewerId) return;
       try {
-        await setCommentLiked(hunt.id, comment.id, viewerId, Boolean(comment.likedBy?.includes(viewerId)));
+        await setCommentLiked(hunt.id, comment.id, viewerId, !comment.likedBy?.includes(viewerId));
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "Could not update the comment like.");
       }

@@ -99,6 +99,7 @@ export function HuntDetail({
       {confirmingTrash ? (
         <TrashDialog
           species={kill.species}
+          isPublic={kill.isPublic}
           onCancel={() => setConfirmingTrash(false)}
           onConfirm={onTrash}
         />

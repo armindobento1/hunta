@@ -13,13 +13,15 @@ export function useViewerFollowing() {
     return subscribeToFollowing(user.uid, setFollowingIds, () => setFollowingIds(null));
   }, [user]);
   async function toggle(id: string) {
-    if (!user || !followingIds) return;
+    if (!user || !followingIds) return false;
     try {
       if (followingIds.includes(id)) await unfollowAccount(user.uid, id);
       else await followAccount(user.uid, id);
       setError(null);
+      return true;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not update follow.");
+      return false;
     }
   }
   return { viewerId: user?.uid ?? null, followingIds, toggle, error };

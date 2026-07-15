@@ -33,9 +33,16 @@ export function MediaPicker({
   const [fileError, setFileError] = useState<string | null>(null);
 
   function addFiles(event: ChangeEvent<HTMLInputElement>) {
+    const selectedFiles = Array.from(event.target.files ?? []);
+    if (existingMedia.length + newMedia.length + selectedFiles.length > 30) {
+      setFileError("A record can hold up to 30 photos and videos.");
+      event.target.value = "";
+      return;
+    }
+
     const additions: PendingMedia[] = [];
     try {
-      for (const file of Array.from(event.target.files ?? [])) {
+      for (const file of selectedFiles) {
         const { kind } = validateMediaFile(file);
         additions.push({ id: newId(), file, kind });
       }
@@ -56,13 +63,27 @@ export function MediaPicker({
 
   function removeExisting(asset: MediaAsset) {
     if (!window.confirm(`Remove ${asset.fileName} from this record?`)) return;
-    onExistingChange(existingMedia.filter((item) => item.id !== asset.id));
-    if (coverMediaId === asset.id) onCoverChange(null);
+    const remainingExisting = existingMedia.filter((item) => item.id !== asset.id);
+    onExistingChange(remainingExisting);
+    if (coverMediaId === asset.id) {
+      onCoverChange(
+        remainingExisting.find((item) => item.kind === "photo")?.id ??
+          newMedia.find((item) => item.kind === "photo")?.id ??
+          null,
+      );
+    }
   }
 
   function removePending(asset: PendingMedia) {
-    onNewChange(newMedia.filter((item) => item.id !== asset.id));
-    if (coverMediaId === asset.id) onCoverChange(null);
+    const remainingNew = newMedia.filter((item) => item.id !== asset.id);
+    onNewChange(remainingNew);
+    if (coverMediaId === asset.id) {
+      onCoverChange(
+        existingMedia.find((item) => item.kind === "photo")?.id ??
+          remainingNew.find((item) => item.kind === "photo")?.id ??
+          null,
+      );
+    }
   }
 
   return (

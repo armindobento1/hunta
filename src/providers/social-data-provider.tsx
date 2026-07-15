@@ -31,7 +31,7 @@ export function SocialDataProvider({ children }: { children: ReactNode }) {
     const unsubscribeHunts = subscribeToPublicHunts((items) => { setHunts(items); setHuntReady(true); }, () => { setError("Public hunts could not be loaded."); setHuntReady(true); });
     const unsubscribeFollowing = subscribeToFollowing(user.uid, (ids) => { setFollowingIds(ids); setFollowReady(true); }, () => { setError("Following could not be loaded."); setFollowReady(true); });
     // One listener for the whole feed's like state — not one per card.
-    const unsubscribeLiked = subscribeToLikedHuntIds(user.uid, setLikedIds, () => {});
+    const unsubscribeLiked = subscribeToLikedHuntIds(user.uid, setLikedIds, () => { setError("Your likes could not be loaded."); });
     return () => { unsubscribeHunts(); unsubscribeFollowing(); unsubscribeLiked(); };
   }, [user]);
 
@@ -43,11 +43,17 @@ export function SocialDataProvider({ children }: { children: ReactNode }) {
     error,
     toggleFollow: async (id, isFollowing) => {
       if (!user) return;
-      if (isFollowing) await unfollowAccount(user.uid, id);
-      else await followAccount(user.uid, id);
+      setError(null);
+      try {
+        if (isFollowing) await unfollowAccount(user.uid, id);
+        else await followAccount(user.uid, id);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Could not update the follow.");
+      }
     },
     toggleLike: async (hunt) => {
       if (!user) return;
+      setError(null);
       const liked = likedIds.includes(hunt.id);
       // Optimistic: flip the like immediately; the count follows from the hunt
       // doc's own listener (likeCount is denormalized on it). Revert on failure.
@@ -58,8 +64,9 @@ export function SocialDataProvider({ children }: { children: ReactNode }) {
           const profile = await getPublicProfile(user.uid);
           await likeHunt(hunt, { id: user.uid, name: profile?.displayName ?? "A hunter" });
         }
-      } catch {
+      } catch (cause) {
         setLikedIds((prev) => (liked ? [...prev, hunt.id] : prev.filter((id) => id !== hunt.id)));
+        setError(cause instanceof Error ? cause.message : "Could not update the like.");
       }
     },
   }), [error, followReady, followingIds, huntReady, hunts, likedIds, user]);

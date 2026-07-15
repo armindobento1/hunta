@@ -44,6 +44,8 @@ export interface EditorFields {
   suppressor: string;
   bipod: string;
   sling: string;
+  arrow: string;
+  broadhead: string;
   locationSourceProvider: "" | "esri";
   locationSourceFeatureId: string;
   locationSourceLabel: string;
@@ -87,6 +89,8 @@ function defaults(initial?: Kill): EditorFields {
     suppressor: initial?.equipmentAttachments?.suppressor?.name ?? "",
     bipod: initial?.equipmentAttachments?.bipod?.name ?? "",
     sling: initial?.equipmentAttachments?.sling?.name ?? "",
+    arrow: initial?.equipmentAttachments?.arrow?.name ?? "",
+    broadhead: initial?.equipmentAttachments?.broadhead?.name ?? "",
     locationSourceProvider: initial?.location.source?.provider ?? "",
     locationSourceFeatureId: initial?.location.source?.featureId ?? "",
     locationSourceLabel: initial?.location.source?.label ?? "",
@@ -159,7 +163,14 @@ export function KillForm({
     setValue("grain", resolved.ammunition?.grain ?? Number.NaN);
     setValue("ammunitionBrand", resolved.ammunition?.brand ?? "");
     setValue("ammunitionDetail", resolved.ammunition?.detail ?? "");
-    for (const kind of ["optic", "suppressor", "bipod", "sling"] as const) {
+    for (const kind of [
+      "optic",
+      "suppressor",
+      "bipod",
+      "sling",
+      "arrow",
+      "broadhead",
+    ] as const) {
       setValue(kind, resolved.attachments[kind]?.name ?? "");
     }
   }
@@ -404,6 +415,17 @@ export function KillForm({
       <WeaponFields register={register} errors={errors} weaponType={weaponType} />
       <div className="editor-grid two-columns attachment-snapshot-fields">
         {(["optic", "suppressor", "bipod", "sling"] as const).map((kind) => <FormField key={kind} label={kind[0].toUpperCase() + kind.slice(1)} htmlFor={`attachment-${kind}`}><Input id={`attachment-${kind}`} {...register(kind)} /></FormField>)}
+        {weaponType === "bow"
+          ? (["arrow", "broadhead"] as const).map((kind) => (
+              <FormField
+                key={kind}
+                label={kind[0].toUpperCase() + kind.slice(1)}
+                htmlFor={`attachment-${kind}`}
+              >
+                <Input id={`attachment-${kind}`} {...register(kind)} />
+              </FormField>
+            ))
+          : null}
       </div>
       <GpxPicker
         file={gpxFile}

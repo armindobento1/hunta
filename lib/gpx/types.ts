@@ -9,6 +9,7 @@ export interface TrackPoint {
 
 export interface ParsedGpx {
   rawGpx: string;
+  segments: TrackPoint[][];
   points: TrackPoint[];
   distanceKm: number;
   durationMin: number | null;

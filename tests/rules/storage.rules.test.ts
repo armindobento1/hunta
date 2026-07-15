@@ -6,7 +6,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { getBytes, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, getBytes, ref, uploadBytes } from "firebase/storage";
 
 const projectId = "hunta-storage-rules";
 
@@ -91,5 +91,42 @@ describe("Storage ownership rules", () => {
         { contentType: "text/plain" },
       ),
     );
+  });
+
+  it.each([
+    ["media", "media-2-kudu.jpg", "image/jpeg"],
+    ["routes", "route-2.gpx", "application/gpx+xml"],
+  ])("allows only the owner to delete kill %s", async (folder, fileName, contentType) => {
+    const owner = environment.authenticatedContext("delete-owner").storage();
+    const other = environment.authenticatedContext("other").storage();
+    const guest = environment.unauthenticatedContext().storage();
+    const path = `users/delete-owner/kills/kill-2/${folder}/${fileName}`;
+    const bytes =
+      folder === "routes"
+        ? new TextEncoder().encode("<gpx></gpx>")
+        : new Uint8Array([1, 2, 3]);
+
+    await assertSucceeds(
+      uploadBytes(ref(owner, path), bytes, { contentType }),
+    );
+    await assertFails(deleteObject(ref(other, path)));
+    await assertFails(deleteObject(ref(guest, path)));
+    await assertSucceeds(deleteObject(ref(owner, path)));
+  });
+
+  it("denies avatar deletion to everyone, including the owner", async () => {
+    const owner = environment.authenticatedContext("avatar-owner").storage();
+    const other = environment.authenticatedContext("other").storage();
+    const guest = environment.unauthenticatedContext().storage();
+    const path = "users/avatar-owner/avatars/avatar.jpg";
+
+    await assertSucceeds(
+      uploadBytes(ref(owner, path), new Uint8Array([1, 2, 3]), {
+        contentType: "image/jpeg",
+      }),
+    );
+    await assertFails(deleteObject(ref(other, path)));
+    await assertFails(deleteObject(ref(guest, path)));
+    await assertFails(deleteObject(ref(owner, path)));
   });
 });

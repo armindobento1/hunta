@@ -70,11 +70,37 @@ function parsePoint(element: Element): TrackPoint | null {
   };
 }
 
-export function parseGpx(rawGpx: string): ParsedGpx {
-  const document = parseDocument(rawGpx);
-  const points = Array.from(document.querySelectorAll("trkpt, rtept"))
+function directChildren(element: Element, localName: string): Element[] {
+  return Array.from(element.children).filter(
+    (child) => child.localName === localName,
+  );
+}
+
+function parsePoints(elements: Element[]): TrackPoint[] {
+  return elements
     .map(parsePoint)
     .filter((point): point is TrackPoint => point !== null);
+}
+
+export function parseGpx(rawGpx: string): ParsedGpx {
+  const document = parseDocument(rawGpx);
+  const segments = Array.from(document.querySelectorAll("trk, rte"))
+    .flatMap((container) => {
+      if (container.localName === "rte") {
+        return [parsePoints(directChildren(container, "rtept"))];
+      }
+
+      const trackSegments = directChildren(container, "trkseg");
+      if (trackSegments.length === 0) {
+        return [parsePoints(directChildren(container, "trkpt"))];
+      }
+
+      return trackSegments.map((segment) =>
+        parsePoints(directChildren(segment, "trkpt")),
+      );
+    })
+    .filter((segment) => segment.length > 0);
+  const points = segments.flat();
 
   if (points.length === 0) {
     throw new GpxParseError(
@@ -84,8 +110,10 @@ export function parseGpx(rawGpx: string): ParsedGpx {
   }
 
   let distanceKm = 0;
-  for (let index = 1; index < points.length; index += 1) {
-    distanceKm += haversineKm(points[index - 1], points[index]);
+  for (const segment of segments) {
+    for (let index = 1; index < segment.length; index += 1) {
+      distanceKm += haversineKm(segment[index - 1], segment[index]);
+    }
   }
 
   const timestamps = points
@@ -98,6 +126,7 @@ export function parseGpx(rawGpx: string): ParsedGpx {
 
   return {
     rawGpx,
+    segments,
     points,
     distanceKm,
     durationMin,

@@ -43,6 +43,47 @@ describe("applyKillEdit", () => {
     expect(updated.media).toEqual(existing.media);
   });
 
+  it("removes optional-absent facts when they are explicitly cleared", () => {
+    const existing = makeKill({
+      loadoutId: "loadout-1",
+      equipmentAttachments: {
+        optic: { name: "Swarovski Z8i" },
+      },
+      measurement: { score: 54.125, scoreUnit: "in" },
+    });
+    const updated = applyKillEdit(existing, {
+      loadoutId: null,
+      equipmentAttachments: null,
+      measurement: null,
+    });
+
+    expect(updated).not.toHaveProperty("loadoutId");
+    expect(updated).not.toHaveProperty("equipmentAttachments");
+    expect(updated).not.toHaveProperty("measurement");
+  });
+
+  it("leaves optional-absent facts unchanged when edits are undefined", () => {
+    const existing = makeKill({
+      loadoutId: "loadout-1",
+      equipmentAttachments: {
+        arrow: { name: "Easton Axis" },
+        broadhead: { name: "QAD Exodus" },
+      },
+      measurement: { weightDressed: 241, weightUnit: "kg" },
+    });
+    const updated = applyKillEdit(existing, {
+      loadoutId: undefined,
+      equipmentAttachments: undefined,
+      measurement: undefined,
+    });
+
+    expect(updated.loadoutId).toBe(existing.loadoutId);
+    expect(updated.equipmentAttachments).toEqual(
+      existing.equipmentAttachments,
+    );
+    expect(updated.measurement).toEqual(existing.measurement);
+  });
+
   it("does not permit ownership or identity fields in an edit", () => {
     const existing = makeKill();
     const hostile = {

@@ -1,4 +1,4 @@
-import { buildPublicHunt, normalizeSearchName, rankPublicHunts } from "@/lib/domain/public-social";
+import { buildPublicHunt, comparePublicHuntsByRecency, normalizeSearchName, rankPublicHunts } from "@/lib/domain/public-social";
 import { makeKill } from "@/tests/helpers/kill";
 
 const profile = { id: "owner-1", displayName: "  Marcus Halvorsen ", avatarUrl: null, bio: "Fair chase.", createdAt: "2025-01-01T00:00:00.000Z", updatedAt: "2025-01-01T00:00:00.000Z" };
@@ -43,5 +43,19 @@ describe("public social projections", () => {
     const first = buildPublicHunt(makeKill({ id: "one", measurement: { score: 55, scoreUnit: "in" } }), profile);
     const second = buildPublicHunt(makeKill({ id: "two", measurement: { score: 59, scoreUnit: "in" } }), profile);
     expect(rankPublicHunts([first, second], "Greater Kudu").map((hunt) => hunt.sourceKillId)).toEqual(["two", "one"]);
+  });
+
+  it("orders same-day public hunts by kill time descending", () => {
+    const morning = buildPublicHunt(makeKill({ id: "morning", killTime: "06:42" }), profile);
+    const evening = buildPublicHunt(makeKill({ id: "evening", killTime: "18:05" }), profile);
+
+    expect([morning, evening].sort(comparePublicHuntsByRecency).map((hunt) => hunt.sourceKillId)).toEqual(["evening", "morning"]);
+  });
+
+  it("uses publication time to break equal date and kill-time ties", () => {
+    const firstPublished = buildPublicHunt(makeKill({ id: "first" }), profile, "2025-06-12T09:00:00.000Z");
+    const lastPublished = buildPublicHunt(makeKill({ id: "last" }), profile, "2025-06-12T10:00:00.000Z");
+
+    expect([firstPublished, lastPublished].sort(comparePublicHuntsByRecency).map((hunt) => hunt.sourceKillId)).toEqual(["last", "first"]);
   });
 });

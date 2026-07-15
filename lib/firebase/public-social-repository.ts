@@ -1,6 +1,6 @@
 import { collection, collectionGroup, deleteDoc, doc, endAt, getDoc, getDocs, limit, onSnapshot, orderBy, query, runTransaction, setDoc, startAt, Timestamp, where, writeBatch, type Unsubscribe } from "firebase/firestore";
 
-import { publicHuntSchema, publicProfileSchema, type PublicHunt, type PublicProfile } from "@/lib/domain/public-social";
+import { comparePublicHuntsByRecency, publicHuntSchema, publicProfileSchema, type PublicHunt, type PublicProfile } from "@/lib/domain/public-social";
 import { getFirebaseServices } from "./config";
 
 const db = () => getFirebaseServices().db;
@@ -23,7 +23,7 @@ function parseHuntOrSkip(id: string, value: Record<string, unknown>): PublicHunt
   }
 }
 const parseHunts = (docs: Array<{ id: string; data(): Record<string, unknown> }>) =>
-  docs.flatMap((entry) => parseHuntOrSkip(entry.id, entry.data()) ?? []);
+  docs.flatMap((entry) => parseHuntOrSkip(entry.id, entry.data()) ?? []).sort(comparePublicHuntsByRecency);
 
 export async function savePublicProfile(profile: PublicProfile) {
   const value = publicProfileSchema.parse(profile);
@@ -59,16 +59,45 @@ export function subscribeToLikedHuntIds(uid: string, onValue: (huntIds: string[]
 
 export async function unpublishHunt(ownerId: string, killId: string) {
   const huntId = `${ownerId}_${killId}`;
+  const huntRef = doc(hunts(), huntId);
+  const huntExists = (await getDoc(huntRef)).exists();
   // Clear likes and comments while the hunt still exists (the owner-moderation
   // rules need the parent document) so nothing resurfaces on a re-publish.
-  const [likeDocs, commentDocs] = await Promise.all([
-    getDocs(collection(db(), "publicHunts", huntId, "likes")),
-    getDocs(collection(db(), "publicHunts", huntId, "comments")),
+  const likes = query(collection(db(), "publicHunts", huntId, "likes"), limit(400));
+  const comments = query(collection(db(), "publicHunts", huntId, "comments"), limit(400));
+  const maxPasses = 20;
+
+  for (let pass = 0; pass < maxPasses; pass += 1) {
+    const [likeDocs, commentDocs] = await Promise.all([
+      getDocs(likes),
+      getDocs(comments),
+    ]);
+
+    if (likeDocs.empty && commentDocs.empty) {
+      if (huntExists) await deleteDoc(huntRef);
+      return;
+    }
+
+    for (const page of [likeDocs, commentDocs]) {
+      if (page.empty) continue;
+      const batch = writeBatch(db());
+      for (const entry of page.docs) batch.delete(entry.ref);
+      await batch.commit();
+    }
+  }
+
+  const [remainingLikes, remainingComments] = await Promise.all([
+    getDocs(likes),
+    getDocs(comments),
   ]);
-  const batch = writeBatch(db());
-  for (const entry of [...likeDocs.docs, ...commentDocs.docs]) batch.delete(entry.ref);
-  await batch.commit();
-  await deleteDoc(doc(hunts(), huntId));
+  if (remainingLikes.empty && remainingComments.empty) {
+    if (huntExists) await deleteDoc(huntRef);
+    return;
+  }
+
+  throw new Error(
+    `Could not unpublish hunt after ${maxPasses} cleanup passes because public engagement is still being added.`,
+  );
 }
 
 export async function searchPublicProfiles(searchName: string): Promise<PublicProfile[]> {

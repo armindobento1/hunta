@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Spinner } from "@/components/ui/spinner";
-import { applyKillEdit } from "@/lib/domain/kill-edit";
+import { applyKillEdit, type KillEdit } from "@/lib/domain/kill-edit";
 import type { Kill, MediaAsset, RouteMetadata } from "@/lib/domain/kill";
 import { getKill, saveKill } from "@/lib/firebase/kill-repository";
-import { uploadGpx, uploadMedia } from "@/lib/firebase/storage-repository";
+import {
+  deleteStorageObject,
+  uploadGpx,
+  uploadMedia,
+} from "@/lib/firebase/storage-repository";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useArmory } from "@/lib/hooks/use-armory";
 import { useProfile } from "@/lib/hooks/use-profile";
@@ -78,6 +82,7 @@ export function KillEditor({ killId }: { killId?: string }) {
     setSaving(true);
     setError(null);
     const now = new Date().toISOString();
+    const uploadedStoragePaths: string[] = [];
 
     try {
       let media: MediaAsset[] = [...submission.existingMedia];
@@ -96,7 +101,9 @@ export function KillEditor({ killId }: { killId?: string }) {
           latitude: submission.latitude,
           longitude: submission.longitude,
           placeName: submission.placeName.trim(),
-          farmName: submission.farmName.trim(),
+          ...(submission.farmName.trim()
+            ? { farmName: submission.farmName.trim() }
+            : {}),
           ...(farmId ? { farmId } : {}),
           ...(submission.locationSourceProvider === "esri" && submission.locationSourceFeatureId && submission.locationSourceLabel ? { source: { provider: "esri" as const, featureId: submission.locationSourceFeatureId, label: submission.locationSourceLabel } } : {}),
         },
@@ -110,49 +117,81 @@ export function KillEditor({ killId }: { killId?: string }) {
             ? { detail: submission.ammunitionDetail.trim() }
             : {}),
         },
-        ...(submission.loadoutId ? { loadoutId: submission.loadoutId } : {}),
-        ...([submission.optic, submission.suppressor, submission.bipod, submission.sling].some((value) => value.trim()) ? { equipmentAttachments: {
-          ...(submission.optic.trim() ? { optic: { name: submission.optic.trim() } } : {}),
-          ...(submission.suppressor.trim() ? { suppressor: { name: submission.suppressor.trim() } } : {}),
-          ...(submission.bipod.trim() ? { bipod: { name: submission.bipod.trim() } } : {}),
-          ...(submission.sling.trim() ? { sling: { name: submission.sling.trim() } } : {}),
-        } } : {}),
-        ...([
+        loadoutId: submission.loadoutId || null,
+        equipmentAttachments: [
+          submission.optic,
+          submission.suppressor,
+          submission.bipod,
+          submission.sling,
+          ...(submission.weaponType === "bow"
+            ? [submission.arrow, submission.broadhead]
+            : []),
+        ].some((value) => value.trim())
+          ? {
+              ...(submission.optic.trim()
+                ? { optic: { name: submission.optic.trim() } }
+                : {}),
+              ...(submission.suppressor.trim()
+                ? { suppressor: { name: submission.suppressor.trim() } }
+                : {}),
+              ...(submission.bipod.trim()
+                ? { bipod: { name: submission.bipod.trim() } }
+                : {}),
+              ...(submission.sling.trim()
+                ? { sling: { name: submission.sling.trim() } }
+                : {}),
+              ...(submission.weaponType === "bow" && submission.arrow.trim()
+                ? { arrow: { name: submission.arrow.trim() } }
+                : {}),
+              ...(submission.weaponType === "bow" &&
+              submission.broadhead.trim()
+                ? { broadhead: { name: submission.broadhead.trim() } }
+                : {}),
+            }
+          : null,
+        measurement: [
           submission.measureScore,
           submission.measureWeightDressed,
           submission.measureWeightUndressed,
         ].some(Number.isFinite)
           ? {
-              measurement: {
-                ...(Number.isFinite(submission.measureScore)
-                  ? { score: submission.measureScore }
-                  : {}),
-                ...(submission.measureScoreUnit.trim()
-                  ? { scoreUnit: submission.measureScoreUnit.trim() }
-                  : {}),
-                ...(submission.measureScoringSystem.trim()
-                  ? { scoringSystem: submission.measureScoringSystem.trim() }
-                  : {}),
-                ...(Number.isFinite(submission.measureWeightDressed)
-                  ? { weightDressed: submission.measureWeightDressed }
-                  : {}),
-                ...(Number.isFinite(submission.measureWeightUndressed)
-                  ? { weightUndressed: submission.measureWeightUndressed }
-                  : {}),
-                weightUnit: submission.measureWeightUnit,
-              },
+              ...(Number.isFinite(submission.measureScore)
+                ? { score: submission.measureScore }
+                : {}),
+              ...(submission.measureScoreUnit.trim()
+                ? { scoreUnit: submission.measureScoreUnit.trim() }
+                : {}),
+              ...(submission.measureScoringSystem.trim()
+                ? { scoringSystem: submission.measureScoringSystem.trim() }
+                : {}),
+              ...(Number.isFinite(submission.measureWeightDressed)
+                ? { weightDressed: submission.measureWeightDressed }
+                : {}),
+              ...(Number.isFinite(submission.measureWeightUndressed)
+                ? { weightUndressed: submission.measureWeightUndressed }
+                : {}),
+              weightUnit: submission.measureWeightUnit,
             }
-          : {}),
+          : null,
         description: submission.description.trim(),
         isPublic: submission.isPublic,
-      } satisfies Partial<Kill>;
+      } satisfies KillEdit;
 
       let draft: Kill | null = null;
       if (!initialKill) {
+        const {
+          loadoutId,
+          equipmentAttachments,
+          measurement,
+          ...requiredFacts
+        } = factualEdit;
         draft = {
           id,
           ownerId: user.uid,
-          ...factualEdit,
+          ...requiredFacts,
+          ...(loadoutId ? { loadoutId } : {}),
+          ...(equipmentAttachments ? { equipmentAttachments } : {}),
+          ...(measurement ? { measurement } : {}),
           coverMediaId: null,
           media,
           route: null,
@@ -174,6 +213,7 @@ export function KillEditor({ killId }: { killId?: string }) {
             file: pending.file,
             onProgress: (percent) => progress(pending.id, pending.file.name, percent),
           });
+          uploadedStoragePaths.push(asset.storagePath);
           media = [...media, asset];
           progress(pending.id, pending.file.name, 100, "complete");
           if (draft) {
@@ -195,6 +235,7 @@ export function KillEditor({ killId }: { killId?: string }) {
           file: submission.gpxFile,
           onProgress: (percent) => progress(routeId, submission.gpxFile!.name, percent),
         });
+        uploadedStoragePaths.push(uploaded.route.storagePath);
         route = uploaded.route;
         progress(routeId, submission.gpxFile.name, 100, "complete");
       }
@@ -227,8 +268,31 @@ export function KillEditor({ killId }: { killId?: string }) {
           await unpublishHunt(user.uid, id);
         }
       }
+      const removedStoragePaths = initialKill
+        ? [
+            ...initialKill.media
+              .filter(
+                (asset) =>
+                  !complete.media.some((savedAsset) => savedAsset.id === asset.id),
+              )
+              .map((asset) => asset.storagePath),
+            ...(submission.gpxFile && initialKill.route
+              ? [initialKill.route.storagePath]
+              : []),
+          ]
+        : [];
+      await Promise.allSettled(
+        removedStoragePaths.map((storagePath) =>
+          deleteStorageObject(storagePath),
+        ),
+      );
       navigate(`/portfolio/kills/${id}`);
     } catch (saveError) {
+      await Promise.allSettled(
+        uploadedStoragePaths.map((storagePath) =>
+          deleteStorageObject(storagePath),
+        ),
+      );
       setError(
         saveError instanceof Error
           ? saveError.message

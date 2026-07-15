@@ -28,6 +28,8 @@ export interface KillFormSubmission {
   suppressor: string;
   bipod: string;
   sling: string;
+  arrow: string;
+  broadhead: string;
   locationSourceProvider: "" | "esri";
   locationSourceFeatureId: string;
   locationSourceLabel: string;

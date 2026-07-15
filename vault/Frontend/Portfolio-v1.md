@@ -13,7 +13,8 @@ The customer-facing product name is **Hunta**.
   list/grid switch, country/place/year grouping, and a standalone private armory
   with weapon-first reusable loadouts.
 - `/portfolio/leaderboard` public community rankings from explicitly published measurements, with account search and follow controls.
-- `/people/:uid` and `/people/:uid/hunts/:publicHuntId` public read-only profile and hunt routes.
+- `/people/:uid`, live follower/following lists, public hunt detail, comments,
+  and `/people/:uid/hunts/:publicHuntId/likes` likers routes.
 - `/portfolio/map` satellite map of the owner's saved kill locations.
 - `/portfolio/kills/new` complete draft-first record creation.
 - `/portfolio/kills/:killId` media, facts, narrative, satellite GPX map, edit,
@@ -59,6 +60,15 @@ suggestions). A public hunt's location is **farm name + area text only**
 
 The feed offers My Hunts plus a public Community view with Discover and
 Following modes. Account search uses normalized public profile prefixes.
+Follower/following membership and hunt likers use live subscriptions; public
+profiles are resolved through a shared cached people lookup, while profile
+header counts remain aggregate queries refreshed after follow toggles.
+Public deep-link back controls fall back to an in-app route at history root;
+hunt and comment URLs canonicalize the owner UID, and share failures surface inline.
+Activity waits for its first notification snapshot before showing an empty state;
+public hunt lists sort by date, kill time, then publication time on the client.
+Rejected public reads render load alerts rather than false not-found states, and
+hunt-detail video playback uses a keyboard-accessible overlay with no dead Save control.
 Publishing is opt-in per hunt; the entire social surface is gated by
 `VITE_SOCIAL_ENABLED` (`lib/features.ts`), off by default and in prod until
 the remaining audit v1.1 findings land.
