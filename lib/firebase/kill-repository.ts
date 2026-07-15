@@ -81,6 +81,7 @@ export async function moveKillToTrash(
   const now = new Date().toISOString();
   return updateKill(uid, killId, {
     status: "trashed",
+    isPublic: false,
     trashedAt: now,
   });
 }

@@ -20,7 +20,7 @@ import { useProfile } from "@/lib/hooks/use-profile";
 
 export function ProfilePage() {
   const { user } = useAuth();
-  const { profile, loading, error } = useProfile();
+  const { profile, loading, error, syncError } = useProfile();
 
   if (loading || !profile || !user) {
     return (
@@ -33,11 +33,20 @@ export function ProfilePage() {
       key={profile.updatedAt}
       profile={profile}
       uid={user.uid}
+      syncError={syncError}
     />
   );
 }
 
-function ProfileSettings({ profile, uid }: { profile: Profile; uid: string }) {
+function ProfileSettings({
+  profile,
+  uid,
+  syncError,
+}: {
+  profile: Profile;
+  uid: string;
+  syncError: string | null;
+}) {
   const [displayName, setDisplayName] = useState(profile.displayName);
   const [bio, setBio] = useState(profile.bio);
   const [avatar, setAvatar] = useState<File | null>(null);
@@ -89,6 +98,7 @@ function ProfileSettings({ profile, uid }: { profile: Profile; uid: string }) {
       </Link>
       <p className="eyebrow">Account</p>
       <h1>Profile settings</h1>
+      {syncError ? <p role="alert">{syncError}</p> : null}
       <form onSubmit={submit}>
         <FormField label="Display name" htmlFor="profile-name">
           <Input

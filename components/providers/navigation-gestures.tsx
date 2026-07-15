@@ -2,16 +2,12 @@ import { App as CapacitorApp } from "@capacitor/app";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { historyIndex } from "@/lib/hooks/use-back";
 import { isNativePlatform } from "@/lib/native/platform";
 
 const EDGE_START_PX = 28;
 const SWIPE_DISTANCE_PX = 70;
 const SWIPE_MAX_DRIFT_PX = 45;
-
-function historyIndex(): number {
-  const state = window.history.state as { idx?: number } | null;
-  return state?.idx ?? 0;
-}
 
 /**
  * Instagram-style back navigation for the wrapped app: a swipe from the left

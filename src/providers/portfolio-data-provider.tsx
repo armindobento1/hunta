@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -19,13 +20,14 @@ import {
 } from "@/lib/firebase/profile-repository";
 import { SOCIAL_ENABLED } from "@/lib/features";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { buildPublicProfile } from "@/lib/domain/public-social";
+import { buildPublicProfile, type PublicProfile } from "@/lib/domain/public-social";
 import { savePublicProfile } from "@/lib/firebase/public-social-repository";
 
 export interface ProfileDataState {
   profile: Profile | null;
   loading: boolean;
   error: string | null;
+  syncError: string | null;
 }
 
 export interface KillDataState {
@@ -65,6 +67,7 @@ function PortfolioDataSession({
     profile: null,
     loading: true,
     error: null,
+    syncError: null,
   });
   const [killsState, setKillsState] = useState<KillDataState>({
     kills: [],
@@ -72,16 +75,68 @@ function PortfolioDataSession({
     error: null,
   });
   const [armoryState, setArmoryState] = useState<PortfolioDataState["armoryState"]>({ items: [], loadouts: [], loading: true, error: null });
+  const lastSyncedRef = useRef<string | null>(null);
+  const syncingRef = useRef<string | null>(null);
+  const pendingSyncRef = useRef<{ profile: PublicProfile; value: string } | null>(null);
 
   useEffect(() => {
     let creatingProfile = false;
+    let active = true;
+
+    function syncPublicProfile(profile: PublicProfile, syncValue: string) {
+      if (
+        lastSyncedRef.current === syncValue
+        || syncingRef.current === syncValue
+      ) {
+        return;
+      }
+      if (syncingRef.current) {
+        pendingSyncRef.current = { profile, value: syncValue };
+        return;
+      }
+
+      syncingRef.current = syncValue;
+      void savePublicProfile(profile)
+        .then(() => {
+          lastSyncedRef.current = syncValue;
+          if (active) {
+            setProfileState((current) => ({
+              ...current,
+              syncError: null,
+            }));
+          }
+        })
+        .catch(() => {
+          if (active) {
+            setProfileState((current) => ({
+              ...current,
+              syncError: "Your public profile could not be updated. Your private profile is still available.",
+            }));
+          }
+        })
+        .finally(() => {
+          if (syncingRef.current === syncValue) syncingRef.current = null;
+          const pending = pendingSyncRef.current;
+          pendingSyncRef.current = null;
+          if (active && pending) syncPublicProfile(pending.profile, pending.value);
+        });
+    }
 
     const unsubscribeProfile = subscribeToProfile(
       user.uid,
       (profile) => {
         if (profile) {
-          setProfileState({ profile, loading: false, error: null });
-          if (SOCIAL_ENABLED) void savePublicProfile(buildPublicProfile(profile));
+          setProfileState((current) => ({
+            profile,
+            loading: false,
+            error: null,
+            syncError: current.syncError,
+          }));
+          if (SOCIAL_ENABLED) {
+            const publicProfile = buildPublicProfile(profile);
+            const syncValue = JSON.stringify(publicProfile);
+            syncPublicProfile(publicProfile, syncValue);
+          }
           return;
         }
 
@@ -101,6 +156,7 @@ function PortfolioDataSession({
               profile: null,
               loading: false,
               error: "Your profile could not be created.",
+              syncError: null,
             });
           });
         }
@@ -110,6 +166,7 @@ function PortfolioDataSession({
           profile: null,
           loading: false,
           error: "Your profile could not be loaded.",
+          syncError: null,
         });
       },
     );
@@ -152,6 +209,7 @@ function PortfolioDataSession({
     });
 
     return () => {
+      active = false;
       unsubscribeProfile();
       unsubscribeKills();
       unsubscribeItems();

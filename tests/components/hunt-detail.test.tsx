@@ -38,6 +38,23 @@ describe("HuntDetail", () => {
     await user.click(screen.getByRole("button", { name: /confirm move to trash/i }));
     expect(onTrash).toHaveBeenCalledOnce();
   });
+
+  it("warns that public engagement is removed when trashing a published kill", async () => {
+    const user = userEvent.setup();
+    renderWithRouter(
+      <HuntDetail
+        kill={makeKill({ isPublic: true })}
+        mapSlot={<div />}
+        onTrash={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /move to trash/i }));
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "The published post and its likes and comments will be removed from the public feed.",
+    );
+  });
 });
 
 describe("TrashView", () => {

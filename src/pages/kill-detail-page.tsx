@@ -4,7 +4,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { HuntDetail } from "@/components/kills/hunt-detail";
 import { Spinner } from "@/components/ui/spinner";
 import type { Kill } from "@/lib/domain/kill";
+import { SOCIAL_ENABLED } from "@/lib/features";
 import { getKill, moveKillToTrash } from "@/lib/firebase/kill-repository";
+import { unpublishHunt } from "@/lib/firebase/public-social-repository";
 import { useAuth } from "@/lib/hooks/use-auth";
 
 export function KillDetailPage() {
@@ -58,6 +60,9 @@ export function KillDetailPage() {
     <HuntDetail
       kill={kill}
       onTrash={async () => {
+        if (SOCIAL_ENABLED && kill.isPublic) {
+          await unpublishHunt(user!.uid, kill.id);
+        }
         await moveKillToTrash(user!.uid, kill.id);
         navigate("/portfolio");
       }}

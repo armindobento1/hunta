@@ -37,7 +37,7 @@ Views over the same Kill set:
 | `weapon` | object | see below |
 | `ammunition` | object | see below |
 | `loadoutId` | string \| undefined | optional reference to the selected reusable armory setup |
-| `equipmentAttachments` | object \| undefined | immutable-at-save snapshot of optic, suppressor, bipod, and sling used on this hunt |
+| `equipmentAttachments` | object \| undefined | immutable-at-save snapshot of optic, suppressor, bipod, sling, arrow, and broadhead used on this hunt |
 | `measurement` | object \| undefined | optional factual trophy score/size and dressed/undressed weight |
 | `route` | object \| null | imported GPX, see below |
 | `description` | string | free-text hunt narrative |
@@ -97,7 +97,7 @@ Views over the same Kill set:
 - `publicProfiles/{uid}` is a searchable read-only projection of public account identity.
 - `publicHunts/{uid}_{killId}` is created only when the owner selects Publish publicly. It includes the approved hunt facts and public media URLs but excludes private storage paths and persistence metadata. Its location is farm name + area **text only** (`publicLocationSchema`, mirrored by `validPublicLocation` in rules): exact coordinates, farm IDs, and geocoder provenance never enter a public shape. `publishedAt` is immutable after first publish (rules-enforced); edits republish with the original value.
 - `users/{followerUid}/following/{followedUid}` and its public follower mirror record owner-controlled follows.
-- Unpublishing deletes only the public projection. The private Kill and all source media remain intact.
+- Unpublishing deletes likes/comments in bounded pages while the projection still exists, then deletes the projection parent last. Trashing a published Kill unpublishes first and stores `isPublic: false`, so restore remains private until an explicit re-publish; the private Kill and all source media remain intact.
 - **Engagement counts are denormalized** onto the hunt doc (`likeCount`/`commentCount`), maintained by atomic `increment()` batched with each like/comment write. The feed reads them off the hunt docs it already subscribes to — no per-card likes/comments listeners. Rules let a non-owner change exactly one counter by ±1, tied to actually creating/deleting their own like doc (comment counter bounded to ±1, cosmetic-only integrity); `engagementCountBump` in `firestore.rules`, tested in `tests/rules/`. "Did I like this" for the whole feed comes from one collection-group listener (`likes where likerId == me`). Full likes/comments listeners open only on an opened post (detail/comments screens).
 
 ### route (Garmin / Strava import)
@@ -107,6 +107,11 @@ Views over the same Kill set:
 | `distanceKm` | derived from track, never overwrites source |
 | `durationMin` | derived from track timestamps |
 | `bounds` | for fitting the satellite map view |
+
+GPX tracks preserve segment boundaries during import: distance is summed only
+within each track segment (or route), while the flat point list remains the
+document-order concatenation used for bounds and timestamps. Existing stored
+route metadata is never rewritten when derivation logic changes.
 
 ## Rules
 - `year` is always derived from `date` — do not persist a separate year that can
@@ -120,5 +125,9 @@ Views over the same Kill set:
 - Armory items and loadouts use the same UID-rooted ownership boundary.
 - Storage source paths are nested under the same UID and kill ID. Domain
   validation rejects attachment paths linked to another owner or record.
-- Deletes are status transitions to recoverable trash. Source media and GPX are
-  retained.
+- Record deletion is a status transition to recoverable trash. Explicitly
+  confirmed attachment removal or route replacement saves the record first,
+  then best-effort deletes the now-unreferenced owner Storage object; failed
+  cleanup may leave an invisible orphan but never a dangling record reference.
+- Storage owners may delete their own kill media and route objects for that
+  cleanup path. Avatar deletion remains denied.

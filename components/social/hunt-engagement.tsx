@@ -1,9 +1,10 @@
 import { Heart, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import type { HuntComment, HuntLike } from "@/lib/domain/engagement";
 import type { PublicHunt } from "@/lib/domain/public-social";
+import { useBack } from "@/lib/hooks/use-back";
 import { useHuntEngagement, type HuntEngagementState } from "@/lib/hooks/use-engagement";
 import { initials } from "@/lib/ui/initials";
 import { relativeTime } from "@/lib/ui/relative-time";
@@ -43,7 +44,7 @@ function CommentLikeColumn({ comment, viewerId, onToggle }: {
 function CommentBody({ comment, hunt, small = false }: { comment: HuntComment; hunt: PublicHunt; small?: boolean }) {
   return (
     <div className="cmt-text" style={small ? { fontSize: "12.5px" } : undefined}>
-      <b>{comment.authorName}</b>
+      <Link to={`/people/${comment.authorId}`}><b>{comment.authorName}</b></Link>
       {comment.authorId === hunt.ownerId ? <span className="cmt-author-chip">AUTHOR</span> : null}
       &nbsp; {comment.body}
     </div>
@@ -55,15 +56,27 @@ function CommentMeta({ comment, viewerId, hunt, onReply, onDelete }: {
   viewerId: string | null;
   hunt: PublicHunt;
   onReply(comment: HuntComment): void;
-  onDelete(comment: HuntComment): void;
+  onDelete(comment: HuntComment): Promise<void>;
 }) {
   const canDelete = viewerId === comment.authorId || viewerId === hunt.ownerId;
+  const [deleting, setDeleting] = useState(false);
+
+  async function deleteComment() {
+    if (!window.confirm("Delete this comment?")) return;
+    setDeleting(true);
+    try {
+      await onDelete(comment);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="cmt-meta">
       {relativeTime(comment.createdAt)}
       {viewerId ? <button type="button" onClick={() => onReply(comment)}>Reply</button> : null}
       {canDelete ? (
-        <button type="button" onClick={() => onDelete(comment)}>
+        <button type="button" disabled={deleting} onClick={() => void deleteComment()}>
           <Trash2 aria-hidden="true" /> Delete
         </button>
       ) : null}
@@ -103,10 +116,10 @@ export function CommentSection({ hunt, engagement }: { hunt: PublicHunt; engagem
             {likes.slice(0, 3).map((like) => <span key={like.likerId}>{initials(like.likerName)}</span>)}
           </span>
         ) : null}
-        <span style={{ flex: 1 }}>
+        <Link to={`/people/${hunt.ownerId}/hunts/${hunt.id}/likes`} style={{ flex: 1 }}>
           <b>{likes.length} like{likes.length === 1 ? "" : "s"}</b>
           {likes.length > 0 ? <span className="cmt-likerow-names"> · {likeSummary(likes, viewerId)}</span> : null}
-        </span>
+        </Link>
         <button
           type="button"
           className={likedByMe ? "cmt-liked" : undefined}
@@ -125,16 +138,16 @@ export function CommentSection({ hunt, engagement }: { hunt: PublicHunt; engagem
       ) : (
         roots.map((comment) => (
           <div className="cmt-row" key={comment.id}>
-            <span className="cmt-avatar" aria-hidden="true">{initials(comment.authorName)}</span>
+            <Link className="cmt-avatar" to={`/people/${comment.authorId}`} aria-label={comment.authorName}>{initials(comment.authorName)}</Link>
             <div style={{ flex: 1, minWidth: 0 }}>
               <CommentBody comment={comment} hunt={hunt} />
-              <CommentMeta comment={comment} viewerId={viewerId} hunt={hunt} onReply={setReplyTo} onDelete={(target) => void removeComment(target)} />
+              <CommentMeta comment={comment} viewerId={viewerId} hunt={hunt} onReply={setReplyTo} onDelete={removeComment} />
               {repliesOf(comment.id).map((reply) => (
                 <div className="cmt-reply-row" key={reply.id}>
-                  <span className="cmt-avatar" aria-hidden="true">{initials(reply.authorName)}</span>
+                  <Link className="cmt-avatar" to={`/people/${reply.authorId}`} aria-label={reply.authorName}>{initials(reply.authorName)}</Link>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <CommentBody comment={reply} hunt={hunt} small />
-                    <CommentMeta comment={reply} viewerId={viewerId} hunt={hunt} onReply={() => setReplyTo(reply)} onDelete={(target) => void removeComment(target)} />
+                    <CommentMeta comment={reply} viewerId={viewerId} hunt={hunt} onReply={() => setReplyTo(reply)} onDelete={removeComment} />
                   </div>
                   <CommentLikeColumn comment={reply} viewerId={viewerId} onToggle={(target) => void toggleCommentLike(target)} />
                 </div>
@@ -174,13 +187,13 @@ export function CommentSection({ hunt, engagement }: { hunt: PublicHunt; engagem
 
 /** Standalone comments screen (linked from feed cards). */
 export function HuntComments({ hunt }: { hunt: PublicHunt }) {
-  const navigate = useNavigate();
+  const back = useBack(`/people/${hunt.ownerId}/hunts/${hunt.id}`);
   const engagement = useHuntEngagement(hunt);
   const cover = hunt.media.find((media) => media.id === hunt.coverMediaId && media.kind === "photo");
   return (
     <main className="cmt-shell">
       <div className="cmt-head">
-        <button type="button" className="cmt-back" aria-label="Back" onClick={() => navigate(-1)} />
+        <button type="button" className="cmt-back" aria-label="Back" onClick={back} />
         <span className="cmt-title">Comments</span>
         <span className="cmt-context">
           {cover ? <img src={cover.downloadUrl} alt="" /> : null}

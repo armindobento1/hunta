@@ -1,8 +1,9 @@
 import { Bell } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { notificationText, type SocialNotification } from "@/lib/domain/engagement";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useBack } from "@/lib/hooks/use-back";
 import { useNotifications } from "@/lib/hooks/use-notifications";
 import { initials } from "@/lib/ui/initials";
 import { relativeTime } from "@/lib/ui/relative-time";
@@ -19,18 +20,20 @@ function sectionOf(entry: SocialNotification): "New" | "Today" | "Earlier" {
 const SECTIONS = ["New", "Today", "Earlier"] as const;
 
 export function NotificationsPage() {
-  const navigate = useNavigate();
+  const back = useBack("/home");
   const { user } = useAuth();
-  const { notifications, error, markRead } = useNotifications();
+  const { notifications, ready, error, markRead } = useNotifications();
 
   return (
     <main className="act-shell">
       <div className="cmt-head">
-        <button type="button" className="cmt-back" aria-label="Back to home" onClick={() => navigate("/home")} />
+        <button type="button" className="cmt-back" aria-label="Back to home" onClick={back} />
         <span className="cmt-title">Activity</span>
       </div>
       {error ? <p role="alert" style={{ padding: "0 16px" }}>{error}</p> : null}
-      {notifications.length === 0 ? (
+      {!ready ? (
+        <p className="centered-state">Loading…</p>
+      ) : notifications.length === 0 ? (
         <div className="act-empty">
           <span className="soc-empty-icon"><Bell aria-hidden="true" /></span>
           <strong>Nothing yet</strong>

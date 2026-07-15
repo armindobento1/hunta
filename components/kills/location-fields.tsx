@@ -121,23 +121,12 @@ export function LocationFields({
           <LocateFixed aria-hidden="true" size={16} /> Use current position
         </Button>
       </div>
-      <div className="req-field-wrapper">
-        <div className="req-field-header">
-          <label className="req-field-label" htmlFor="farm-name">
-            Farm name <span className="req-asterisk">*</span>
-          </label>
-          <span className="req-badge">
-            <span className="req-dot" aria-hidden="true" /> Required
-          </span>
-        </div>
+      <FormField label="Farm name (optional)" htmlFor="farm-name">
         <Input
           id="farm-name"
           placeholder="Name of the farm, reserve, or concession"
           autoComplete="off"
-          aria-invalid={Boolean(errors.farmName)}
-          aria-describedby={errors.farmName ? "farm-name-error" : undefined}
           {...register("farmName", {
-            required: "Farm name is required.",
             onChange: () => { if (farmId) setValue("farmId", ""); },
           })}
         />
@@ -160,12 +149,7 @@ export function LocationFields({
             ))}
           </div>
         ) : null}
-        {errors.farmName ? (
-          <p id="farm-name-error" className="field-error" role="alert">
-            {errors.farmName.message}
-          </p>
-        ) : null}
-      </div>
+      </FormField>
       <FormField
         label="Place name"
         htmlFor="place-name"

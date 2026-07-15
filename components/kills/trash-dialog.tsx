@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 
 export function TrashDialog({
   species,
+  isPublic = false,
   onCancel,
   onConfirm,
 }: {
   species: string;
+  isPublic?: boolean;
   onCancel(): void;
   onConfirm(): Promise<void> | void;
 }) {
@@ -40,6 +42,9 @@ export function TrashDialog({
         <p>
           The record, photos, videos, and original GPX stay intact. You can restore
           it at any time.
+          {isPublic
+            ? " The published post and its likes and comments will be removed from the public feed."
+            : null}
         </p>
         {error ? <p role="alert">{error}</p> : null}
         <div>

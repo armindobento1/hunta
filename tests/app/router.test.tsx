@@ -22,6 +22,7 @@ describe("Hunta route tree", () => {
     ["/portfolio/leaderboard", "not-found"],
     ["/people/hunter-1", "not-found"],
     ["/people/hunter-1/hunts/hunter-1_kill-1", "not-found"],
+    ["/people/hunter-1/hunts/hunter-1_kill-1/likes", "not-found"],
     ["/farms/farm-1", "not-found"],
   ])("matches %s to %s", (path, expectedRouteId) => {
     const matches = matchRoutes(APP_ROUTES, path);

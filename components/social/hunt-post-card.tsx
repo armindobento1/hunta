@@ -1,5 +1,5 @@
 import { ChevronRight, Heart, MessageCircle } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState, type PointerEvent } from "react";
 import { Link } from "react-router-dom";
 
 import type { PublicHunt } from "@/lib/domain/public-social";
@@ -8,18 +8,18 @@ import { formatScore } from "@/lib/ui/format-score";
 import { initials } from "@/lib/ui/initials";
 import { relativeTime } from "@/lib/ui/relative-time";
 
-function LikesLine({ likeCount, likedByMe }: { likeCount: number; likedByMe: boolean }) {
+function LikesLine({ likeCount, likedByMe, to }: { likeCount: number; likedByMe: boolean; to: string }) {
   if (likeCount === 0) return null;
   if (likedByMe) {
     const others = likeCount - 1;
     return (
-      <div className="soc-likers">
+      <Link className="soc-likers" to={to}>
         Liked by <b>you</b>
         {others > 0 ? <> and {others} other{others > 1 ? "s" : ""}</> : null}
-      </div>
+      </Link>
     );
   }
-  return <div className="soc-likers">{likeCount} like{likeCount > 1 ? "s" : ""}</div>;
+  return <Link className="soc-likers" to={to}>{likeCount} like{likeCount > 1 ? "s" : ""}</Link>;
 }
 
 export function HuntPostCard({ hunt }: { hunt: PublicHunt }) {
@@ -35,6 +35,7 @@ export function HuntPostCard({ hunt }: { hunt: PublicHunt }) {
   const commentCount = hunt.commentCount ?? 0;
   const likedByMe = likedIds.includes(hunt.id);
   const [burst, setBurst] = useState(false);
+  const previousTap = useRef<{ time: number; x: number; y: number } | null>(null);
   const truncated = hunt.description.length > 140;
   const caption = truncated ? `${hunt.description.slice(0, 140).trimEnd()}…` : hunt.description;
   const score = hunt.measurement?.score
@@ -46,6 +47,22 @@ export function HuntPostCard({ hunt }: { hunt: PublicHunt }) {
     setBurst(true);
     setTimeout(() => setBurst(false), 650);
     if (!likedByMe) void toggleLike(hunt);
+  }
+
+  function handleMediaPointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (!event.isPrimary || event.button !== 0) return;
+    const tap = { time: Date.now(), x: event.clientX, y: event.clientY };
+    const previous = previousTap.current;
+    if (
+      previous &&
+      tap.time - previous.time <= 300 &&
+      Math.hypot(tap.x - previous.x, tap.y - previous.y) <= 24
+    ) {
+      previousTap.current = null;
+      doubleTapLike();
+      return;
+    }
+    previousTap.current = tap;
   }
 
   return (
@@ -60,7 +77,7 @@ export function HuntPostCard({ hunt }: { hunt: PublicHunt }) {
         </Link>
         <span className="soc-time">{relativeTime(hunt.publishedAt)}</span>
       </div>
-      <div className="soc-media" onDoubleClick={doubleTapLike}>
+      <div className="soc-media" onPointerUp={handleMediaPointerUp}>
         {cover ? (
           <img src={cover.downloadUrl} alt={`${hunt.species} hunt by ${hunt.hunter.displayName}`} loading="lazy" />
         ) : (
@@ -88,7 +105,7 @@ export function HuntPostCard({ hunt }: { hunt: PublicHunt }) {
         </Link>
       </div>
       <div className="soc-body">
-        <LikesLine likeCount={likeCount} likedByMe={likedByMe} />
+        <LikesLine likeCount={likeCount} likedByMe={likedByMe} to={`${huntUrl}/likes`} />
         <Link to={huntUrl}>
           <b className="soc-species">{hunt.species}</b>&nbsp; {caption}
           {truncated ? <span className="soc-more"> more</span> : null}

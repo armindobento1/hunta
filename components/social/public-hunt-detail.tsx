@@ -1,10 +1,11 @@
-import { Bookmark, Heart, MessageCircle, MoreHorizontal, Play, Volume2, VolumeX } from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal, Play, Volume2, VolumeX } from "lucide-react";
 import { useRef, useState, type UIEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { CommentSection } from "@/components/social/hunt-engagement";
 import { GearSpec } from "@/components/kills/gear-spec";
 import type { PublicHunt } from "@/lib/domain/public-social";
+import { useBack } from "@/lib/hooks/use-back";
 import { useHuntEngagement } from "@/lib/hooks/use-engagement";
 import { useViewerFollowing } from "@/lib/hooks/use-viewer-following";
 import { formatScore } from "@/lib/ui/format-score";
@@ -33,15 +34,21 @@ function VideoSlide({ url, active }: { url: string; active: boolean }) {
         onLoadedMetadata={(event) => setDuration(formatSeconds(event.currentTarget.duration))}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
+      />
+      <button
+        type="button"
+        className="hd-video-toggle"
+        aria-label={playing ? "Pause video" : "Play video"}
         onClick={() => {
           const video = ref.current;
           if (!video) return;
           if (video.paused) void video.play();
           else video.pause();
         }}
-      />
+      >
+        {!playing ? <span className="hd-play" aria-hidden="true"><Play /></span> : null}
+      </button>
       <span className="hd-pill">VIDEO</span>
-      {!playing ? <span className="hd-play" aria-hidden="true"><Play /></span> : null}
       {duration ? <span className="hd-duration">{duration}</span> : null}
       <button type="button" className="hd-mute" aria-label={muted ? "Unmute" : "Mute"} onClick={() => setMuted((value) => !value)}>
         {muted ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}
@@ -51,12 +58,13 @@ function VideoSlide({ url, active }: { url: string; active: boolean }) {
 }
 
 export function PublicHuntDetail({ hunt }: { hunt: PublicHunt }) {
-  const navigate = useNavigate();
+  const back = useBack(`/people/${hunt.ownerId}`);
   const viewer = useViewerFollowing();
   const engagement = useHuntEngagement(hunt);
   const [slide, setSlide] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
   const commentsRef = useRef<HTMLDivElement>(null);
   const { likes, likedByMe, viewerId, toggleLike } = engagement;
 
@@ -80,14 +88,24 @@ export function PublicHuntDetail({ hunt }: { hunt: PublicHunt }) {
 
   async function copyHuntLink() {
     setMenuOpen(false);
-    await navigator.clipboard.writeText(window.location.href);
-    setNotice("Hunt link copied.");
+    setNotice(null);
+    setShareError(null);
+    try {
+      if (!navigator.clipboard?.writeText) {
+        setShareError("Copying isn't available here.");
+        return;
+      }
+      await navigator.clipboard.writeText(window.location.href);
+      setNotice("Hunt link copied.");
+    } catch {
+      setShareError("Could not copy the hunt link.");
+    }
   }
 
   return (
     <main className="hd-shell">
       <div className="hd-head">
-        <button type="button" className="cmt-back" aria-label="Back" onClick={() => navigate(-1)} />
+        <button type="button" className="cmt-back" aria-label="Back" onClick={back} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="hd-eyebrow">HUNT</div>
           <div className="hd-title">{hunt.species}</div>
@@ -120,6 +138,7 @@ export function PublicHuntDetail({ hunt }: { hunt: PublicHunt }) {
         ) : null}
       </div>
       {notice ? <p role="status" style={{ padding: "0 16px" }}>{notice}</p> : null}
+      {shareError ? <p role="alert" style={{ padding: "0 16px" }}>{shareError}</p> : null}
       {viewer.error ? <p role="alert" style={{ padding: "0 16px" }}>{viewer.error}</p> : null}
 
       <div className="hd-carousel">
@@ -168,21 +187,16 @@ export function PublicHuntDetail({ hunt }: { hunt: PublicHunt }) {
             {media.map((item, index) => <span key={item.id} className={`hd-dot${slide === index ? " hd-dot-active" : ""}`} />)}
           </div>
         ) : null}
-        <div>
-          {/* Saving hunts has no backend yet — placeholder per design, disabled. */}
-          <button type="button" className="soc-action" disabled aria-label="Save — coming soon" title="Save — coming soon">
-            <Bookmark aria-hidden="true" />
-          </button>
-        </div>
+        <div aria-hidden="true" />
       </div>
 
       <div className="hd-body">
-        <div>
+        <Link to={`/people/${hunt.ownerId}/hunts/${hunt.id}/likes`}>
           <b>{likes.length} like{likes.length === 1 ? "" : "s"}</b>
           {likerNames.length > 0 ? (
             <span className="cmt-likerow-names"> · {likerNames.join(", ")}{likerRest > 0 ? ` and ${likerRest} others` : ""}</span>
           ) : null}
-        </div>
+        </Link>
         {hunt.description ? <div style={{ marginTop: 8 }}>{hunt.description}</div> : null}
       </div>
 

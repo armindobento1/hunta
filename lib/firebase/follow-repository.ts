@@ -1,4 +1,4 @@
-import { collection, collectionGroup, doc, getCountFromServer, getDocs, onSnapshot, query, Timestamp, where, writeBatch, type Unsubscribe } from "firebase/firestore";
+import { collection, collectionGroup, doc, getCountFromServer, onSnapshot, query, Timestamp, where, writeBatch, type Unsubscribe } from "firebase/firestore";
 
 import { buildFollowNotification, followNotificationId } from "@/lib/domain/engagement";
 import { getFirebaseServices } from "./config";
@@ -49,17 +49,50 @@ export async function getFollowCounts(uid: string): Promise<{ followers: number;
   return { followers: followers.data().count, following: following.data().count };
 }
 
-async function resolvePeople(ids: string[]): Promise<FollowPerson[]> {
-  const profiles = await Promise.all(ids.map((id) => getPublicProfile(id)));
-  return ids.map((id, index) => ({ id, displayName: profiles[index]?.displayName ?? "Hunter", avatarUrl: profiles[index]?.avatarUrl ?? null }));
+export async function resolvePeople(ids: string[], cache = new Map<string, FollowPerson>()): Promise<FollowPerson[]> {
+  await Promise.all(ids.map(async (id) => {
+    if (cache.has(id)) return;
+    const profile = await getPublicProfile(id);
+    cache.set(id, { id, displayName: profile?.displayName ?? "Hunter", avatarUrl: profile?.avatarUrl ?? null });
+  }));
+  return ids.map((id) => cache.get(id)!);
 }
 
-export async function listFollowers(uid: string): Promise<FollowPerson[]> {
-  const snapshot = await getDocs(collection(getFirebaseServices().db, "publicFollowers", uid, "followers"));
-  return resolvePeople(snapshot.docs.map((entry) => entry.id));
+export function subscribeToFollowers(
+  uid: string,
+  onValue: (people: FollowPerson[]) => void,
+  onError: (error: Error) => void,
+): Unsubscribe {
+  const cache = new Map<string, FollowPerson>();
+  let emission = 0;
+  const unsubscribe = onSnapshot(collection(getFirebaseServices().db, "publicFollowers", uid, "followers"), (snapshot) => {
+    const current = ++emission;
+    void resolvePeople(snapshot.docs.map((entry) => entry.id), cache)
+      .then((people) => { if (current === emission) onValue(people); })
+      .catch((error: Error) => { if (current === emission) onError(error); });
+  }, onError);
+  return () => {
+    emission += 1;
+    unsubscribe();
+  };
 }
 
-export async function listFollowing(uid: string): Promise<FollowPerson[]> {
-  const snapshot = await getDocs(followingEdges(uid));
-  return resolvePeople(snapshot.docs.map((entry) => (entry.data() as { followedId: string }).followedId));
+export function subscribeToFollowingPeople(
+  uid: string,
+  onValue: (people: FollowPerson[]) => void,
+  onError: (error: Error) => void,
+): Unsubscribe {
+  const cache = new Map<string, FollowPerson>();
+  let emission = 0;
+  const unsubscribe = onSnapshot(followingEdges(uid), (snapshot) => {
+    const current = ++emission;
+    const ids = snapshot.docs.map((entry) => (entry.data() as { followedId: string }).followedId);
+    void resolvePeople(ids, cache)
+      .then((people) => { if (current === emission) onValue(people); })
+      .catch((error: Error) => { if (current === emission) onError(error); });
+  }, onError);
+  return () => {
+    emission += 1;
+    unsubscribe();
+  };
 }
