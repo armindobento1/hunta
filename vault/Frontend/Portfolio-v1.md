@@ -25,9 +25,10 @@ The customer-facing product name is **Hunta**.
 
 ## Data flow
 
-Firebase Auth supplies the UID. One provider keeps subscriptions to
-`users/{uid}`, `users/{uid}/kills`, `users/{uid}/armoryItems`, and
-`users/{uid}/loadouts` mounted across private route navigation.
+Firebase Auth supplies the UID. Route-scoped providers subscribe only to the
+data each screen consumes: social routes do not mount private portfolio or
+armory streams; map/trash use kills only; profile uses profile only; loadout
+routes use armory only; and hunt detail performs its existing direct read.
 Hooks read those in-memory snapshots. Domain selectors create feed/grouped views without moving
 or rewriting records. New records are saved as `draft` before uploads and become
 `active` only after validation and attachment linking. Deletes set `trashed` and
@@ -91,5 +92,8 @@ local toolchain.
 
 ## Web runtime
 
-Hunta is a Vite + React Router SPA. Vercel serves `dist/` with a clean-URL
-fallback to `index.html`. Capacitor and native projects remain deferred.
+Hunta is a Vite + React Router SPA. Route pages and their data providers are
+lazy-loaded so editor, social, portfolio, and map code are fetched on demand.
+Vercel serves `dist/` with a clean-URL fallback to `index.html`; content-hashed
+`/assets/` responses receive a one-year immutable browser cache. Capacitor and
+native projects remain deferred.

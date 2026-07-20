@@ -22,7 +22,7 @@ function LikesLine({ likeCount, likedByMe, to }: { likeCount: number; likedByMe:
   return <Link className="soc-likers" to={to}>{likeCount} like{likeCount > 1 ? "s" : ""}</Link>;
 }
 
-export function HuntPostCard({ hunt }: { hunt: PublicHunt }) {
+export function HuntPostCard({ hunt, imagePriority = false }: { hunt: PublicHunt; imagePriority?: boolean }) {
   const cover =
     hunt.media.find((media) => media.id === hunt.coverMediaId && media.kind === "photo") ??
     hunt.media.find((media) => media.kind === "photo");
@@ -79,7 +79,13 @@ export function HuntPostCard({ hunt }: { hunt: PublicHunt }) {
       </div>
       <div className="soc-media" onPointerUp={handleMediaPointerUp}>
         {cover ? (
-          <img src={cover.downloadUrl} alt={`${hunt.species} hunt by ${hunt.hunter.displayName}`} loading="lazy" />
+          <img
+            src={cover.downloadUrl}
+            alt={`${hunt.species} hunt by ${hunt.hunter.displayName}`}
+            loading={imagePriority ? "eager" : "lazy"}
+            fetchPriority={imagePriority ? "high" : "auto"}
+            decoding="async"
+          />
         ) : (
           <span className="soc-media-empty">{hunt.species}</span>
         )}

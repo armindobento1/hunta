@@ -28,6 +28,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local media / scratch projects kept beside the repo but never shipped
+Instagram/
+
 # local design and Firebase tooling
 .superpowers/
 .firebase/

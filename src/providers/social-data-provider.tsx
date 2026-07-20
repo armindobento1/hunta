@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import type { PublicHunt } from "@/lib/domain/public-social";
 import { likeHunt, unlikeHunt } from "@/lib/firebase/engagement-repository";
@@ -25,9 +25,13 @@ export function SocialDataProvider({ children }: { children: ReactNode }) {
   const [huntReady, setHuntReady] = useState(false);
   const [followReady, setFollowReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const actorPromiseRef = useRef<Promise<{ id: string; name: string }> | null>(null);
 
   useEffect(() => {
     if (!user) return;
+    actorPromiseRef.current = getPublicProfile(user.uid)
+      .then((profile) => ({ id: user.uid, name: profile?.displayName ?? user.displayName ?? "A hunter" }))
+      .catch(() => ({ id: user.uid, name: user.displayName ?? "A hunter" }));
     const unsubscribeHunts = subscribeToPublicHunts((items) => { setHunts(items); setHuntReady(true); }, () => { setError("Public hunts could not be loaded."); setHuntReady(true); });
     const unsubscribeFollowing = subscribeToFollowing(user.uid, (ids) => { setFollowingIds(ids); setFollowReady(true); }, () => { setError("Following could not be loaded."); setFollowReady(true); });
     // One listener for the whole feed's like state — not one per card.
@@ -44,10 +48,16 @@ export function SocialDataProvider({ children }: { children: ReactNode }) {
     toggleFollow: async (id, isFollowing) => {
       if (!user) return;
       setError(null);
+      setFollowingIds((current) => isFollowing
+        ? current.filter((followedId) => followedId !== id)
+        : current.includes(id) ? current : [...current, id]);
       try {
         if (isFollowing) await unfollowAccount(user.uid, id);
         else await followAccount(user.uid, id);
       } catch (cause) {
+        setFollowingIds((current) => isFollowing
+          ? current.includes(id) ? current : [...current, id]
+          : current.filter((followedId) => followedId !== id));
         setError(cause instanceof Error ? cause.message : "Could not update the follow.");
       }
     },
@@ -61,8 +71,9 @@ export function SocialDataProvider({ children }: { children: ReactNode }) {
       try {
         if (liked) await unlikeHunt(hunt, user.uid);
         else {
-          const profile = await getPublicProfile(user.uid);
-          await likeHunt(hunt, { id: user.uid, name: profile?.displayName ?? "A hunter" });
+          const actor = await (actorPromiseRef.current
+            ?? Promise.resolve({ id: user.uid, name: user.displayName ?? "A hunter" }));
+          await likeHunt(hunt, actor);
         }
       } catch (cause) {
         setLikedIds((prev) => (liked ? [...prev, hunt.id] : prev.filter((id) => id !== hunt.id)));

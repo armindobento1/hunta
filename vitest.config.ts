@@ -18,10 +18,11 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     exclude: [
       "tests/rules/**",
-      "node_modules/**",
+      "**/node_modules/**",
       ".next/**",
       "dist/**",
       "archive/**",
+      "Instagram/**",
     ],
   },
 });

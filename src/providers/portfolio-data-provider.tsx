@@ -42,15 +42,31 @@ interface PortfolioDataState {
   armoryState: { items: ArmoryItem[]; loadouts: Loadout[]; loading: boolean; error: string | null };
 }
 
+export interface PortfolioDataNeeds {
+  profile?: boolean;
+  kills?: boolean;
+  armory?: boolean;
+}
+
 const PortfolioDataContext = createContext<PortfolioDataState | null>(null);
 
-export function PortfolioDataProvider({ children }: { children: ReactNode }) {
+export function PortfolioDataProvider({ children, needs }: { children: ReactNode; needs?: PortfolioDataNeeds }) {
   const { user } = useAuth();
 
   if (!user) return null;
 
+  const profileEnabled = needs ? needs.profile === true : true;
+  const killsEnabled = needs ? needs.kills === true : true;
+  const armoryEnabled = needs ? needs.armory === true : true;
+
   return (
-    <PortfolioDataSession key={user.uid} user={user}>
+    <PortfolioDataSession
+      key={`${user.uid}:${Number(profileEnabled)}${Number(killsEnabled)}${Number(armoryEnabled)}`}
+      user={user}
+      profileEnabled={profileEnabled}
+      killsEnabled={killsEnabled}
+      armoryEnabled={armoryEnabled}
+    >
       {children}
     </PortfolioDataSession>
   );
@@ -59,22 +75,28 @@ export function PortfolioDataProvider({ children }: { children: ReactNode }) {
 function PortfolioDataSession({
   children,
   user,
+  profileEnabled,
+  killsEnabled,
+  armoryEnabled,
 }: {
   children: ReactNode;
   user: User;
+  profileEnabled: boolean;
+  killsEnabled: boolean;
+  armoryEnabled: boolean;
 }) {
   const [profileState, setProfileState] = useState<ProfileDataState>({
     profile: null,
-    loading: true,
+    loading: profileEnabled,
     error: null,
     syncError: null,
   });
   const [killsState, setKillsState] = useState<KillDataState>({
     kills: [],
-    loading: true,
+    loading: killsEnabled,
     error: null,
   });
-  const [armoryState, setArmoryState] = useState<PortfolioDataState["armoryState"]>({ items: [], loadouts: [], loading: true, error: null });
+  const [armoryState, setArmoryState] = useState<PortfolioDataState["armoryState"]>({ items: [], loadouts: [], loading: armoryEnabled, error: null });
   const lastSyncedRef = useRef<string | null>(null);
   const syncingRef = useRef<string | null>(null);
   const pendingSyncRef = useRef<{ profile: PublicProfile; value: string } | null>(null);
@@ -122,7 +144,7 @@ function PortfolioDataSession({
         });
     }
 
-    const unsubscribeProfile = subscribeToProfile(
+    const unsubscribeProfile = profileEnabled ? subscribeToProfile(
       user.uid,
       (profile) => {
         if (profile) {
@@ -169,9 +191,9 @@ function PortfolioDataSession({
           syncError: null,
         });
       },
-    );
+    ) : () => {};
 
-    const unsubscribeKills = subscribeToKills(
+    const unsubscribeKills = killsEnabled ? subscribeToKills(
       user.uid,
       (kills) => {
         setKillsState({ kills, loading: false, error: null });
@@ -183,30 +205,30 @@ function PortfolioDataSession({
           error: "Your portfolio could not be loaded. Check your connection.",
         });
       },
-    );
+    ) : () => {};
     let itemSettled = false;
     let loadoutSettled = false;
     let itemError: string | null = null;
     let loadoutError: string | null = null;
     const loadingArmory = () => !(itemSettled && loadoutSettled);
-    const unsubscribeItems = subscribeToArmoryItems(user.uid, (items) => {
-      itemSettled = true;
-      itemError = null;
-      setArmoryState((current) => ({ ...current, items, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
-    }, () => {
-      itemSettled = true;
-      itemError = "Your armory could not be loaded.";
-      setArmoryState((current) => ({ ...current, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
-    });
-    const unsubscribeLoadouts = subscribeToLoadouts(user.uid, (loadouts) => {
-      loadoutSettled = true;
-      loadoutError = null;
-      setArmoryState((current) => ({ ...current, loadouts, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
-    }, () => {
-      loadoutSettled = true;
-      loadoutError = "Your loadouts could not be loaded.";
-      setArmoryState((current) => ({ ...current, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
-    });
+    const unsubscribeItems = armoryEnabled ? subscribeToArmoryItems(user.uid, (items) => {
+        itemSettled = true;
+        itemError = null;
+        setArmoryState((current) => ({ ...current, items, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
+      }, () => {
+        itemSettled = true;
+        itemError = "Your armory could not be loaded.";
+        setArmoryState((current) => ({ ...current, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
+      }) : () => {};
+    const unsubscribeLoadouts = armoryEnabled ? subscribeToLoadouts(user.uid, (loadouts) => {
+        loadoutSettled = true;
+        loadoutError = null;
+        setArmoryState((current) => ({ ...current, loadouts, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
+      }, () => {
+        loadoutSettled = true;
+        loadoutError = "Your loadouts could not be loaded.";
+        setArmoryState((current) => ({ ...current, loading: loadingArmory(), error: itemError ?? loadoutError ?? null }));
+      }) : () => {};
 
     return () => {
       active = false;
@@ -215,7 +237,7 @@ function PortfolioDataSession({
       unsubscribeItems();
       unsubscribeLoadouts();
     };
-  }, [user]);
+  }, [armoryEnabled, killsEnabled, profileEnabled, user]);
 
   const value = useMemo(
     () => ({ profileState, killsState, armoryState }),

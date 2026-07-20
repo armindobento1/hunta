@@ -10,6 +10,8 @@ import { makeKill } from "@/tests/helpers/kill";
 const mocks = vi.hoisted(() => ({
   likeHunt: vi.fn(),
   unlikeHunt: vi.fn(),
+  followAccount: vi.fn(),
+  unfollowAccount: vi.fn(),
   getPublicProfile: vi.fn(),
   subscribeToPublicHunts: vi.fn<(
     onValue: (hunts: PublicHunt[]) => void,
@@ -29,7 +31,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/hooks/use-auth", () => ({
-  useAuth: () => ({ user: { uid: "viewer" }, loading: false, error: null }),
+  useAuth: () => ({ user: { uid: "viewer", displayName: "Viewer" }, loading: false, error: null }),
 }));
 
 vi.mock("@/lib/firebase/engagement-repository", () => ({
@@ -38,9 +40,9 @@ vi.mock("@/lib/firebase/engagement-repository", () => ({
 }));
 
 vi.mock("@/lib/firebase/follow-repository", () => ({
-  followAccount: vi.fn(),
+  followAccount: mocks.followAccount,
   subscribeToFollowing: mocks.subscribeToFollowing,
-  unfollowAccount: vi.fn(),
+  unfollowAccount: mocks.unfollowAccount,
 }));
 
 vi.mock("@/lib/firebase/public-social-repository", () => ({
@@ -50,11 +52,13 @@ vi.mock("@/lib/firebase/public-social-repository", () => ({
 }));
 
 function Probe({ hunt }: { hunt: PublicHunt }) {
-  const { error, likedIds, toggleLike } = useSocial();
+  const { error, followingIds, likedIds, toggleFollow, toggleLike } = useSocial();
   return (
     <>
       <span data-testid="liked">{likedIds.includes(hunt.id) ? "liked" : "not liked"}</span>
+      <span data-testid="followed">{followingIds.includes(hunt.ownerId) ? "followed" : "not followed"}</span>
       <button type="button" onClick={() => void toggleLike(hunt)}>Toggle like</button>
+      <button type="button" onClick={() => void toggleFollow(hunt.ownerId, followingIds.includes(hunt.ownerId))}>Toggle follow</button>
       {error ? <p role="alert">{error}</p> : null}
     </>
   );
@@ -98,5 +102,34 @@ describe("SocialDataProvider", () => {
 
     expect(screen.getByTestId("liked")).toHaveTextContent("not liked");
     expect(screen.getByRole("alert")).toHaveTextContent("Could not update the like.");
+  });
+
+  it("shows a follow immediately and reverts it when the write fails", async () => {
+    const user = userEvent.setup();
+    const hunt = buildPublicHunt(
+      makeKill({ ownerId: "owner" }),
+      { id: "owner", displayName: "Owner", avatarUrl: null, bio: "", createdAt: "2025-01-01T00:00:00.000Z", updatedAt: "2025-01-01T00:00:00.000Z" },
+    );
+    let rejectFollow: (reason?: unknown) => void = () => {};
+    mocks.followAccount.mockImplementation(() => new Promise<void>((_resolve, reject) => { rejectFollow = reject; }));
+    render(
+      <SocialDataProvider>
+        <Probe hunt={hunt} />
+      </SocialDataProvider>,
+    );
+    act(() => {
+      mocks.subscribeToFollowing.mock.calls[0][1]([]);
+    });
+
+    await user.click(screen.getByRole("button", { name: "Toggle follow" }));
+    expect(screen.getByTestId("followed")).toHaveTextContent("followed");
+
+    await act(async () => {
+      rejectFollow("offline");
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("followed")).toHaveTextContent("not followed");
+    expect(screen.getByRole("alert")).toHaveTextContent("Could not update the follow.");
   });
 });
