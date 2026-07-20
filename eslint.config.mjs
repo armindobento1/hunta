@@ -15,6 +15,7 @@ export default tseslint.config(
       "ios/**",
       "Hunting Portfolio App/**",
       "Hunting Portfolio App 2/**",
+      "Instagram/**",
     ],
   },
   js.configs.recommended,
