@@ -101,6 +101,20 @@ describe("PortfolioDataProvider", () => {
     expect(mocks.subscribeToKills).toHaveBeenCalledOnce();
   });
 
+  it("subscribes only to the data requested by a route", () => {
+    render(
+      <PortfolioDataProvider needs={{ kills: true }}>
+        <Probe route="kills-only" />
+      </PortfolioDataProvider>,
+    );
+
+    expect(screen.getByText("kills-only:false:true")).toBeInTheDocument();
+    expect(mocks.subscribeToProfile).not.toHaveBeenCalled();
+    expect(mocks.subscribeToKills).toHaveBeenCalledOnce();
+    expect(mocks.subscribeToArmoryItems).not.toHaveBeenCalled();
+    expect(mocks.subscribeToLoadouts).not.toHaveBeenCalled();
+  });
+
   it("cleans up and creates fresh subscriptions when the UID changes", () => {
     const { rerender } = render(
       <PortfolioDataProvider>

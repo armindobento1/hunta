@@ -60,8 +60,8 @@ export function HomeFeedPage() {
           </div>
         ) : (
           <div className="social-feed-list">
-            {feed.map((hunt) => (
-              <HuntPostCard key={hunt.id} hunt={hunt} />
+            {feed.map((hunt, index) => (
+              <HuntPostCard key={hunt.id} hunt={hunt} imagePriority={index === 0} />
             ))}
           </div>
         )}

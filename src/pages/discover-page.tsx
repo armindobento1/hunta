@@ -33,24 +33,27 @@ export function DiscoverPage() {
           </div>
         ) : (
           <div className="discover-grid" aria-label="Discover hunts">
-            {hunts.map((hunt) => {
+            {hunts.map((hunt, index) => {
               const cover = hunt.media.find(
                 (media) =>
                   media.id === hunt.coverMediaId && media.kind === "photo",
               );
               return (
                 <Link
-                  className="discover-tile"
+                  className={`discover-tile${cover ? " discover-tile-image" : ""}`}
                   key={hunt.id}
                   to={`/people/${hunt.ownerId}/hunts/${hunt.id}`}
                   aria-label={`${hunt.species} by ${hunt.hunter.displayName}`}
-                  style={
-                    cover
-                      ? { backgroundImage: `url(${cover.downloadUrl})` }
-                      : undefined
-                  }
                 >
-                  {cover ? null : <span>{hunt.species}</span>}
+                  {cover ? (
+                    <img
+                      src={cover.downloadUrl}
+                      alt=""
+                      loading={index < 6 ? "eager" : "lazy"}
+                      fetchPriority={index === 0 ? "high" : "auto"}
+                      decoding="async"
+                    />
+                  ) : <span>{hunt.species}</span>}
                 </Link>
               );
             })}
