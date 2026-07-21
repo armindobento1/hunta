@@ -1,0 +1,19 @@
+# Files uploaded to Vercel for the build. .gitignore does NOT apply here, so
+# large local folders must be listed explicitly or the upload hits the 100 MB
+# per-file limit. Keep this to the web build's actual inputs.
+
+# Local media / scratch projects kept beside the repo but never shipped
+Instagram/
+Hunting Portfolio App/
+Hunting Portfolio App 2/
+
+# Rebuilt on Vercel
+node_modules/
+dist/
+
+# Native shells and non-web trees (not part of the Vite build)
+ios/
+android/
+archive/
+docs/
+vault/
