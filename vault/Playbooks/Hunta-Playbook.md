@@ -77,6 +77,15 @@ selection, the trash pages (`trash-view`, `trash-dialog`, `trash-page`).
   explicit confirmed path.
 - If the removed media was the cover, `coverMediaId` must be reassigned or
   nulled in the same edit.
+- **Photos are downscaled on upload** (`lib/firebase/optimize-image.ts`, wired
+  into `uploadMedia`/`uploadAvatar`): re-encoded to WebP, max 2560px (768px for
+  avatars). The stored WebP is the **single** media file — the camera original
+  is intentionally not retained (approved product decision; see
+  [[Performance-Local-First]]). Invariant 3 still holds for *stored* media
+  (never destroyed once uploaded); it does not require keeping the pre-upload
+  original. The util fails safe: any decode/encode failure, or a non-raster/GIF/
+  SVG type, uploads the original file unchanged. Videos and GPX are never
+  re-encoded.
 
 **Tests.** Trash flow round-trip (trash → restore → nothing lost); cover
 reassignment on media removal.
