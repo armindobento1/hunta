@@ -13,6 +13,7 @@ import { hashGpx, parseGpx } from "@/lib/gpx/parse-gpx";
 import type { ParsedGpx } from "@/lib/gpx/types";
 
 import { getFirebaseServices } from "./config";
+import { optimizeImage } from "./optimize-image";
 
 const IMAGE_LIMIT = 15 * 1024 * 1024;
 const VIDEO_LIMIT = 250 * 1024 * 1024;
@@ -107,12 +108,14 @@ export async function uploadMedia(options: {
   onProgress?: (percent: number) => void;
 }): Promise<MediaAsset> {
   const { kind } = validateMediaFile(options.file);
+  const fileToUpload =
+    kind === "photo" ? await optimizeImage(options.file) : options.file;
   const id = options.id ?? crypto.randomUUID();
-  const path = `users/${options.uid}/kills/${options.killId}/media/${id}-${sanitizeFileName(options.file.name)}`;
+  const path = `users/${options.uid}/kills/${options.killId}/media/${id}-${sanitizeFileName(fileToUpload.name)}`;
   const snapshot = await upload(
     path,
-    options.file,
-    { contentType: options.file.type },
+    fileToUpload,
+    { contentType: fileToUpload.type },
     options.onProgress,
   );
 
@@ -121,9 +124,9 @@ export async function uploadMedia(options: {
     kind,
     storagePath: path,
     downloadUrl: await getDownloadURL(snapshot.ref),
-    fileName: options.file.name,
-    contentType: options.file.type,
-    sizeBytes: options.file.size,
+    fileName: fileToUpload.name,
+    contentType: fileToUpload.type,
+    sizeBytes: fileToUpload.size,
     createdAt: new Date().toISOString(),
   };
 }
@@ -178,8 +181,11 @@ export async function uploadAvatar({
   if (kind !== "photo") {
     throw new Error("An avatar must be a photo.");
   }
+  const optimized = await optimizeImage(file, { maxDimension: 768 });
   const id = crypto.randomUUID();
-  const path = `users/${uid}/avatars/${id}-${sanitizeFileName(file.name)}`;
-  const snapshot = await upload(path, file, { contentType: file.type });
+  const path = `users/${uid}/avatars/${id}-${sanitizeFileName(optimized.name)}`;
+  const snapshot = await upload(path, optimized, {
+    contentType: optimized.type,
+  });
   return getDownloadURL(snapshot.ref);
 }

@@ -13,6 +13,8 @@ import {
   connectFirestoreEmulator,
   getFirestore,
   initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   type Firestore,
 } from "firebase/firestore";
 import {
@@ -71,14 +73,19 @@ function createAuth(app: FirebaseApp): Auth {
 // Firestore's default WebChannel streaming transport fails inside the iOS
 // Capacitor WKWebView — the `Listen` RPC stream errors and onSnapshot never
 // delivers, so public feeds (which are all live listeners) never load. Force
-// long-polling on native; browsers keep the faster WebChannel path.
+// long-polling on native; browsers keep the faster WebChannel path. A
+// persistent IndexedDB cache serves reads locally and syncs network deltas.
 function createFirestore(app: FirebaseApp): Firestore {
-  if (!isNativePlatform()) return getFirestore(app);
   try {
-    return initializeFirestore(app, { experimentalForceLongPolling: true });
+    return initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+      ...(isNativePlatform() ? { experimentalForceLongPolling: true } : {}),
+    });
   } catch {
-    // initializeFirestore throws if Firestore was already initialized for
-    // this app (e.g. HMR) — reuse the existing instance.
+    // initializeFirestore throws if Firestore was already initialized for this
+    // app (e.g. HMR) — reuse the existing instance.
     return getFirestore(app);
   }
 }

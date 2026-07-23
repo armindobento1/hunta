@@ -24,6 +24,7 @@ whole vault.** Patch the smallest affected note; prefer updating over creating.
 
 ## Decisions
 - [[Capacitor-Wrap]] — iOS/Android native shells, config-only native edits, Google sign-in gating, build requirements.
+- [[Performance-Local-First]] — Firestore persistent cache, photo downscale-on-upload (Invariant 3 nuance), vendor chunking; deferred PWA/skeletons/pagination.
 
 ## Bugs
 - _(past incidents + fixes)_
